@@ -1,5 +1,5 @@
 #pragma once
-#include "States.h".h"
+#include "States.h"
 
 class SharedEnvironment {
 public:
