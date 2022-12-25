@@ -1,33 +1,70 @@
 #pragma once
-#include "BasicSystem.h"
-#include "CompetitionGraph.h"
+// #include "BasicSystem.h"
+#include "SharedEnv.h"
+#include "MAPFPlanner.h"
 
-class CompetitionSystem :
-public BasicSystem
+
+
+
+class CompetitionSystem 
 {
  public:
-	CompetitionSystem(const CompetitionGrid & G, MAPFSolver& solver);
-	~CompetitionSystem();
+	CompetitionSystem(MAPFPlanner* solver);
+	~CompetitionSystem(){};
 
-  void load_agent_tasks(string fname);
+  bool load_map(string fname);
+  bool load_agent_tasks(string fname);
 
 	void simulate(int simulation_time);
 
  private:
 
+  int rows = 0;
+  int cols = 0;
+  std::vector<vector<int>> map;
+  string map_name;
+
+  MAPFPlanner* planner;
+  SharedEnvironment* env;
+
+
+  // #timesteps for simulation
+  int timestep;
+
+  int preprocess_time_limit;
+  int plan_time_limit;
+
+
+
+  std::vector<Path> paths;
+  std::vector<std::list<std::pair<int, int> > > finished_tasks; // location + finish time
+
+  vector<State> starts;
+
+
+  int num_of_agents;
+
+  vector<State> curr_states;
+
   // vector of <loc, orientation>
   // initialized in load_tasks
-  vector<pair<int, int>> agent_start_locations;
 
-
-	const CompetitionGrid& G;
-
-
+  // all tasks that haven't been finished
   vector<deque<int>> task_queue;
 
+  // tasks that haven't been finished but have been revealed to agents;
+  vector< vector<pair<int, int> > > goal_locations;
 
 	void initialize();
-	void initialize_start_locations();
-	void initialize_goal_locations();
 	void update_goal_locations();
+
+  void sync_shared_env();
+
+
+  // move agents,  update agents location, return finished tasks
+  list<tuple<int, int, int>> move(vector<State>& next_states);
+
+  // TODO check if moves are valid
+  bool valid_moves(vector<State>& prev, vector<State> next);
+
 };
