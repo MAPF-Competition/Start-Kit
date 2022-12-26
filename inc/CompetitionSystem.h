@@ -15,13 +15,17 @@ class CompetitionSystem
   bool load_map(string fname);
   bool load_agent_tasks(string fname);
 
+  bool check_collisions = true;
+
 	void simulate(int simulation_time);
 
  private:
 
+  int moves[4];
+
   int rows = 0;
   int cols = 0;
-  std::vector<vector<int>> map;
+  std::vector<int> map;
   string map_name;
 
   MAPFPlanner* planner;
@@ -64,7 +68,6 @@ class CompetitionSystem
   // move agents,  update agents location, return finished tasks
   list<tuple<int, int, int>> move(vector<State>& next_states);
 
-  // TODO check if moves are valid
   bool valid_moves(vector<State>& prev, vector<State> next);
 
 };
