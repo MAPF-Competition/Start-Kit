@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 		("travel_time_window", po::value<int>()->default_value(0), "consider the traffic jams within the given window")
 		("planning_window", po::value<int>()->default_value(INT_MAX / 2),
 		        "the planner outputs plans with first planning_window timesteps collision-free")
-		("rotation", po::value<bool>()->default_value(false), "consider rotation")
+		("checkconf", po::value<bool>()->default_value(true), "consider conflict")
 		("log", po::value<bool>()->default_value(false), "save the search trees (and the priority trees)")
 		;
 	clock_t start_time = clock();
@@ -48,6 +48,7 @@ int main(int argc, char** argv)
   MAPFPlanner* solver;
   solver->env = new SharedEnvironment();
   CompetitionSystem system(solver);
+  system.check_collisions = vm["checkconf"].as<bool>();
   system.load_map(vm["map"].as<std::string>());
   system.load_agent_tasks(vm["task"].as<std::string>());
 

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "CompetitionSystem.h"
 #include<boost/tokenizer.hpp>
 
@@ -26,7 +27,13 @@ bool CompetitionSystem::load_map(string fname){
 	beg++;
 	cols = atoi((*beg).c_str()); // read number of cols
 
-  map.resize(rows, vector<int>(cols, 0));
+	moves[0] = 1;
+	moves[1] = -cols;
+	moves[2] = -1;
+	moves[3] = cols;
+
+
+  map.resize(cols * rows, 0);
 
 	//DeliverGoal.resize(row*col, false);
 	// read map
@@ -36,13 +43,14 @@ bool CompetitionSystem::load_map(string fname){
 		getline(myfile, line);
 		for (int j = 0; j < cols; j++)
 		{
+      int id = cols * i + j;
 			if (line[j] == '@') // obstacle
 			{
-				map[i][j] = 1;
+				map[id] = 1;
 			}
 			else
 			{
-				map[i][j] = 0;
+				map[id] = 0;
 			}
 		}
 	}
@@ -138,8 +146,58 @@ list<tuple<int, int, int>> CompetitionSystem::move(vector<State>& next_states){
 }
 
 
+// This function might not work correctly with small map (w or h <=2)
 bool CompetitionSystem::valid_moves(vector<State>& prev, vector<State> next){
-  // TODO
+  if (prev.size() != next.size()){
+    return false;
+  }
+
+  unordered_map<int, int> occupied;
+
+  for (int i = 0; i < prev.size(); i ++){
+    if (prev[i].location == next[i].location){
+      // check if the rotation is not larger than 90 degree
+      if (abs(prev[i].orientation - next[i].orientation) == 2){
+        cout << "ERROR: agent " << i << " over-rotates. " << endl;
+        return false;
+      }
+    } else {
+      if (prev[i].orientation != next[i].orientation){
+        cout << "ERROR: agent " << i << " moves and rotates at the same time. " << endl;
+        return false;
+      }
+      if (next[i].location - prev[i].location != moves[prev[i].orientation]){
+        cout << "ERROR: agent " << i << " moves in a wrong direction. " << endl;
+        return false;
+      }
+
+      if (abs(next[i].location / rows - prev[i].location/rows) + abs(next[i].location % rows - prev[i].location %rows) > 1  ){
+        cout << "ERROR: agent " << i << " moves more than 1 steps. " << endl;
+        return false;
+      }
+    }
+
+    if (map[next[i].location] == 1){
+      cout << "ERROR: agent " << i << " moves to an obstacle. " << endl;
+      return false;
+    }
+
+    if (check_collisions){
+      if (occupied.find(next[i].location) != occupied.end()){
+        cout << "ERROR: agents " << i << " and " << occupied[next[i].location] << " have a vertex conflict. " << endl;
+      }
+      int edge_idx = (prev[i].location + 1) * rows * cols +  next[i].location;
+      if (occupied.find(edge_idx) != occupied.end()){
+        cout << "ERROR: agents " << i << " and " << occupied[edge_idx] << " have an edhe conflict. " << endl;
+      }
+
+      occupied[next[i].location] = i;
+      int r_edge_idx = (next[i].location + 1) * rows * cols +  prev[i].location;
+      occupied[r_edge_idx] = i;
+    }
+
+  }
+
   return true;
 }
 
@@ -193,6 +251,8 @@ void CompetitionSystem::initialize(){
 
 	paths.resize(num_of_agents);
   env->num_of_agents = num_of_agents;
+  env->rows = rows;
+  env->cols = cols;
   env->map = map;
 	finished_tasks.resize(num_of_agents);
 	// bool succ = load_records(); // continue simulating from the records

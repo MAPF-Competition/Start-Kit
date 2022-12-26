@@ -5,6 +5,11 @@ struct State
 {
     int location;
     int timestep;
+
+  // 0 = right
+  // 1 = up
+  // 2 = left
+  // 3 = down
     int orientation;
 
     State wait() const {return State(location, timestep + 1, orientation); }
