@@ -157,10 +157,10 @@ bool CompetitionSystem::valid_moves(vector<State>& prev, vector<State> next){
   for (int i = 0; i < prev.size(); i ++){
     if (prev[i].location == next[i].location){
       // check if the rotation is not larger than 90 degree
-      if (abs(prev[i].orientation - next[i].orientation) == 2){
-        cout << "ERROR: agent " << i << " over-rotates. " << endl;
-        return false;
-      }
+      // if (abs(prev[i].orientation - next[i].orientation) == 2){
+      //   cout << "ERROR: agent " << i << " over-rotates. " << endl;
+      //   return false;
+      // }
     } else {
       if (prev[i].orientation != next[i].orientation){
         cout << "ERROR: agent " << i << " moves and rotates at the same time. " << endl;

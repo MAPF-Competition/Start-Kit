@@ -2,10 +2,6 @@
 #include <ctime>
 #include "SharedEnv.h"
 
-class Action{
-
-};
-
 class MAPFPlanner
 {
 public:
