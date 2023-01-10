@@ -8,7 +8,8 @@ public:
 
   SharedEnvironment* env;
 
-	MAPFPlanner(SharedEnvironment* env): env(env){};
+	//MAPFPlanner(SharedEnvironment* env): env(env){};
+  MAPFPlanner(){env = new SharedEnvironment();};
 	~MAPFPlanner();
 
 
