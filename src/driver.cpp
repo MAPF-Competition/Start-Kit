@@ -4,7 +4,6 @@
 
 int main(int argc, char** argv) 
 {
-	//
 	namespace po = boost::program_options;
 	// Declare the supported options.
 	po::options_description desc("Allowed options");
@@ -45,9 +44,9 @@ int main(int argc, char** argv)
 		boost::filesystem::create_directories(dir2);
 	}
 
-
-  MAPFPlanner* solver;
-  solver->env = new SharedEnvironment();
+  	MAPFPlanner* solver;
+  
+  //solver->env = new SharedEnvironment();
   CompetitionSystem system(solver);
   system.check_collisions = vm["checkconf"].as<bool>();
   system.load_map(vm["map"].as<std::string>());
