@@ -131,7 +131,6 @@ list<tuple<int, int, int>> CompetitionSystem::move(vector<State>& next_states){
     // check finished tasks;
   }
   // agents do not move
-
   for (int k = 0; k < num_of_agents; k++) {
     if (curr_states[k].location == goal_locations[k].front().first){
       goal_locations[k].erase(goal_locations[k].begin());
@@ -224,7 +223,7 @@ void CompetitionSystem::simulate(int simulation_time){
     sync_shared_env();
 
     auto next_states = planner->plan(plan_time_limit);
-    return;
+    //return;
 
     // move drives
     auto new_finished_tasks = move(next_states);
