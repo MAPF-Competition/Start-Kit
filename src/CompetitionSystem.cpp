@@ -81,7 +81,7 @@ bool CompetitionSystem::load_agent_tasks(string fname){
   tokenizer<char_separator<char>> tok(line, sep);
   tokenizer<char_separator<char>>::iterator beg = tok.begin();
 
-  int num_of_agents = atoi((*beg).c_str());
+  num_of_agents = atoi((*beg).c_str());
 
   // My benchmark
   if (num_of_agents == 0)
@@ -211,33 +211,36 @@ void CompetitionSystem::sync_shared_env(){
 
 void CompetitionSystem::simulate(int simulation_time){
 	initialize();
+  //I just put it out to seperate ours initilize with participants'
+  planner->initialize(preprocess_time_limit);
 
 	for (; timestep < simulation_time; timestep += 1)
-    {
-      std::cout << "Timestep " << timestep << std::endl;
+  {
+    std::cout << "Timestep " << timestep << std::endl;
 
 
-      // solve();
+    // solve();
 
-      sync_shared_env();
+    sync_shared_env();
 
-      auto next_states = planner->plan(plan_time_limit);
+    auto next_states = planner->plan(plan_time_limit);
+    return;
 
-      // move drives
-      auto new_finished_tasks = move(next_states);
-      std::cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
+    // move drives
+    auto new_finished_tasks = move(next_states);
+    std::cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
 
-      // update tasks
-      for (auto task : new_finished_tasks)
-        {
-          int id, loc, t;
-          std::tie(id, loc, t) = task;
-          finished_tasks[id].emplace_back(loc, t);
-          // num_of_tasks++;
-        }
+    // update tasks
+    for (auto task : new_finished_tasks)
+      {
+        int id, loc, t;
+        std::tie(id, loc, t) = task;
+        finished_tasks[id].emplace_back(loc, t);
+        // num_of_tasks++;
+      }
 
-      update_goal_locations();
-    }
+    update_goal_locations();
+  }
 
 	std::cout << std::endl << "Done!" << std::endl;
 }
@@ -251,6 +254,7 @@ void CompetitionSystem::initialize(){
 
 	paths.resize(num_of_agents);
   env->num_of_agents = num_of_agents;
+  
   env->rows = rows;
   env->cols = cols;
   env->map = map;
@@ -258,17 +262,19 @@ void CompetitionSystem::initialize(){
 	// bool succ = load_records(); // continue simulating from the records
   timestep = 0;
   curr_states = starts;
+  goal_locations.resize(num_of_agents);
   // initialize_goal_locations();
   update_goal_locations();
 
   sync_shared_env();
-  planner->initialize(preprocess_time_limit);
+  //planner->initialize(preprocess_time_limit);
 }
 
 
 void CompetitionSystem::update_goal_locations(){
 	for (int k = 0; k < num_of_agents; k++)
     {
+
       if (goal_locations[k].empty() && !task_queue[k].empty()){
         goal_locations[k].emplace_back(task_queue[k].front(), timestep);
         task_queue[k].pop_front();

@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 		boost::filesystem::create_directories(dir2);
 	}
 
-  	MAPFPlanner* solver;
+  	MAPFPlanner* solver = new MAPFPlanner();
   
   //solver->env = new SharedEnvironment();
   CompetitionSystem system(solver);
