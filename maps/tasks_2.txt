@@ -1,0 +1,6 @@
+# num of agents
+2
+# first agent,
+# num of task, start loc, task1 ,task2, task3
+3,0,4,5,23
+2,35,33,20

@@ -48,9 +48,15 @@ void MAPFPlanner::initialize(int preprocess_time_limit){
 std::vector<State> MAPFPlanner::plan(int time_limit){
   for (int i = 0; i < env->num_of_agents;i++)
   {
-    std::cout<<"start plan for agent "<<i<<" with start and goal: ";
+    std::cout<<"start plan for agent "<<i;
     std::list<pair<int,int>> path;
-    path = single_agent_plan(env->curr_states[i].location,env->curr_states[i].orientation,env->goal_locations[i].back().first);
+    if (env->goal_locations[i].empty()){
+      std::cout << ", which does not have any goal left." << std::endl;
+      path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
+    } else {
+      std::cout <<" with start and goal: ";
+      path = single_agent_plan(env->curr_states[i].location,env->curr_states[i].orientation,env->goal_locations[i].back().first);
+    }
     std::cout<<"current location: "<<path.front().first<<" current direction: "<<path.front().second<<std::endl;
     env->curr_states[i].location=path.front().first;
     env->curr_states[i].orientation=path.front().second;
