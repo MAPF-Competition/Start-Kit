@@ -132,7 +132,7 @@ list<tuple<int, int, int>> CompetitionSystem::move(vector<State>& next_states){
   }
   // agents do not move
   for (int k = 0; k < num_of_agents; k++) {
-    if (curr_states[k].location == goal_locations[k].front().first){
+    if (!goal_locations[k].empty() && curr_states[k].location == goal_locations[k].front().first){
       goal_locations[k].erase(goal_locations[k].begin());
       finished_tasks.emplace_back(k, curr_states[k].location, timestep + 1);
     }
@@ -170,7 +170,7 @@ bool CompetitionSystem::valid_moves(vector<State>& prev, vector<State> next){
         return false;
       }
 
-      if (abs(next[i].location / rows - prev[i].location/rows) + abs(next[i].location % rows - prev[i].location %rows) > 1  ){
+      if (abs(next[i].location / cols - prev[i].location/cols) + abs(next[i].location % cols - prev[i].location %cols) > 1  ){
         cout << "ERROR: agent " << i << " moves more than 1 steps. " << endl;
         return false;
       }
@@ -184,10 +184,12 @@ bool CompetitionSystem::valid_moves(vector<State>& prev, vector<State> next){
     if (check_collisions){
       if (occupied.find(next[i].location) != occupied.end()){
         cout << "ERROR: agents " << i << " and " << occupied[next[i].location] << " have a vertex conflict. " << endl;
+        return false;
       }
       int edge_idx = (prev[i].location + 1) * rows * cols +  next[i].location;
       if (occupied.find(edge_idx) != occupied.end()){
-        cout << "ERROR: agents " << i << " and " << occupied[edge_idx] << " have an edhe conflict. " << endl;
+        cout << "ERROR: agents " << i << " and " << occupied[edge_idx] << " have an edge conflict. " << endl;
+        return false;
       }
 
       occupied[next[i].location] = i;
@@ -210,11 +212,13 @@ void CompetitionSystem::sync_shared_env(){
 
 void CompetitionSystem::simulate(int simulation_time){
 	initialize();
+  int num_of_tasks = 0;
   //I just put it out to seperate ours initilize with participants'
   planner->initialize(preprocess_time_limit);
 
 	for (; timestep < simulation_time; timestep += 1)
   {
+    std::cout << "----------------------------" << std::endl;
     std::cout << "Timestep " << timestep << std::endl;
 
 
@@ -228,6 +232,7 @@ void CompetitionSystem::simulate(int simulation_time){
     // move drives
     auto new_finished_tasks = move(next_states);
     std::cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
+    std::cout << num_of_tasks << " tasks has been finished by far" << std::endl;
 
     // update tasks
     for (auto task : new_finished_tasks)
@@ -235,7 +240,7 @@ void CompetitionSystem::simulate(int simulation_time){
         int id, loc, t;
         std::tie(id, loc, t) = task;
         finished_tasks[id].emplace_back(loc, t);
-        // num_of_tasks++;
+        num_of_tasks++;
       }
 
     update_goal_locations();
