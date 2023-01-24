@@ -9,7 +9,7 @@
 class CompetitionSystem 
 {
  public:
-	CompetitionSystem(MAPFPlanner* solver);
+	CompetitionSystem(MAPFPlanner* planner);
 	~CompetitionSystem(){};
 
   bool load_map(string fname);

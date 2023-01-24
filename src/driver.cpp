@@ -36,25 +36,24 @@ int main(int argc, char** argv)
     // make dictionary
 	boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
 	boost::filesystem::create_directories(dir);
-	if (vm["log"].as<bool>())
-	{
+	if (vm["log"].as<bool>()) {
 		boost::filesystem::path dir1(vm["output"].as<std::string>() + "/goal_nodes/");
 		boost::filesystem::path dir2(vm["output"].as<std::string>() + "/search_trees/");
 		boost::filesystem::create_directories(dir1);
 		boost::filesystem::create_directories(dir2);
 	}
 
-  	MAPFPlanner* solver = new MAPFPlanner();
+  	MAPFPlanner* planner = new MAPFPlanner();
   
   //solver->env = new SharedEnvironment();
-  CompetitionSystem system(solver);
+  CompetitionSystem system(planner);
   system.check_collisions = vm["checkconf"].as<bool>();
   system.load_map(vm["map"].as<std::string>());
   system.load_agent_tasks(vm["task"].as<std::string>());
 
   system.simulate(vm["simulation_time"].as<int>());
 
-  delete solver->env;
+  delete planner->env;
   return 0;
 
 	// if (vm["scenario"].as<string>() == "KIVA")
