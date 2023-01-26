@@ -6,8 +6,8 @@ struct AstarNode {
     int direction;
     int f,g,h;
     AstarNode* parent;
-    AstarNode(int _location,int _direction, int _g, int _h, AstarNode* _parent):location(_location), 
-        direction(_direction),f(_g+_h),g(_g),h(_h),parent(_parent) {}
+    AstarNode(int _location,int _direction, int _g, int _h, AstarNode* _parent):
+        location(_location), direction(_direction),f(_g+_h),g(_g),h(_h),parent(_parent) {}
 };
 
 
