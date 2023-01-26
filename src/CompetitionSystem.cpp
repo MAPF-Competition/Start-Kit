@@ -1,6 +1,6 @@
 #include <cmath>
 #include "CompetitionSystem.h"
-#include<boost/tokenizer.hpp>
+#include <boost/tokenizer.hpp>
 
 CompetitionSystem::CompetitionSystem(MAPFPlanner* planner): planner(planner), env(planner->env){};
 
@@ -9,13 +9,13 @@ bool CompetitionSystem::load_map(string fname){
     std::string line;
     std::ifstream myfile ((fname).c_str());
     if (!myfile.is_open()) {
-        std::cout << "Map file " << fname << " does not exist. " << std::endl;
+        cout << "Map file " << fname << " does not exist. " << std::endl;
         return false;
     }
 
-    std::cout << "*** Loading map ***" << std::endl;
+    cout << "*** Loading map ***" << std::endl;
     clock_t t = std::clock();
-    std::size_t pos = fname.rfind('.');  // position of the file extension
+    size_t pos = fname.rfind('.');  // position of the file extension
     map_name = fname.substr(0, pos);  // get the name without extension
     getline (myfile, line);
     boost::char_separator<char> sep(",");
@@ -48,33 +48,31 @@ bool CompetitionSystem::load_map(string fname){
 
     myfile.close();
     double runtime = (std::clock() - t) / CLOCKS_PER_SEC;
-    std::cout << "Map size: " << rows << "x" << cols << " with ";
-    std::cout << "Done! (" << runtime << " s)" << std::endl;
+    cout << "Map size: " << rows << "x" << cols;
+    cout << "\tDone! (load time: " << runtime << " s)" << std::endl;
     return true;
 }
 
+
 bool CompetitionSystem::load_agent_tasks(string fname){
-	using namespace std;
-	using namespace boost;
-  
 	string line;
-	ifstream myfile(fname.c_str());
+	std::ifstream myfile(fname.c_str());
 	if (!myfile.is_open()) return false;
 
 	getline(myfile, line);
-    while (!myfile.eof() && line[0] == '#'){
+    while (!myfile.eof() && line[0] == '#') {
         getline(myfile, line);
     }
 
-    char_separator<char> sep(",");
-    tokenizer<char_separator<char>> tok(line, sep);
-    tokenizer<char_separator<char>>::iterator beg = tok.begin();
+    boost::char_separator<char> sep(",");
+    boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+    boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
 
     num_of_agents = atoi((*beg).c_str());
 
     // My benchmark
     if (num_of_agents == 0) {
-        cerr << "The number of agents should be larger than 0" << endl;
+        std::cerr << "The number of agents should be larger than 0" << endl;
         exit(-1);
     }
     starts.resize(num_of_agents);
@@ -86,8 +84,8 @@ bool CompetitionSystem::load_agent_tasks(string fname){
         while (!myfile.eof() && line[0] == '#'){
             getline(myfile, line);
         }
-        tokenizer<char_separator<char>> tok(line, sep);
-        tokenizer<char_separator<char>>::iterator beg = tok.begin();
+        boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+        boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
         // read start [row,col] for agent i
         int num_landmarks = atoi((*beg).c_str());
         beg++;
@@ -185,12 +183,12 @@ bool CompetitionSystem::valid_moves(vector<State>& prev, vector<State> next){
     return true;
 }
 
+
 void CompetitionSystem::sync_shared_env(){
     env->goal_locations = goal_locations;
     env->curr_timestep = timestep;
     env->curr_states = curr_states;
 }
-
 
 
 void CompetitionSystem::simulate(int simulation_time){
@@ -200,17 +198,17 @@ void CompetitionSystem::simulate(int simulation_time){
     planner->initialize(preprocess_time_limit);
 
 	for (; timestep < simulation_time; timestep += 1) {
-        std::cout << "----------------------------" << std::endl;
-        std::cout << "Timestep " << timestep << std::endl;
+        cout << "----------------------------" << std::endl;
+        cout << "Timestep " << timestep << std::endl;
 
         // find a plan
         sync_shared_env();
-        auto next_states = planner->plan(plan_time_limit);
+        vector<State> next_states = planner->plan(plan_time_limit);
 
         // move drives
-        auto new_finished_tasks = move(next_states);
-        std::cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
-        std::cout << num_of_tasks << " tasks has been finished by far" << std::endl;
+        list<tuple<int, int, int>> new_finished_tasks = move(next_states);
+        cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
+        cout << num_of_tasks << " tasks has been finished by far" << std::endl;
 
         // update tasks
         for (auto task : new_finished_tasks) {
@@ -223,9 +221,8 @@ void CompetitionSystem::simulate(int simulation_time){
         update_goal_locations();
     }
 
-	std::cout << std::endl << "Done!" << std::endl;
+	cout << std::endl << "Done!" << std::endl;
 }
-
 
 
 void CompetitionSystem::initialize() {
@@ -252,12 +249,10 @@ void CompetitionSystem::initialize() {
 
 
 void CompetitionSystem::update_goal_locations(){
-	for (int k = 0; k < num_of_agents; k++)
-    {
-
-      if (goal_locations[k].empty() && !task_queue[k].empty()){
-        goal_locations[k].emplace_back(task_queue[k].front(), timestep);
-        task_queue[k].pop_front();
-      }
+	for (int k = 0; k < num_of_agents; k++) {
+        if (goal_locations[k].empty() && !task_queue[k].empty()) {
+            goal_locations[k].emplace_back(task_queue[k].front(), timestep);
+            task_queue[k].pop_front();
+        }
     }
 }
