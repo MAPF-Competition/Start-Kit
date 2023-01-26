@@ -2,8 +2,8 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-int main(int argc, char** argv) 
-{
+
+int main(int argc, char** argv) {
 	namespace po = boost::program_options;
 	// Declare the supported options.
 	po::options_description desc("Allowed options");
@@ -44,17 +44,15 @@ int main(int argc, char** argv)
 	}
 
   	MAPFPlanner* planner = new MAPFPlanner();
-  
-  //solver->env = new SharedEnvironment();
-  CompetitionSystem system(planner);
-  system.check_collisions = vm["checkconf"].as<bool>();
-  system.load_map(vm["map"].as<std::string>());
-  system.load_agent_tasks(vm["task"].as<std::string>());
 
-  system.simulate(vm["simulation_time"].as<int>());
+	CompetitionSystem system(planner);
+	system.check_collisions = vm["checkconf"].as<bool>();
+	system.load_map(vm["map"].as<std::string>());
+	system.load_agent_tasks(vm["task"].as<std::string>());
+	system.simulate(vm["simulation_time"].as<int>());
 
-  delete planner->env;
-  return 0;
+	delete planner->env;
+	return 0;
 
 	// if (vm["scenario"].as<string>() == "KIVA")
 	// {

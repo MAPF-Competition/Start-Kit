@@ -30,6 +30,7 @@ using std::ostream;
 using std::string;
 using std::max;
 using std::min;
+using std::priority_queue;
 
 //#include <boost/graph/adjacency_list.hpp>
 //typedef boost::adjacency_list_traits<int, int, boost::undirectedS > confilctGraph_t;
