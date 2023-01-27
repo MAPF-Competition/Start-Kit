@@ -63,6 +63,7 @@ vector<State> MAPFPlanner::plan(int time_limit) {
     return env->curr_states;
 }
 
+
 list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
     cout << start << " " << end << endl;
     list<pair<int,int>> path;
