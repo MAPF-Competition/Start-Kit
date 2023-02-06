@@ -19,6 +19,8 @@ class CompetitionSystem
 
 	void simulate(int simulation_time);
 
+  void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
+
  private:
 
   int moves[4];
@@ -49,6 +51,9 @@ class CompetitionSystem
   int num_of_agents;
 
   vector<State> curr_states;
+
+  vector<list<State>> actual_movements;
+  vector<list<State>> planner_movements;
 
   // vector of <loc, orientation>
   // initialized in load_tasks

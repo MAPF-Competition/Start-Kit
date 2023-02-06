@@ -121,6 +121,8 @@ list<tuple<int, int, int>> CompetitionSystem::move(vector<State>& next_states){
             finished_tasks.emplace_back(k, curr_states[k].location, timestep + 1);
         }
         paths[k].push_back(curr_states[k]);
+        planner_movements[k].push_back(next_states[k]);
+        actual_movements[k].push_back(curr_states[k]);
     }
 
     return finished_tasks;
@@ -261,6 +263,14 @@ void CompetitionSystem::initialize() {
     update_goal_locations();
 
     sync_shared_env();
+
+    actual_movements.resize(num_of_agents);
+    planner_movements.resize(num_of_agents);
+    for (int i = 0; i < num_of_agents; i++)
+    {
+      actual_movements[i].push_back(curr_states[i]);
+      planner_movements[i].push_back(curr_states[i]);
+    }
     //planner->initialize(preprocess_time_limit);
 }
 
@@ -272,4 +282,28 @@ void CompetitionSystem::update_goal_locations(){
             task_queue[k].pop_front();
         }
     }
+}
+
+void CompetitionSystem::savePaths(const string &fileName, int option) const
+{
+    std::ofstream output;
+    output.open(fileName, std::ios::out);
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        output << "Agent " << i << ": ";
+        if (option == 0)
+        {
+          for (const auto t : actual_movements[i])
+            output << "(" << t.location
+                   << "," << t.orientation << ")->";
+        }
+        else if (option == 1)
+        {
+          for (const auto t : planner_movements[i])
+            output << "(" << t.location
+                   << "," << t.orientation << ")->";
+        }
+        output << endl;
+    }
+    output.close();
 }

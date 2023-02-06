@@ -11,6 +11,8 @@ int main(int argc, char** argv) {
 		("help", "produce help message")
 		("map,m", po::value<std::string>()->required(), "input map file")
 		("task", po::value<std::string>()->required(), "input task file")
+		("plannerPath,po", po::value<std::string>()->default_value("../exp/test_planner"), "planner path file name")
+		("actualPath,ao", po::value<std::string>()->default_value("../exp/test_actual"), "actual path file name")
 		("output,o", po::value<std::string>()->default_value("../exp/test"), "output folder name")
 		("cutoffTime,t", po::value<int>()->default_value(60), "cutoff time (seconds)")
 		("seed,d", po::value<int>(), "random seed")
@@ -50,6 +52,9 @@ int main(int argc, char** argv) {
 	system.load_map(vm["map"].as<std::string>());
 	system.load_agent_tasks(vm["task"].as<std::string>());
 	system.simulate(vm["simulation_time"].as<int>());
+
+	system.savePaths(vm["plannerPath"].as<std::string>(),1);
+	system.savePaths(vm["actualPath"].as<std::string>(),0);
 
 	delete planner->env;
 	return 0;
