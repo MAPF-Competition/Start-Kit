@@ -196,7 +196,7 @@ void CompetitionSystem::simulate(int simulation_time){
     int num_of_tasks = 0;
     //I just put it out to seperate ours initilize with participants'
     planner->initialize(preprocess_time_limit);
-
+  simulation_time = 20;
 	for (; timestep < simulation_time; timestep += 1) {
         cout << "----------------------------" << std::endl;
         cout << "Timestep " << timestep << std::endl;
@@ -219,6 +219,23 @@ void CompetitionSystem::simulate(int simulation_time){
         }
 
         update_goal_locations();
+
+        bool complete_all = false;
+        for (auto t: goal_locations)
+        {
+          if(t.empty())
+            complete_all = true;
+          else
+          {
+            complete_all = false;
+            break;
+          }
+        }
+        if (complete_all)
+        {
+          cout << std::endl << "All task finished!" << std::endl;
+          break;
+        }
     }
 
 	cout << std::endl << "Done!" << std::endl;
