@@ -120,6 +120,7 @@ int MAPFPlanner::getManhattanDistance(int loc1, int loc2) {
 
 list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
     list<pair<int,int>> neighbors;
+    //forward
     int candidates[4] = { location + 1,location - env->cols, location - 1, location + env->cols};
     int forward = candidates[direction];
     int new_direction = direction;
@@ -136,10 +137,11 @@ list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
         new_direction = 0;
     neighbors.emplace_back(make_pair(location,new_direction));
     //turn 180
-    if (direction == 0 || direction == 1)
-        new_direction = direction + 2;
-    else
-        new_direction = direction - 2;
-    neighbors.emplace_back(make_pair(location,new_direction));
+    //seems like we do not allow turn 180 anymore
+    // if (direction == 0 || direction == 1)
+    //     new_direction = direction + 2;
+    // else
+    //     new_direction = direction - 2;
+    // neighbors.emplace_back(make_pair(location,new_direction));
     return neighbors;
 }
