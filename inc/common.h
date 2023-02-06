@@ -16,7 +16,9 @@ using boost::heap::compare;
 using boost::unordered_set;
 using boost::unordered_map;
 
-using std::set;
+//got the error error: no member named 'set' in namespace 'std' in my machine
+//so I have a quick check to see we do not use this in our program, and I just delete this for easy debug
+//using std::set;
 using std::vector;
 using std::tuple;
 using std::deque;
