@@ -217,7 +217,6 @@ void CompetitionSystem::simulate(int simulation_time){
     int num_of_tasks = 0;
     //I just put it out to seperate ours initilize with participants'
     planner->initialize(preprocess_time_limit);
-  simulation_time = 20;
 	for (; timestep < simulation_time; timestep += 1) {
         cout << "----------------------------" << std::endl;
         cout << "Timestep " << timestep << std::endl;
@@ -228,8 +227,7 @@ void CompetitionSystem::simulate(int simulation_time){
 
         // move drives
         list<tuple<int, int, int>> new_finished_tasks = move(next_states);
-        cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
-        cout << num_of_tasks << " tasks has been finished by far" << std::endl;
+        cout << new_finished_tasks.size() << " tasks has been finished in this timestep" << std::endl;
 
         // update tasks
         for (auto task : new_finished_tasks) {
@@ -238,6 +236,7 @@ void CompetitionSystem::simulate(int simulation_time){
             finished_tasks[id].emplace_back(loc, t);
             num_of_tasks++;
         }
+        cout << num_of_tasks << " tasks has been finished by far in total" << std::endl;
 
         update_goal_locations();
 
@@ -313,13 +312,15 @@ void CompetitionSystem::savePaths(const string &fileName, int option) const
         if (option == 0)
         {
           for (const auto t : actual_movements[i])
-            output << "(" << t.location
+            // output << "(" << t.location
+            output << "(" << t.location / cols << "," << t.location % cols
                    << "," << t.orientation << ")->";
         }
         else if (option == 1)
         {
           for (const auto t : planner_movements[i])
-            output << "(" << t.location
+            // output << "(" << t.location
+            output << "(" << t.location / cols << "," << t.location % cols
                    << "," << t.orientation << ")->";
         }
         output << endl;
