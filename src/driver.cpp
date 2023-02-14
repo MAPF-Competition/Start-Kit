@@ -35,49 +35,22 @@ int main(int argc, char** argv) {
 	boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
 	boost::filesystem::create_directories(dir);
 
-  	MAPFPlanner* planner = new MAPFPlanner();
+  MAPFPlanner* planner = new MAPFPlanner();
 
-	CompetitionSystem system(planner);
-	system.check_collisions = vm["checkconf"].as<bool>();
-	system.load_map(vm["map"].as<std::string>());
-	system.load_agent_tasks(vm["task"].as<std::string>());
+  Grid grid(vm["map"].as<std::string>());
+
+  Validator* validator = nullptr;
+  if (vm["checkconf"].as<bool>()){
+    validator = new ValidatorRotate(grid);
+  }
+
+	CompetitionSystem system(grid, vm["task"].as<std::string>(), planner, validator);
 	system.simulate(vm["simulation_time"].as<int>());
 
 	system.savePaths(vm["plannerPath"].as<std::string>(),1);
 	system.savePaths(vm["actualPath"].as<std::string>(),0);
 
+  if (validator != nullptr){delete validator;}
 	delete planner->env;
 	return 0;
-
-	// if (vm["scenario"].as<string>() == "KIVA")
-	// {
-	// 	KivaGrid G;
-	// 	if (!G.load_map(vm["map"].as<std::string>()))
-	// 		return -1;
-	// 	MAPFSolver* solver = set_solver(G, vm);
-	// 	KivaSystem system(G, *solver);
-	// 	set_parameters(system, vm);
-	// 	G.preprocessing(system.consider_rotation);
-	// 	system.simulate(vm["simulation_time"].as<int>());
-	// 	return 0;
-	// }
-	// else if (vm["scenario"].as<string>() == "ONLINE")
-	// {
-	// 	OnlineGrid G;
-	// 	if (!G.load_map(vm["map"].as<std::string>()))
-	// 		return -1;
-	// 	MAPFSolver* solver = set_solver(G, vm);
-	// 	OnlineSystem system(G, *solver);
-	// 	assert(!system.hold_endpoints);
-	// 	assert(!system.useDummyPaths);
-	// 	set_parameters(system, vm);
-	// 	G.preprocessing(system.consider_rotation);
-	// 	system.simulate(vm["simulation_time"].as<int>());
-	// 	return 0;
-	// } 
-	// else
-	// {
-	// 	cout << "Scenario " << vm["scenario"].as<string>() << "does not exist!" << endl;
-	// 	return -1;
-	// }
 }
