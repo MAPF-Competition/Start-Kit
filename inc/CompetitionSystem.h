@@ -1,38 +1,32 @@
 #pragma once
 // #include "BasicSystem.h"
 #include "SharedEnv.h"
+#include "Grid.h"
+#include "Validator.h"
 #include "MAPFPlanner.h"
 
-
-
-
-class CompetitionSystem 
-{
+class BaseSystem{
  public:
-	CompetitionSystem(MAPFPlanner* planner);
-	~CompetitionSystem(){};
 
-  bool load_map(string fname);
-  bool load_agent_tasks(string fname);
 
-  bool check_collisions = true;
+	BaseSystem(Grid &grid, MAPFPlanner* planner, Validator* validator=nullptr):
+    map(grid), planner(planner), env(planner->env), validator(validator)
+  {}
+
+	virtual ~BaseSystem(){};
 
 	void simulate(int simulation_time);
 
   void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
 
- private:
+ protected:
 
-  int moves[4];
-
-  int rows = 0;
-  int cols = 0;
-  std::vector<int> map;
-  string map_name;
+  Grid map;
 
   MAPFPlanner* planner;
   SharedEnvironment* env;
 
+  Validator* validator;
 
   // #timesteps for simulation
   int timestep;
@@ -40,14 +34,10 @@ class CompetitionSystem
   int preprocess_time_limit;
   int plan_time_limit;
 
-
-
   std::vector<Path> paths;
   std::vector<std::list<std::pair<int, int> > > finished_tasks; // location + finish time
 
   vector<State> starts;
-
-
   int num_of_agents;
 
   vector<State> curr_states;
@@ -55,24 +45,37 @@ class CompetitionSystem
   vector<list<State>> actual_movements;
   vector<list<State>> planner_movements;
 
-  // vector of <loc, orientation>
-  // initialized in load_tasks
-
-  // all tasks that haven't been finished
-  vector<deque<int>> task_queue;
-
   // tasks that haven't been finished but have been revealed to agents;
   vector< vector<pair<int, int> > > goal_locations;
 
 	void initialize();
-	void update_goal_locations();
+	virtual void update_goal_locations() = 0;
 
   void sync_shared_env();
 
-
   // move agents,  update agents location, return finished tasks
   list<tuple<int, int, int>> move(vector<State>& next_states);
+  bool valid_moves(vector<State>& prev, vector<State>& next);
+};
 
-  bool valid_moves(vector<State>& prev, vector<State> next);
+
+class CompetitionSystem : public BaseSystem
+{
+ public:
+	CompetitionSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, Validator* validator=nullptr):
+    BaseSystem(grid, planner, validator)
+  {
+    load_agent_tasks(agent_task_filename);
+  };
+
+	~CompetitionSystem(){};
+
+  bool load_agent_tasks(string fname);
+
+
+ private:
+  vector<deque<int>> task_queue;
+
+	void update_goal_locations();
 
 };
