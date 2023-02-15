@@ -79,3 +79,26 @@ class CompetitionSystem : public BaseSystem
 	void update_goal_locations();
 
 };
+
+
+class TaskAssignSystem : public BaseSystem
+{
+public:
+	TaskAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, Validator* validator=nullptr):
+    BaseSystem(grid, planner, validator), task_queue(tasks.begin(), tasks.end())
+  {
+    num_of_agents = start_locs.size();
+    starts.resize(num_of_agents);
+    for (size_t i = 0; i < start_locs.size(); i++){
+      starts[i] = State(start_locs[i], 0, 0);
+    }
+  };
+
+	~TaskAssignSystem(){};
+
+private:
+  deque<int> task_queue;
+
+	void update_goal_locations();
+
+};

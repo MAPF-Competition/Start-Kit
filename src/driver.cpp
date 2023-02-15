@@ -1,7 +1,46 @@
-﻿#include "CompetitionSystem.h"
+#include "CompetitionSystem.h"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/tokenizer.hpp>
+#include "nlohmann/json.hpp"
 
+std::vector<int> read_int_vec(string fname){
+  std::vector<int> res;
+	string line;
+	std::ifstream myfile(fname.c_str());
+	if (!myfile.is_open()) return {};
+
+	getline(myfile, line);
+  while (!myfile.eof() && line[0] == '#') {
+    getline(myfile, line);
+  }
+
+  boost::char_separator<char> sep(",");
+  boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+  boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
+
+  int num_of_int = atoi((*beg).c_str());
+  // My benchmark
+  for (int i = 0; i < num_of_int; i++) {
+
+    getline(myfile, line);
+    while (!myfile.eof() && line[0] == '#'){
+      getline(myfile, line);
+    }
+    boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+    boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
+    // read start [row,col] for agent i
+    res.push_back(atoi((*beg).c_str()));
+
+  }
+  myfile.close();
+
+	return res;
+}
+
+
+
+using json = nlohmann::json;
 
 int main(int argc, char** argv) {
 	namespace po = boost::program_options;
@@ -9,8 +48,7 @@ int main(int argc, char** argv) {
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
-		("map,m", po::value<std::string>()->required(), "input map file")
-		("task", po::value<std::string>()->required(), "input task file")
+		("input,i", po::value<std::string>()->required(), "input file")
 		("plannerPath,po", po::value<std::string>()->default_value("./exp/test_planner"), "planner path file name")
 		("actualPath,ao", po::value<std::string>()->default_value("./exp/test_actual"), "actual path file name")
 		("output,o", po::value<std::string>()->default_value("./exp/test"), "output folder name")
@@ -37,14 +75,19 @@ int main(int argc, char** argv) {
 
   MAPFPlanner* planner = new MAPFPlanner();
 
-  Grid grid(vm["map"].as<std::string>());
+  std::ifstream f(vm["input"].as<std::string>());
+  json data = json::parse(f);
 
-  Validator* validator = nullptr;
-  if (vm["checkconf"].as<bool>()){
-    validator = new ValidatorRotate(grid);
-  }
+  Grid grid(data["map_file"].get<std::string>());
 
-	CompetitionSystem system(grid, vm["task"].as<std::string>(), planner, validator);
+  std::vector<int> agents = read_int_vec(data["agent_file"].get<std::string>());
+  std::vector<int> tasks = read_int_vec(data["task_file"].get<std::string>());
+
+  std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
+
+  Validator* validator = new ValidatorRotate(grid);
+
+	TaskAssignSystem system(grid, planner, agents, tasks, validator);
 	system.simulate(vm["simulation_time"].as<int>());
 
 	system.savePaths(vm["plannerPath"].as<std::string>(),1);

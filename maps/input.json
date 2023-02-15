@@ -1,0 +1,5 @@
+{
+    "map_file": "maps/kiva.map",
+    "agent_file": "maps/kiva_agents.txt",
+    "task_file": "maps/kiva_tasks.txt"
+}
