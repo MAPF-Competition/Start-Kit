@@ -212,33 +212,23 @@ void CompetitionSystem::update_goal_locations(){
 }
 
 
+void TaskAssignSystem::update_goal_locations(){
+	for (int k = 0; k < num_of_agents; k++) {
+    if (goal_locations[k].empty() && !task_queue.empty()) {
+      std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
+      goal_locations[k].emplace_back(task_queue.front(), timestep);
+      task_queue.pop_front();
+    }
+  }
+}
+
 // void TaskAssignSystem::update_goal_locations(){
 // 	for (int k = 0; k < num_of_agents; k++) {
-//     if (goal_locations[k].empty() && !task_queue.empty()) {
-//       std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
-//       goal_locations[k].emplace_back(task_queue.front(), timestep);
-//       task_queue.pop_front();
+//     while (goal_locations[k].size() < num_tasks_reveal)
+//     {
+//         std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
+//         goal_locations[k].emplace_back(task_queue.front(), timestep);
+//         task_queue.pop_front();
 //     }
 //   }
 // }
-
-void TaskAssignSystem::update_goal_locations(){
-	for (int k = 0; k < num_of_agents; k++) {
-    if (goal_locations[k].empty())
-    {
-      for (int i = 0; i < num_tasks_reveal && !task_queue.empty(); i++)
-      {
-        std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
-        goal_locations[k].emplace_back(task_queue.front(), timestep);
-        task_queue.pop_front();
-      }
-    }
-
-
-    //  && !task_queue.empty()) {
-    //   std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
-    //   goal_locations[k].emplace_back(task_queue.front(), timestep);
-    //   task_queue.pop_front();
-    //}
-  }
-}

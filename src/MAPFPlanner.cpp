@@ -37,7 +37,7 @@ vector<State> MAPFPlanner::plan(int time_limit) {
             cout << " with start and goal: ";
             path = single_agent_plan(env->curr_states[i].location,
                 env->curr_states[i].orientation,
-                env->goal_locations[i].back().first);
+                env->goal_locations[i].front().first);
         }
         cout<< "current location: " << path.front().first << " current direction: " << 
             path.front().second << endl;
