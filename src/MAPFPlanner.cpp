@@ -117,6 +117,22 @@ int MAPFPlanner::getManhattanDistance(int loc1, int loc2) {
     return abs(loc1_x - loc2_x) + abs(loc1_y - loc2_y);
 }
 
+bool MAPFPlanner::validateMove(int loc, int loc2)
+{
+    int loc_x = loc/env->cols;
+    int loc_y = loc%env->cols;
+
+    if (loc_x >= env->rows || loc_y >= env->cols || env->map[loc] == 1)
+        return false;
+
+    int loc2_x = loc2/env->cols;
+    int loc2_y = loc2%env->cols;
+    if (abs(loc_x-loc2_x) + abs(loc_y-loc2_y) > 1)
+        return false;
+    return true;
+
+}
+
 
 list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
     list<pair<int,int>> neighbors;
@@ -124,7 +140,7 @@ list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
     int candidates[4] = { location + 1,location - env->cols, location - 1, location + env->cols};
     int forward = candidates[direction];
     int new_direction = direction;
-    if (forward>=0 && forward < env->map.size() && env->map[forward] != 1)
+    if (forward>=0 && forward < env->map.size() && validateMove(forward,location))
         neighbors.emplace_back(make_pair(forward,new_direction));
     //turn left
     new_direction = direction-1;
