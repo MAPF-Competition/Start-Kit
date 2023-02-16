@@ -25,4 +25,5 @@ public:
 
   bool validateMove(int loc,int loc2);
 
+
 };

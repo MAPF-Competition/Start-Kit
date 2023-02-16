@@ -49,8 +49,8 @@ int main(int argc, char** argv) {
 	desc.add_options()
 		("help", "produce help message")
 		("input,i", po::value<std::string>()->required(), "input file")
-		("plannerPath,po", po::value<std::string>()->default_value("./exp/test_planner"), "planner path file name")
-		("actualPath,ao", po::value<std::string>()->default_value("./exp/test_actual"), "actual path file name")
+		("plannerPath,po", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
+		("actualPath,ao", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
 		("output,o", po::value<std::string>()->default_value("./exp/test"), "output folder name")
 		("cutoffTime,t", po::value<int>()->default_value(60), "cutoff time (seconds)")
 		("seed,d", po::value<int>(), "random seed")
@@ -73,21 +73,22 @@ int main(int argc, char** argv) {
 	boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
 	boost::filesystem::create_directories(dir);
 
-  MAPFPlanner* planner = new MAPFPlanner();
+	MAPFPlanner* planner = new MAPFPlanner();
 
-  std::ifstream f(vm["input"].as<std::string>());
-  json data = json::parse(f);
+	std::ifstream f(vm["input"].as<std::string>());
+	json data = json::parse(f);
 
-  Grid grid(data["map_file"].get<std::string>());
+	Grid grid(data["map_file"].get<std::string>());
 
-  std::vector<int> agents = read_int_vec(data["agent_file"].get<std::string>());
-  std::vector<int> tasks = read_int_vec(data["task_file"].get<std::string>());
+	std::vector<int> agents = read_int_vec(data["agent_file"].get<std::string>());
+	std::vector<int> tasks = read_int_vec(data["task_file"].get<std::string>());
 
-  std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
+	std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
 
-  Validator* validator = new ValidatorRotate(grid);
+	Validator* validator = new ValidatorRotate(grid);
 
 	TaskAssignSystem system(grid, planner, agents, tasks, validator);
+	system.set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
 	system.simulate(vm["simulation_time"].as<int>());
 
 	system.savePaths(vm["plannerPath"].as<std::string>(),1);

@@ -19,20 +19,6 @@ struct cmp {
 };
 
 
-// class Astar {
-//   public:
-//     vector<int> map;
-//     list<int> path;
-//     Astar(vector<int> _map): map(_map){};
-//     void findPath(int start, int end){};
-
-//   private:
-//     priority_queue<AstarNode,vector<AstarNode>,cmp> open_list;
-//     unordered_set<AstarNode,int> close_list;
-// };
-
-//void Astar::findPath
-
 
 void MAPFPlanner::initialize(int preprocess_time_limit) {
     cout << "planner initialize done" << endl;
