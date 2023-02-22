@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 		("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
 		("simulation_time", po::value<int>()->default_value(5000), "run simulation")
 		("checkconf", po::value<bool>()->default_value(true), "consider conflict")
-		;
+	;
 	clock_t start_time = clock();
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
 
 	system.savePaths(vm["plannerPath"].as<std::string>(),1);
 	system.savePaths(vm["actualPath"].as<std::string>(),0);
+	system.saveErrors("./exp/error.txt");
 
   if (validator != nullptr){delete validator;}
 	delete planner->env;

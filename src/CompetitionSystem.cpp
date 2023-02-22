@@ -122,6 +122,43 @@ void BaseSystem::initialize() {
     //planner->initialize(preprocess_time_limit);
 }
 
+void BaseSystem::saveErrors(const string &fileName) const
+{
+  std::ofstream output;
+  output.open(fileName, std::ios::out);
+  // for (int i = 0; i < num_of_agents; i++)
+  //   {
+  //     output << "Agent " << i << ": ";
+  //     if (option == 0)
+  //       {
+  //         for (const auto t : actual_movements[i])
+  //           // output << "(" << t.location
+  //           output << "(" << t.location / map.cols << "," << t.location % map.cols
+  //                  << "," << t.orientation << ")->";
+  //       }
+  //     else if (option == 1)
+  //       {
+  //         for (const auto t : planner_movements[i])
+  //           // output << "(" << t.location
+  //           output << "(" << t.location / map.cols << "," << t.location % map.cols
+  //                  << "," << t.orientation << ")->";
+  //       }
+  //     output << endl;
+  //   }
+  for (auto error: validator->errors)
+  {
+    int error_code;
+    int agent1;
+    int agent2;
+    int timestep;
+
+    std::tie(error_code,agent1,agent2,timestep) = error;
+
+    output<<"("<<error_code<<","<<agent1<<","<<agent2<<","<<timestep<<")"<<endl;
+  }
+  output.close();
+}
+
 void BaseSystem::savePaths(const string &fileName, int option) const
 {
   std::ofstream output;
