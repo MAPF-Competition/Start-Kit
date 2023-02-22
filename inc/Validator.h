@@ -13,6 +13,7 @@ public:
   virtual bool is_valid(vector<State>& prev, vector<State> & next)=0;
 
   virtual ~Validator(){};
+  list<std::tuple<int,int,int,int>> errors;
 };
 
 
@@ -34,5 +35,18 @@ public:
   };
 
   virtual bool is_valid(vector<State>& prev, vector<State> & next) override;
+
+//ERRORs, 
+// <ERROR CODE, Agent 1 (-1 if N/A), Agent 2 (-1 if N/A), Timestep>
+// ERROR CODE:
+// 0: over-rotates
+// 1: moves and rotates at the same time
+// 2: moves in a wrong direction
+// 3: moves more than 1 steps
+// 4: moves to an obstacle
+// 5: vertex conflict
+// 6: edge conflict
+// 7: missing plans (size of the agents plans does not match the number of agents)
+
 
 };
