@@ -2,6 +2,6 @@
     "map_file": "maps/kiva.map",
     "agent_file": "maps/kiva_agents2.txt",
     "task_file": "maps/kiva_tasks2.txt",
-    "num_tasks_reveal":1,
-    "task_assignment_strategy":"greedy"
+    "num_tasks_reveal":3,
+    "task_assignment_strategy":"roundrobin"
 }

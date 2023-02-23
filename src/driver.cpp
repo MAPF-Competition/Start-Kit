@@ -87,29 +87,17 @@ int main(int argc, char** argv) {
 
 	Validator* validator = new ValidatorRotate(grid);
 
+  BaseSystem* system_ptr = nullptr;
 
   if (data["task_assignment_strategy"].get<std::string>()=="greedy"){
-    TaskAssignSystem system(grid, planner, agents, tasks, validator);
-    system.set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
-    system.simulate(vm["simulation_time"].as<int>());
-
-    system.savePaths(vm["plannerPath"].as<std::string>(),1);
-    system.savePaths(vm["actualPath"].as<std::string>(),0);
-    system.saveErrors("./exp/error.txt");
+    system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, validator);
   } else if (data["task_assignment_strategy"].get<std::string>()=="roundrobin"){
     std::vector<vector<int>> assigned_tasks(agents.size());
     for(int i = 0; i < tasks.size(); i++){
       assigned_tasks[i%agents.size()].push_back(tasks[i]);
     }
 
-    FixedAssignSystem system(grid, planner, agents, assigned_tasks, validator);
-    // TODO support reveal num
-    // system.set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
-    system.simulate(vm["simulation_time"].as<int>());
-
-    system.savePaths(vm["plannerPath"].as<std::string>(),1);
-    system.savePaths(vm["actualPath"].as<std::string>(),0);
-    system.saveErrors("./exp/error.txt");
+    system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, validator);
 
 
   } else{
@@ -117,7 +105,15 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
+  system_ptr->simulate(vm["simulation_time"].as<int>());
+
+  system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
+  system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
+  system_ptr->saveErrors("./exp/error.txt");
+
   if (validator != nullptr){delete validator;}
 	delete planner->env;
+  delete system_ptr;
 	return 0;
 }

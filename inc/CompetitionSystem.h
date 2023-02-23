@@ -20,6 +20,11 @@ class BaseSystem{
   void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
   void saveErrors(const string &fileName) const;
 
+  int num_tasks_reveal = 1;
+
+  void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
+
+
  protected:
 
   Grid map;
@@ -113,11 +118,6 @@ public:
     }
   };
 
-  int num_tasks_reveal = 1;
-  string assign_strategy = "next-agent-next-task";
-
-  void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
-  void set_assign_strategy(string strategy){assign_strategy = strategy;};
 
 	~TaskAssignSystem(){};
 
