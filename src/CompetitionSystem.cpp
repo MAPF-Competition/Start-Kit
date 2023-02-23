@@ -241,11 +241,11 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
 
 void FixedAssignSystem::update_goal_locations(){
 	for (int k = 0; k < num_of_agents; k++) {
-        if (goal_locations[k].empty() && !task_queue[k].empty()) {
-            goal_locations[k].emplace_back(task_queue[k].front(), timestep);
-            task_queue[k].pop_front();
-        }
+    while (goal_locations[k].size() < num_tasks_reveal && !task_queue[k].empty()) {
+      goal_locations[k].emplace_back(task_queue[k].front(), timestep);
+      task_queue[k].pop_front();
     }
+  }
 }
 
 
@@ -261,14 +261,11 @@ void FixedAssignSystem::update_goal_locations(){
 
 void TaskAssignSystem::update_goal_locations(){
 	for (int k = 0; k < num_of_agents; k++) {
-    while (goal_locations[k].size() < num_tasks_reveal)
+    while (goal_locations[k].size() < num_tasks_reveal && !task_queue.empty())
     {
-      if (!task_queue.empty())
-      {
-        std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
-        goal_locations[k].emplace_back(task_queue.front(), timestep);
-        task_queue.pop_front();
-      }
+      std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
+      goal_locations[k].emplace_back(task_queue.front(), timestep);
+      task_queue.pop_front();
     }
   }
 }
