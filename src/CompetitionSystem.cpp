@@ -147,14 +147,14 @@ void BaseSystem::saveErrors(const string &fileName) const
   //   }
   for (auto error: validator->errors)
   {
-    int error_code;
+    std::string error_msg;
     int agent1;
     int agent2;
     int timestep;
 
-    std::tie(error_code,agent1,agent2,timestep) = error;
+    std::tie(error_msg,agent1,agent2,timestep) = error;
 
-    output<<"("<<error_code<<","<<agent1<<","<<agent2<<","<<timestep<<")"<<endl;
+    output<<"("<<agent1<<","<<agent2<<","<<timestep<<",\""<< error_msg <<"\")"<<endl;
   }
   output.close();
 }
@@ -185,7 +185,7 @@ void BaseSystem::savePaths(const string &fileName, int option) const
   output.close();
 }
 
-bool CompetitionSystem::load_agent_tasks(string fname){
+bool FixedAssignSystem::load_agent_tasks(string fname){
 	string line;
 	std::ifstream myfile(fname.c_str());
 	if (!myfile.is_open()) return false;
@@ -239,7 +239,7 @@ bool CompetitionSystem::load_agent_tasks(string fname){
 }
 
 
-void CompetitionSystem::update_goal_locations(){
+void FixedAssignSystem::update_goal_locations(){
 	for (int k = 0; k < num_of_agents; k++) {
         if (goal_locations[k].empty() && !task_queue[k].empty()) {
             goal_locations[k].emplace_back(task_queue[k].front(), timestep);
