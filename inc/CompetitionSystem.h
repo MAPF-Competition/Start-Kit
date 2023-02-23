@@ -60,16 +60,34 @@ class BaseSystem{
 };
 
 
-class CompetitionSystem : public BaseSystem
+class FixedAssignSystem : public BaseSystem
+
 {
  public:
-	CompetitionSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, Validator* validator=nullptr):
+	FixedAssignSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, Validator* validator=nullptr):
     BaseSystem(grid, planner, validator)
   {
     load_agent_tasks(agent_task_filename);
   };
 
-	~CompetitionSystem(){};
+	FixedAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<vector<int>>& tasks, Validator* validator=nullptr):
+    BaseSystem(grid, planner, validator)
+  {
+    if (start_locs.size() != tasks.size()){
+      std::cerr << "agent num does not match the task assignment" << std::endl;
+      exit(1);
+    }
+
+    num_of_agents = start_locs.size();
+    starts.resize(num_of_agents);
+    task_queue.resize(num_of_agents);
+    for (size_t i = 0; i < start_locs.size(); i++){
+      starts[i] = State(start_locs[i], 0, 0);
+      task_queue[i] = deque<int>(tasks[i].begin(), tasks[i].end());
+    }
+  };
+
+	~FixedAssignSystem(){};
 
   bool load_agent_tasks(string fname);
 

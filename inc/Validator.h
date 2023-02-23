@@ -13,7 +13,7 @@ public:
   virtual bool is_valid(vector<State>& prev, vector<State> & next)=0;
 
   virtual ~Validator(){};
-  list<std::tuple<int,int,int,int>> errors;
+  list<std::tuple<std::string,int,int,int>> errors;
 };
 
 
