@@ -12,8 +12,8 @@ set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ version selection")
 
 
 IF(NOT CMAKE_BUILD_TYPE)
-    #SET(CMAKE_BUILD_TYPE "DEBUG")
-    SET(CMAKE_BUILD_TYPE "RELEASE")
+    SET(CMAKE_BUILD_TYPE "DEBUG")
+    # SET(CMAKE_BUILD_TYPE "RELEASE")
     #SET(CMAKE_BUILD_TYPE "RELWITHDEBINFO")
     #SET(CMAKE_BUILD_TYPE "MINSIZEREL")
 ENDIF()
@@ -26,5 +26,9 @@ pybind11_add_module(MAPF "../src/Grid.cpp"   "../src/States.cpp" "./MAPFbinding.
 target_link_libraries(MAPF PRIVATE ) 
 
 
+
+
+add_executable(test "../src/Grid.cpp"   "../src/States.cpp" "pyMAPFPlanner.cpp" "test.cpp")
+target_link_libraries(test PRIVATE pybind11::embed)
 
 
