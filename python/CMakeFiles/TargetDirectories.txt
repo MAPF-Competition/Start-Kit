@@ -1,3 +1,0 @@
-/home/teng/mpp/Start-Kit/python/CMakeFiles/rebuild_cache.dir
-/home/teng/mpp/Start-Kit/python/CMakeFiles/MAPF.dir
-/home/teng/mpp/Start-Kit/python/CMakeFiles/edit_cache.dir
