@@ -15,10 +15,14 @@ class pyMAPFPlanner:
     def plan(self,time_limit):
         """_summary_
 
+        Return:
+            state ([State]): the next states
+
         Args:
             time_limit (_type_): _description_
         """
-        pass
+        states=[]
+        return states
 
 
     def single_agent_plan(self,start,start_direct,end):
