@@ -3,35 +3,35 @@
 #include <boost/tokenizer.hpp>
 
 
-list<tuple<int, int, int>> BaseSystem::move(vector<State>& next_states){
-	list<tuple<int, int, int>> finished_tasks; // <agent_id, location, timestep>
-    if (valid_moves(curr_states, next_states)){
-        curr_states = next_states;
-        // check finished tasks;
-    }
-    // agents do not move
-    for (int k = 0; k < num_of_agents; k++) {
-        if (!goal_locations[k].empty() && curr_states[k].location == goal_locations[k].front().first){
-            goal_locations[k].erase(goal_locations[k].begin());
-            finished_tasks.emplace_back(k, curr_states[k].location, timestep + 1);
-        }
-        paths[k].push_back(curr_states[k]);
-        planner_movements[k].push_back(next_states[k]);
-        actual_movements[k].push_back(curr_states[k]);
-    }
+list<tuple<int, int, int>> BaseSystem::move(vector<Action>& actions){
 
-    return finished_tasks;
+  for (int k = 0; k < num_of_agents; k++) {
+    planner_movements[k].push_back(actions[k]);
+  }
+
+	list<tuple<int, int, int>> finished_tasks; // <agent_id, location, timestep>
+  if (!valid_moves(curr_states, actions)){
+    actions = std::vector<Action>(curr_states.size(), Action::W);
+  }
+
+  curr_states = model->result_states(curr_states, actions);
+  // agents do not move
+  for (int k = 0; k < num_of_agents; k++) {
+    if (!goal_locations[k].empty() && curr_states[k].location == goal_locations[k].front().first){
+      goal_locations[k].erase(goal_locations[k].begin());
+      finished_tasks.emplace_back(k, curr_states[k].location, timestep + 1);
+    }
+    paths[k].push_back(curr_states[k]);
+    actual_movements[k].push_back(actions[k]);
+  }
+
+  return finished_tasks;
 }
 
 
 // This function might not work correctly with small map (w or h <=2)
-bool BaseSystem::valid_moves(vector<State>& prev, vector<State>& next){
-  if (validator != nullptr){
-    return validator->is_valid(prev, next);
-  } else {
-    return true;
-  }
-
+bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action){
+  return model->is_valid(prev, action);
 }
 
 
@@ -53,10 +53,10 @@ void BaseSystem::simulate(int simulation_time){
 
         // find a plan
         sync_shared_env();
-        vector<State> next_states = planner->plan(plan_time_limit);
+        vector<Action> actions = planner->plan(plan_time_limit);
 
         // move drives
-        list<tuple<int, int, int>> new_finished_tasks = move(next_states);
+        list<tuple<int, int, int>> new_finished_tasks = move(actions);
         cout << new_finished_tasks.size() << " tasks has been finished in this timestep" << std::endl;
 
         // update tasks
@@ -116,8 +116,8 @@ void BaseSystem::initialize() {
     planner_movements.resize(num_of_agents);
     for (int i = 0; i < num_of_agents; i++)
     {
-      actual_movements[i].push_back(curr_states[i]);
-      planner_movements[i].push_back(curr_states[i]);
+      // actual_movements[i].push_back(curr_states[i]);
+      // planner_movements[i].push_back(curr_states[i]);
     }
     //planner->initialize(preprocess_time_limit);
 }
@@ -145,7 +145,7 @@ void BaseSystem::saveErrors(const string &fileName) const
   //       }
   //     output << endl;
   //   }
-  for (auto error: validator->errors)
+  for (auto error: model->errors)
   {
     std::string error_msg;
     int agent1;
@@ -168,17 +168,23 @@ void BaseSystem::savePaths(const string &fileName, int option) const
       output << "Agent " << i << ": ";
       if (option == 0)
         {
-          for (const auto t : actual_movements[i])
-            // output << "(" << t.location
-            output << "(" << t.location / map.cols << "," << t.location % map.cols
-                   << "," << t.orientation << ")->";
+          bool first = true;
+          for (const auto t : actual_movements[i]){
+            if (!first){output << ",";} else {
+              first = false;
+            }
+            output << t;
+          }
         }
       else if (option == 1)
         {
-          for (const auto t : planner_movements[i])
-            // output << "(" << t.location
-            output << "(" << t.location / map.cols << "," << t.location % map.cols
-                   << "," << t.orientation << ")->";
+          bool first = true;
+          for (const auto t : planner_movements[i]){
+            if (!first){output << ",";} else {
+              first = false;
+            }
+            output << t;
+          }
         }
       output << endl;
     }

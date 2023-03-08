@@ -2,15 +2,15 @@
 // #include "BasicSystem.h"
 #include "SharedEnv.h"
 #include "Grid.h"
-#include "Validator.h"
+#include "ActionModel.h"
 #include "MAPFPlanner.h"
 
 class BaseSystem{
  public:
 
 
-	BaseSystem(Grid &grid, MAPFPlanner* planner, Validator* validator=nullptr):
-    map(grid), planner(planner), env(planner->env), validator(validator)
+	BaseSystem(Grid &grid, MAPFPlanner* planner, ActionModelWithRotate* model):
+    map(grid), planner(planner), env(planner->env), model(model)
   {}
 
 	virtual ~BaseSystem(){};
@@ -32,7 +32,7 @@ class BaseSystem{
   MAPFPlanner* planner;
   SharedEnvironment* env;
 
-  Validator* validator;
+  ActionModelWithRotate* model;
 
   // #timesteps for simulation
   int timestep;
@@ -48,8 +48,8 @@ class BaseSystem{
 
   vector<State> curr_states;
 
-  vector<list<State>> actual_movements;
-  vector<list<State>> planner_movements;
+  vector<list<Action>> actual_movements;
+  vector<list<Action>> planner_movements;
 
   // tasks that haven't been finished but have been revealed to agents;
   vector< vector<pair<int, int> > > goal_locations;
@@ -60,8 +60,8 @@ class BaseSystem{
   void sync_shared_env();
 
   // move agents,  update agents location, return finished tasks
-  list<tuple<int, int, int>> move(vector<State>& next_states);
-  bool valid_moves(vector<State>& prev, vector<State>& next);
+  list<tuple<int, int, int>> move(vector<Action>& actions);
+  bool valid_moves(vector<State>& prev, vector<Action>& next);
 };
 
 
@@ -69,14 +69,14 @@ class FixedAssignSystem : public BaseSystem
 
 {
  public:
-	FixedAssignSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, Validator* validator=nullptr):
-    BaseSystem(grid, planner, validator)
+	FixedAssignSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, ActionModelWithRotate *model):
+    BaseSystem(grid, planner, model)
   {
     load_agent_tasks(agent_task_filename);
   };
 
-	FixedAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<vector<int>>& tasks, Validator* validator=nullptr):
-    BaseSystem(grid, planner, validator)
+	FixedAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<vector<int>>& tasks, ActionModelWithRotate* model):
+    BaseSystem(grid, planner, model)
   {
     if (start_locs.size() != tasks.size()){
       std::cerr << "agent num does not match the task assignment" << std::endl;
@@ -108,8 +108,8 @@ class FixedAssignSystem : public BaseSystem
 class TaskAssignSystem : public BaseSystem
 {
 public:
-	TaskAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, Validator* validator=nullptr):
-    BaseSystem(grid, planner, validator), task_queue(tasks.begin(), tasks.end())
+	TaskAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
+    BaseSystem(grid, planner, model), task_queue(tasks.begin(), tasks.end())
   {
     num_of_agents = start_locs.size();
     starts.resize(num_of_agents);
