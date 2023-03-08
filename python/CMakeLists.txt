@@ -7,8 +7,8 @@ find_package(PythonInterp 3.6 EXACT REQUIRED)
 find_package(pybind11 REQUIRED)
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ version selection")
 
-# find_package( Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem)
-# include_directories( ${Boost_INCLUDE_DIRS} )
+find_package( Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem)
+include_directories( ${Boost_INCLUDE_DIRS} )
 
 
 IF(NOT CMAKE_BUILD_TYPE)
@@ -28,7 +28,15 @@ target_link_libraries(MAPF PRIVATE )
 
 
 
-add_executable(test "../src/Grid.cpp"   "../src/States.cpp" "pyMAPFPlanner.cpp" "test.cpp")
-target_link_libraries(test PRIVATE pybind11::embed)
+add_executable(test "../src/Grid.cpp"  
+                    "../src/States.cpp" 
+                    "../src/common.cpp"
+                    "../src/Validator.cpp"
+                    "../src/ActionModel.cpp"
+                    "../src/CompetitionSystem.cpp" 
+                    "../src/MAPFPlanner.cpp"
+                    "pyMAPFPlanner.cpp" 
+                    "test.cpp" )
+target_link_libraries(test PRIVATE pybind11::embed ${Boost_LIBRARIES})
 
 

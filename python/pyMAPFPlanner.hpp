@@ -9,17 +9,18 @@
 #include <pybind11/numpy.h>
 #include "SharedEnv.h"
 #include "States.h"
+#include "MAPFPlanner.h"
 
 
 
-class pyMAPFPlanner{
+class pyMAPFPlanner:public MAPFPlanner{
 public:
     pyMAPFPlanner();
-    ~pyMAPFPlanner();
+    // ~pyMAPFPlanner();
 
-    SharedEnvironment* env;
+
     void initialize(int preprocess_time_limit);
-    std::vector<State> plan(int time_limit);
+    std::vector<Action> plan(int time_limit);
 
 
 
