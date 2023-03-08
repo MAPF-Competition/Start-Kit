@@ -1,13 +1,12 @@
 #pragma once
 #include "common.h"
 
+
 struct State
 {
     int location;
     int timestep;
     int orientation;  // 0:right, 1:up, 2:left, 3:down
-
-    State wait() const {return State(location, timestep + 1, orientation); }
 
     struct Hasher {
         size_t operator()(const State& n) const {

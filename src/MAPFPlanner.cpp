@@ -26,27 +26,38 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 
 
 // return next states for all agents
-vector<State> MAPFPlanner::plan(int time_limit) {
-    for (int i = 0; i < env->num_of_agents; i++) {
-        cout << "start plan for agent " << i;
-        list<pair<int,int>> path;
-        if (env->goal_locations[i].empty()) {
-            cout << ", which does not have any goal left." << endl;
-            path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
-        } else {
-            cout << " with start and goal: ";
-            path = single_agent_plan(env->curr_states[i].location,
-                env->curr_states[i].orientation,
-                env->goal_locations[i].front().first);
-        }
-        cout<< "current location: " << path.front().first << " current direction: " << 
-            path.front().second << endl;
-        env->curr_states[i].location = path.front().first;
-        env->curr_states[i].orientation = path.front().second;
-        env->curr_states[i].timestep++;
+vector<Action> MAPFPlanner::plan(int time_limit) {
+  std::vector<Action> actions(env->curr_states.size(), Action::W);
+  for (int i = 0; i < env->num_of_agents; i++) {
+    cout << "start plan for agent " << i;
+    list<pair<int,int>> path;
+    if (env->goal_locations[i].empty()) {
+      cout << ", which does not have any goal left." << endl;
+      path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
+    } else {
+      cout << " with start and goal: ";
+      path = single_agent_plan(env->curr_states[i].location,
+                               env->curr_states[i].orientation,
+                               env->goal_locations[i].front().first);
+    }
+    cout<< "current location: " << path.front().first << " current direction: " << 
+      path.front().second << endl;
+    if (path.front().first != env->curr_states[i].location){
+      actions[i] = Action::FW;
+    } else if (path.front().second!= env->curr_states[i].orientation){
+      int incr = path.front().second - env->curr_states[i].orientation;
+      if (incr == 1 || incr == -3){
+        actions[i] = Action::CR;
+      } else if (incr == -1 || incr == 3){
+        actions[i] = Action::CCR;
+      } 
     }
 
-    return env->curr_states;
+  }
+
+
+  return actions;
+  // env->curr_states;
 }
 
 

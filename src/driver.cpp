@@ -85,19 +85,19 @@ int main(int argc, char** argv) {
 
 	std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
 
-	Validator* validator = new ValidatorRotate(grid);
+	ActionModelWithRotate* model = new ActionModelWithRotate(grid);
 
   BaseSystem* system_ptr = nullptr;
 
   if (data["task_assignment_strategy"].get<std::string>()=="greedy"){
-    system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, validator);
+    system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
   } else if (data["task_assignment_strategy"].get<std::string>()=="roundrobin"){
     std::vector<vector<int>> assigned_tasks(agents.size());
     for(int i = 0; i < tasks.size(); i++){
       assigned_tasks[i%agents.size()].push_back(tasks[i]);
     }
 
-    system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, validator);
+    system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, model);
 
 
   } else{
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
   system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
   system_ptr->saveErrors("./exp/error.txt");
 
-  if (validator != nullptr){delete validator;}
+  delete model;
 	delete planner->env;
   delete system_ptr;
 	return 0;
