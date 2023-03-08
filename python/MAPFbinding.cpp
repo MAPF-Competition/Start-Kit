@@ -50,6 +50,7 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("num_of_agents",&SharedEnvironment::num_of_agents)
         .def_readonly("goal_locations",&SharedEnvironment::goal_locations)
         .def_readonly("curr_timestep",&SharedEnvironment::curr_timestep)
+        .def_readonly("map",&SharedEnvironment::map)
         .def_readonly("curr_states",&SharedEnvironment::curr_states);
 
 
