@@ -1,0 +1,3 @@
+Sample output - suggested from visualiser
+path file: xxx.path
+conflict(error file): xxx.conf
