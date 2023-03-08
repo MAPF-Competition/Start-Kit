@@ -126,7 +126,7 @@ void python_driver(int argc, char** argv){
 
 void test(){
     pybind11::scoped_interpreter guard{};
-    auto planner=new pyMAPFPlanner();
+    MAPFPlanner* planner=new pyMAPFPlanner();
     planner->plan(666);
 
 }
