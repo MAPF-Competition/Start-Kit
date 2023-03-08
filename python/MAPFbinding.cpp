@@ -36,6 +36,13 @@ PYBIND11_MODULE(MAPF, m ){
         .def(py::self!=py::self)
         .def(pybind11::init<int,int,int>());
 
+
+    pybind11::enum_<Action>(m,"Action")
+        .value("FW",Action::FW)
+        .value("CR",Action::CR)
+        .value("CCR",Action::CCR)
+        .value("W",Action::W);
+
     pybind11::class_<SharedEnvironment>(m,"SharedEnvironment")
         .def(pybind11::init<>())
         .def_readonly("rows",&SharedEnvironment::rows)

@@ -57,6 +57,4 @@ public:
     }
     return next;
   };
-
-
 };
