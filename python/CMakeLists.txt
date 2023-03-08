@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(mapf_pybind)
 
-
+# replace 3.6 to the python version you use
 find_package(Python3 3.6 EXACT REQUIRED COMPONENTS Interpreter Development)
 find_package(PythonInterp 3.6 EXACT REQUIRED)
 find_package(pybind11 REQUIRED)
