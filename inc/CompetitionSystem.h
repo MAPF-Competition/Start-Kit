@@ -19,10 +19,12 @@ class BaseSystem{
 
   void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
   void saveErrors(const string &fileName) const;
+  void saveResults(const string &fileName) const;
 
   int num_tasks_reveal = 1;
 
   void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
+
 
 
  protected:
@@ -53,6 +55,8 @@ class BaseSystem{
 
   // tasks that haven't been finished but have been revealed to agents;
   vector< vector<pair<int, int> > > goal_locations;
+
+  vector<list<std::tuple<int,int,std::string>>> events;
 
 	void initialize();
 	virtual void update_goal_locations() = 0;
