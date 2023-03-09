@@ -6,13 +6,14 @@ class pyMAPFPlanner:
         self.env=env
         print("pyMAPFPlanner initialized!")
 
-    def initialize(self,preprocess_time_limit):
+    def initialize(self,preprocess_time_limit:int):
         """_summary_
 
         Args:
             preprocess_time_limit (_type_): _description_
         """
-        raise NotImplementedError()
+        pass
+        # raise NotImplementedError()
 
     def plan(self,time_limit):
         """_summary_
@@ -24,7 +25,9 @@ class pyMAPFPlanner:
             time_limit (_type_): _description_
         """
         actions=[]
-        raise NotImplementedError()
+        print("python binding debug")
+        print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
+        raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
         return actions
 
 
