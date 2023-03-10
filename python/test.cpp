@@ -114,9 +114,10 @@ void python_driver(int argc, char** argv){
   system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
   system_ptr->simulate(vm["simulation_time"].as<int>());
 
-  system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
-  system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
-  system_ptr->saveErrors("./exp/error.txt");
+//   system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
+//   system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
+//   system_ptr->saveErrors("./exp/error.txt");
+    system_ptr->saveResults("./exp/output.json");
 
   delete model;
 	delete planner->env;
@@ -133,7 +134,7 @@ void test(){
 
 
 int main(int argc, char** argv) {
-    test();
+    python_driver(argc,argv);
     return 0;
 
 }
