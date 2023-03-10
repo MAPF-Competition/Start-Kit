@@ -1,5 +1,8 @@
 import MAPF
 
+from typing import Dict, List, Tuple
+from queue import PriorityQueue
+
 class pyMAPFPlanner:
     def __init__(self,env=None) -> None:
 
@@ -24,11 +27,101 @@ class pyMAPFPlanner:
         Args:
             time_limit (_type_): _description_
         """
-        actions=[]
-        print("python binding debug")
-        print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
-        raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
+
+        # example of only using single-agent search
+        actions=[ MAPF.Action.W for i in range(len(self.env.curr_states))]
+        for i in range(0,self.env.num_of_agents):
+            print("start plan for agent ",i)
+            path=[]
+            if len(self.env.goal_locations[i]):
+                print(i," does not have any goal left")
+                path.append((self.env.curr_states[i].location,self.env.curr_states[i].orientation))
+            else:
+                print( " with start and goal: ")
+                path=self.single_agent_plan(self.env.curr_states[i].location,self.env.curr_states[i].orientation,self.env.goal_locations[i][0][0])
+            print("current location:",path[0][0],"current direction: ",path[0][1])
+            if path[0][0]!=self.env.curr_states[i].orientation:
+                actions[i]=MAPF.Action.FW
+            elif path[0][1]!=self.env.curr_states[i].orientation:
+                incr=path[0][1]-self.env.curr_states[i].orientation
+                if incr==1 or incr==-3:
+                    actions[i]=MAPF.Action.CR
+                elif incr==-1 or incr==3:
+                    actions[i]=MAPF.Action.CCR
         return actions
+        # print("python binding debug")
+        # print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
+        # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
+
+
+    def single_agent_plan(self, start:int,start_direct:int,end:int):
+        path=[]
+        # AStarNode (u,dir,t,f)
+        open_list=PriorityQueue()
+        s=(start,start_direct,0,self.getManhattanDistance(start,end))
+        open_list.put(s,0)
+        all_nodes=dict()
+        close_list=set()
+        parent={start:None}
+        all_nodes[start*4+start_direct]=s
+        while not open_list.empty():
+            curr=open_list.get()
+            close_list.add(curr[0]*4+curr[1])
+            if curr[0]==end:
+                while curr!=None:
+                    path.append((curr[0],curr[1]))
+                    curr=parent[curr]
+                path.reverse()
+                break
+            neighbors=self.getNeighbors(curr[0],curr[1])
+            for neighbor in neighbors:
+                if (neighbor[0]*4+neighbor[1]) not in close_list:
+                    continue
+                next_node=(neighbor[0],neighbor[1],curr[3]+1,self.getManhattanDistance(neighbor[0],end))
+                parent[next_node]=curr
+                open_list.put(next_node,next_node[3])
+        return path
+
+
+    def getManhattanDistance(self,loc1:int,loc2:int)->int:
+        loc1_x=loc1//self.env.cols
+        loc1_y=loc1%self.env.cols
+        loc2_x=loc2//self.env.cols
+        loc2_y=loc2%self.env.cols
+        return abs(loc1_x-loc2_x)+abs(loc1_y-loc2_y)
+
+
+    def validateMove(self,loc:int,loc2:int)->bool:
+        loc_x=loc//self.env.cols
+        loc_y=loc%self.env.cols
+        if(loc_x>=self.env.rows or loc_y>=self.env.cols or self.env.map[loc]==1):
+            return False
+        loc2_x=loc2//self.env.cols
+        loc2_y=loc2%self.env.cols
+        if(abs(loc_x-loc2_x)+abs(loc_y-loc2_y)>1):
+            return False
+        return True
+
+    def getNeighbors(self,location:int,direction:int):
+        neighbors=[]
+        candidates=[location+1,location-self.env.cols,location-1,location+self.env.cols]
+        forward=candidates[direction]
+        new_direction=direction
+        if (forward>=0 and  forward < len(self.env.map) and self.validateMove(forward,location)):
+            neighbors.append((forward,new_direction))
+        new_direction = direction-1;
+        if (new_direction == -1):
+            new_direction = 3
+        neighbors.append((location,new_direction))
+    
+        new_direction = direction+1;
+        if (new_direction == 4):
+            new_direction = 0
+        neighbors.append((location,new_direction))
+        return neighbors
+
+
+        
 
 
 if __name__=="__main__":
