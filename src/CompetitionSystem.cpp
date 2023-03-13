@@ -216,9 +216,9 @@ void BaseSystem::saveResults(const string &fileName) const
       output << "\"";
       bool first = true;
       for (const auto t : actual_movements[i]){
-        // if (!first){output << ",";} else {
-        //   first = false;
-        // }
+        if (!first){output << ",";} else {
+          first = false;
+        }
         output << t;
       }  
       output<<"\"";
@@ -235,9 +235,9 @@ void BaseSystem::saveResults(const string &fileName) const
       output << "\"";
       bool first = true;
       for (const auto t : planner_movements[i]){
-        // if (!first){output << ",";} else {
-        //   first = false;
-        // }
+        if (!first){output << ",";} else {
+          first = false;
+        }
         output << t;
       }
       output<<"\"";
