@@ -30,6 +30,7 @@ protected:
       new_location = new_location += moves[prev.orientation];
     } else if (action == Action::CR){
       new_orientation = (prev.orientation + 1) % 4;
+      
     } else if (action == Action::CCR){
       new_orientation = (prev.orientation - 1) % 4;
     }
@@ -42,9 +43,9 @@ public:
 
   ActionModelWithRotate(Grid & grid): grid(grid), rows(grid.rows), cols(grid.cols){
     moves[0] = 1;
-    moves[1] = -cols;
+    moves[1] = cols;
     moves[2] = -1;
-    moves[3] = cols;
+    moves[3] = -cols;
 
   };
 
