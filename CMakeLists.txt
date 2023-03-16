@@ -26,8 +26,8 @@ target_link_libraries(lifelong ${Boost_LIBRARIES})
 
 IF(USE_PYBIND)
     # replace 3.6 to the python version you use
-    find_package(Python3 3.6 EXACT REQUIRED COMPONENTS Interpreter Development)
-    find_package(PythonInterp 3.6 EXACT REQUIRED)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+    find_package(PythonInterp  REQUIRED)
     find_package(pybind11 REQUIRED)
     set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
