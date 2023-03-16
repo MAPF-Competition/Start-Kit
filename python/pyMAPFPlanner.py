@@ -3,10 +3,13 @@ import MAPF
 from typing import Dict, List, Tuple
 from queue import PriorityQueue
 
+
+#0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
+
 class pyMAPFPlanner:
     def __init__(self,env=None) -> None:
-
         self.env=env
+    
         print("pyMAPFPlanner initialized!")
 
     def initialize(self,preprocess_time_limit:int):
@@ -30,6 +33,7 @@ class pyMAPFPlanner:
         """
 
         # example of only using single-agent search
+
         actions=[ MAPF.Action.W for i in range(len(self.env.curr_states))]
         for i in range(0,self.env.num_of_agents):
             print("start plan for agent ",i,end=" ")
