@@ -26,14 +26,14 @@
 "Errors":[],
 "Events":
 [
- ["(1,2,0,assigned)","(1,2,4,finished)","(25,13,3,assigned)","(25,13,40,finished)"],
- ["(1,41,0,assigned)","(1,41,3,finished)","(0,40,2,assigned)","(0,40,7,finished)"],
- ["(28,28,0,assigned)","(28,28,32,finished)","(1,8,31,assigned)"],
- ["(1,40,0,assigned)","(1,40,37,finished)","(31,44,36,assigned)"],
- ["(8,45,0,assigned)","(8,45,27,finished)","(3,11,26,assigned)"],
- ["(20,34,0,assigned)","(20,34,14,finished)","(13,31,13,assigned)","(13,31,32,finished)"],
+ ["(1,2,0,assigned)","(1,2,3,finished)","(25,13,3,assigned)","(25,13,39,finished)"],
+ ["(1,41,0,assigned)","(1,41,2,finished)","(0,40,2,assigned)","(0,40,6,finished)"],
+ ["(28,28,0,assigned)","(28,28,31,finished)","(1,8,31,assigned)"],
+ ["(1,40,0,assigned)","(1,40,36,finished)","(31,44,36,assigned)"],
+ ["(8,45,0,assigned)","(8,45,26,finished)","(3,11,26,assigned)"],
+ ["(20,34,0,assigned)","(20,34,13,finished)","(13,31,13,assigned)","(13,31,31,finished)"],
  ["(5,45,0,assigned)"],
- ["(15,41,0,assigned)","(15,41,6,finished)","(9,18,5,assigned)","(9,18,37,finished)"],
+ ["(15,41,0,assigned)","(15,41,5,finished)","(9,18,5,assigned)","(9,18,36,finished)"],
  ["(22,45,0,assigned)"],
  ["(3,15,0,assigned)"]
 ]}

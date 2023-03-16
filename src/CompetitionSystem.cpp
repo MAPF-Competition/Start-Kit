@@ -19,8 +19,8 @@ list<tuple<int, int, int>> BaseSystem::move(vector<Action>& actions){
   for (int k = 0; k < num_of_agents; k++) {
     if (!goal_locations[k].empty() && curr_states[k].location == goal_locations[k].front().first){
       goal_locations[k].erase(goal_locations[k].begin());
-      finished_tasks.emplace_back(k, curr_states[k].location, timestep + 1);
-      events[k].push_back(make_tuple(curr_states[k].location, timestep + 1,"finished"));
+      finished_tasks.emplace_back(k, curr_states[k].location, timestep);
+      events[k].push_back(make_tuple(curr_states[k].location, timestep,"finished"));
     }
     paths[k].push_back(curr_states[k]);
     actual_movements[k].push_back(actions[k]);
