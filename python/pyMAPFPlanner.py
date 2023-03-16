@@ -2,13 +2,14 @@ import MAPF
 
 from typing import Dict, List, Tuple
 from queue import PriorityQueue
+import numpy as np
 
 
 #0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 
 class pyMAPFPlanner:
-    def __init__(self,env=None) -> None:
-        self.env=env
+    def __init__(self,pyenv=None) -> None:
+        self.env=pyenv.env
     
         print("pyMAPFPlanner initialized!")
 
@@ -36,7 +37,7 @@ class pyMAPFPlanner:
 
         actions=[ MAPF.Action.W for i in range(len(self.env.curr_states))]
         for i in range(0,self.env.num_of_agents):
-            print("start plan for agent ",i,end=" ")
+            print("python start plan for agent ",i,end=" ")
             path=[]
             if len(self.env.goal_locations[i])==0:
                 print(i," does not have any goal left",end=" ")
@@ -55,7 +56,9 @@ class pyMAPFPlanner:
                 elif incr==-1 or incr==3:
                     actions[i]=MAPF.Action.CCR
         # print(actions)
-        return actions
+        actions=[int(a) for a in actions]
+        # print(actions)
+        return np.array(actions,dtype=int)
         # print("python binding debug")
         # print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
         # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")

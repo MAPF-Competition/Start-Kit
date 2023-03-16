@@ -66,6 +66,7 @@ PYBIND11_MODULE(MAPF, m ){
         .def("get_map",&pyEnvironment::get_map)
         .def("get_goal_locations",&pyEnvironment::get_goal_locations)
         .def("get_num_of_agents",&pyEnvironment::get_num_of_agents)
+        .def_readonly("env",&pyEnvironment::env)
         .def("get_curr_states",&pyEnvironment::get_curr_states);
 
 

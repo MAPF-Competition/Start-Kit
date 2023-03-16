@@ -42,11 +42,12 @@ public:
     int get_rows(){return env->rows;}
     int get_cols(){return env->cols;}
     int get_num_of_agents(){return env->num_of_agents;}
+
     
     std::vector<std::vector<std::pair<int,int>>>get_goal_locations(){
         return env->goal_locations;
     }
     int get_currtimestep(){return env->curr_timestep;}
-private:
+
     SharedEnvironment* env;
 };
