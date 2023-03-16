@@ -10,13 +10,16 @@
 #include "SharedEnv.h"
 #include "States.h"
 #include "MAPFPlanner.h"
+#include "pyEnvironment.hpp"
 
 
 
 class pyMAPFPlanner:public MAPFPlanner{
 public:
     pyMAPFPlanner();
-    // ~pyMAPFPlanner();
+    ~pyMAPFPlanner(){
+        delete py_env;
+    }
 
 
     void initialize(int preprocess_time_limit);
@@ -26,9 +29,7 @@ public:
 
 private:
     pybind11::object py_planner;
-
-
-
+    pyEnvironment * py_env;
 };
 
 
