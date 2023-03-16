@@ -134,7 +134,7 @@ bool MAPFPlanner::validateMove(int loc, int loc2)
 list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
     list<pair<int,int>> neighbors;
     //forward
-    int candidates[4] = { location + 1,location - env->cols, location - 1, location + env->cols};
+    int candidates[4] = { location + 1,location + env->cols, location - 1, location - env->cols};
     int forward = candidates[direction];
     int new_direction = direction;
     if (forward>=0 && forward < env->map.size() && validateMove(forward,location))
