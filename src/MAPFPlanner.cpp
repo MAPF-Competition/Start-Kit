@@ -62,7 +62,7 @@ vector<Action> MAPFPlanner::plan(int time_limit) {
 
 
 list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
-    cout << start << " " << end << endl;
+    cout << start<<" "<<start_direct << " " << end << endl;
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<int,AstarNode*> all_nodes;
@@ -76,16 +76,21 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
         open_list.pop();
         close_list.emplace(curr->location*4 + curr->direction);
         if (curr->location == end) {
+            //std::cout<<"test"<<std::endl;
             while(curr->parent!=NULL) {
+                //std::cout<<curr->location<<", "<<curr->direction<<" "; 
                 path.emplace_front(make_pair(curr->location, curr->direction));
                 curr = curr->parent;
             }
+            //std::cout<<endl;
             break;
         }
         list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
         for (const pair<int,int>& neighbor: neighbors) {
+            //std::cout<<"neighbor: "<<neighbor.first<<" "<<neighbor.second<<std::endl;
             if (close_list.find(neighbor.first*4 + neighbor.second) != close_list.end())
                 continue;
+            //std::cout<<"1"<<std::endl;
             if (all_nodes.find(neighbor.first*4 + neighbor.second) != all_nodes.end()) {
                 AstarNode* old = all_nodes[neighbor.first*4 + neighbor.second];
                 if (curr->g + 1 < old->g) {

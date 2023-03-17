@@ -48,7 +48,7 @@ void BaseSystem::simulate(int simulation_time){
     int num_of_tasks = 0;
     //I just put it out to seperate ours initilize with participants'
     planner->initialize(preprocess_time_limit);
-    simulation_time = 50;
+    simulation_time = 5000;
 	for (; timestep < simulation_time; timestep += 1) {
         cout << "----------------------------" << std::endl;
         cout << "Timestep " << timestep << std::endl;

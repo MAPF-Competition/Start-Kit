@@ -33,6 +33,8 @@ protected:
       
     } else if (action == Action::CCR){
       new_orientation = (prev.orientation - 1) % 4;
+      if (new_orientation == -1)
+        new_orientation = 3;
     }
 
     return State(new_location, prev.timestep + 1, new_orientation);
