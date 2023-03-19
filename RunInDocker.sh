@@ -26,5 +26,5 @@ echo "Remove container and images if exist... ..."
 out=$(docker container stop gppc_test 2>&1 ; docker container rm gppc_test 2>&1 ; docker rmi gppc_image 2>&1)
 
 echo "Build image and run the container... ..."
-docker build -t gppc_image ./
+docker build --no-cache -t gppc_image ./
 docker container run -it --name gppc_test gppc_image

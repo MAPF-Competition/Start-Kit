@@ -5,5 +5,5 @@ mkdir build
 # build exec
 
 cd build
-cmake ./
+cmake ../
 make -j
