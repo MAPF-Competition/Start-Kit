@@ -11,7 +11,7 @@ class pyMAPFPlanner:
     def __init__(self,pyenv=None) -> None:
         self.env=pyenv.env
     
-        print("pyMAPFPlanner initialized!")
+        print("pyMAPFPlanner initialized!  python debug")
 
     def initialize(self,preprocess_time_limit:int):
         """_summary_
@@ -21,6 +21,7 @@ class pyMAPFPlanner:
         """
         pass
         print("planner initialize done" )
+        return True
         # raise NotImplementedError()
 
     def plan(self,time_limit):
@@ -65,18 +66,18 @@ class pyMAPFPlanner:
 
 
     def single_agent_plan(self, start:int,start_direct:int,end:int):
-        print(start,start_direct)
+        print(start,start_direct,end)
         path=[]
         # AStarNode (u,dir,t,f)
         open_list=PriorityQueue()
         s=(start,start_direct,0,self.getManhattanDistance(start,end))
-        open_list.put(s,0)
+        open_list.put([0,s])
         all_nodes=dict()
         close_list=set()
         parent={(start,start_direct):None}
         all_nodes[start*4+start_direct]=s
         while not open_list.empty():
-            curr=open_list.get()
+            curr=(open_list.get())[1]
             close_list.add(curr[0]*4+curr[1])
             if curr[0]==end:
                 curr=(curr[0],curr[1])
@@ -92,10 +93,10 @@ class pyMAPFPlanner:
             for neighbor in neighbors:
                 if (neighbor[0]*4+neighbor[1])  in close_list:
                     continue
-                next_node=(neighbor[0],neighbor[1],curr[3]+1,self.getManhattanDistance(neighbor[0],end))
+                next_node=(neighbor[0],neighbor[1],curr[2]+1,self.getManhattanDistance(neighbor[0],end))
                 parent[(next_node[0],next_node[1])]=(curr[0],curr[1])
-                open_list.put(next_node,next_node[3])
-        # print(path)
+                open_list.put([next_node[3]+next_node[2],next_node])
+        print(path)
         return path
 
 
@@ -120,17 +121,19 @@ class pyMAPFPlanner:
 
     def getNeighbors(self,location:int,direction:int):
         neighbors=[]
-        candidates=[location+1,location-self.env.cols,location-1,location+self.env.cols]
+        # forward
+        candidates=[location+1,location+self.env.cols,location-1,location-self.env.cols]
         forward=candidates[direction]
         new_direction=direction
         if (forward>=0 and  forward < len(self.env.map) and self.validateMove(forward,location)):
             neighbors.append((forward,new_direction))
-        new_direction = direction-1;
+        # turn left
+        new_direction = direction-1
         if (new_direction == -1):
             new_direction = 3
         neighbors.append((location,new_direction))
-    
-        new_direction = direction+1;
+        #turn right
+        new_direction = direction+1
         if (new_direction == 4):
             new_direction = 0
         neighbors.append((location,new_direction))
@@ -143,4 +146,3 @@ class pyMAPFPlanner:
 
 if __name__=="__main__":
     test_planner=pyMAPFPlanner()
-    print("done!")
