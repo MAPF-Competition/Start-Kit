@@ -3,13 +3,13 @@
 #include <boost/tokenizer.hpp>
 
 
-list<tuple<int, int, int>> BaseSystem::move(vector<Action>& actions){
+list<Task> BaseSystem::move(vector<Action>& actions){
 
   for (int k = 0; k < num_of_agents; k++) {
     planner_movements[k].push_back(actions[k]);
   }
 
-  list<tuple<int, int, int>> finished_tasks; // <agent_id, location, timestep>
+  list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
   if (!valid_moves(curr_states, actions)){
     actions = std::vector<Action>(curr_states.size(), Action::W);
   }
@@ -17,16 +17,18 @@ list<tuple<int, int, int>> BaseSystem::move(vector<Action>& actions){
   curr_states = model->result_states(curr_states, actions);
   // agents do not move
   for (int k = 0; k < num_of_agents; k++) {
-    if (!goal_locations[k].empty() && curr_states[k].location == goal_locations[k].front().first){
-      goal_locations[k].erase(goal_locations[k].begin());
-      finished_tasks.emplace_back(k, curr_states[k].location, timestep);
-      events[k].push_back(make_tuple(curr_states[k].location, timestep,"finished"));
+    if (!assigned_tasks[k].empty() && curr_states[k].location == assigned_tasks[k].front().location){
+      Task task = assigned_tasks[k].front();
+      assigned_tasks[k].pop_front();
+      task.t_completed = timestep;
+      finished_tasks_this_timestep.push_back(task);
+      events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
     }
     paths[k].push_back(curr_states[k]);
     actual_movements[k].push_back(actions[k]);
   }
 
-  return finished_tasks;
+  return finished_tasks_this_timestep;
 }
 
 
@@ -37,7 +39,13 @@ bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action){
 
 
 void BaseSystem::sync_shared_env(){
-  env->goal_locations = goal_locations;
+  env->goal_locations.resize(num_of_agents);
+  for (size_t i = 0; i < num_of_agents; i++){
+    env->goal_locations[i].clear();
+    for (auto& task: assigned_tasks[i]){
+      env->goal_locations[i].push_back({task.location, task.t_assigned });
+    }
+  }
   env->curr_timestep = timestep;
   env->curr_states = curr_states;
 }
@@ -57,22 +65,22 @@ void BaseSystem::simulate(int simulation_time){
     vector<Action> actions = planner->plan(plan_time_limit);
 
     // move drives
-    list<tuple<int, int, int>> new_finished_tasks = move(actions);
+    list<Task> new_finished_tasks = move(actions);
     cout << new_finished_tasks.size() << " tasks has been finished in this timestep" << std::endl;
 
     // update tasks
     for (auto task : new_finished_tasks) {
-      int id, loc, t;
-      std::tie(id, loc, t) = task;
-      finished_tasks[id].emplace_back(loc, t);
+      // int id, loc, t;
+      // std::tie(id, loc, t) = task;
+      finished_tasks[task.agent_assigned].emplace_back(task);
       num_of_tasks++;
     }
     cout << num_of_tasks << " tasks has been finished by far in total" << std::endl;
 
-    update_goal_locations();
+    update_tasks();
 
     bool complete_all = false;
-    for (auto t: goal_locations)
+    for (auto & t: assigned_tasks)
       {
         if(t.empty())
           complete_all = true;
@@ -108,9 +116,9 @@ void BaseSystem::initialize() {
   // bool succ = load_records(); // continue simulating from the records
   timestep = 0;
   curr_states = starts;
-  goal_locations.resize(num_of_agents);
+  assigned_tasks.resize(num_of_agents);
   // initialize_goal_locations();
-  update_goal_locations();
+  update_tasks();
 
   sync_shared_env();
 
@@ -261,6 +269,18 @@ void BaseSystem::saveResults(const string &fileName) const
         output<<",";
       i++;
     }
+
+  // TODO I cout task_id:task location here 
+  // This needs to go to the JSON too
+  for (int i = 0; i < num_of_agents; i++)
+    {
+      for(auto & task: finished_tasks[i])
+        {
+          std::cout << task.task_id << ": " << task.location/map.cols << ", " << task.location%map.cols << std::endl;
+        }
+    }
+
+
   output<<"],"<<endl<<"\"Events\":"<<endl<<"["<<endl;
   for (int i = 0; i < num_of_agents; i++)
     {
@@ -274,10 +294,10 @@ void BaseSystem::saveResults(const string &fileName) const
       for(auto e: events[i])
         {
           std::string event_msg;
-          int location;
+          int task_id;
           int timestep;
-          std::tie(location,timestep,event_msg) = e;
-          output<<"\"("<<location/map.cols<<","<<location%map.cols<<","<<timestep<<","<< event_msg <<")\"";
+          std::tie(task_id,timestep,event_msg) = e;
+          output<<"\"("<<task_id<<","<<timestep<<","<< event_msg <<")\"";
           if (j < events[i].size()-1)
             output<<",";
           j++;
@@ -307,7 +327,7 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
   boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
 
   num_of_agents = atoi((*beg).c_str());
-
+  int task_id = 0;
   // My benchmark
   if (num_of_agents == 0) {
     std::cerr << "The number of agents should be larger than 0" << endl;
@@ -334,7 +354,7 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
     beg++;
     for (int j = 0; j < num_landmarks; j++, beg++) {
       auto loc = atoi((*beg).c_str());
-      task_queue[i].push_back(loc);
+      task_queue[i].emplace_back(task_id++, loc, 0, i);
       cout << " -> " << loc;
     }
     cout << endl;
@@ -346,35 +366,31 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
 }
 
 
-void FixedAssignSystem::update_goal_locations(){
+void FixedAssignSystem::update_tasks(){
   for (int k = 0; k < num_of_agents; k++) {
-    while (goal_locations[k].size() < num_tasks_reveal && !task_queue[k].empty()) {
-      goal_locations[k].emplace_back(task_queue[k].front(), timestep);
-      events[k].push_back(make_tuple(task_queue[k].front(),timestep,"assigned"));
+    while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue[k].empty()) {
+      Task task = task_queue[k].front();
       task_queue[k].pop_front();
+      assigned_tasks[k].push_back(task);
+      events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
     }
   }
 }
 
 
-// void TaskAssignSystem::update_goal_locations(){
-// 	for (int k = 0; k < num_of_agents; k++) {
-//     if (goal_locations[k].empty() && !task_queue.empty()) {
-//       std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
-//       goal_locations[k].emplace_back(task_queue.front(), timestep);
-//       task_queue.pop_front();
-//     }
-//   }
-// }
 
-void TaskAssignSystem::update_goal_locations(){
+void TaskAssignSystem::update_tasks(){
   for (int k = 0; k < num_of_agents; k++) {
-    while (goal_locations[k].size() < num_tasks_reveal && !task_queue.empty())
+    while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue.empty())
       {
-        std::cout << "assigned task " << task_queue.front() << " to agent " << k << std::endl;
-        goal_locations[k].emplace_back(task_queue.front(), timestep);
-        events[k].push_back(make_tuple(task_queue.front(),timestep,"assigned"));
+        std::cout << "assigned task " << task_queue.front().task_id <<
+          " with loc " << task_queue.front().location << " to agent " << k << std::endl;
+        Task task = task_queue.front();
+        task.t_assigned = timestep;
+        task.agent_assigned = k;
         task_queue.pop_front();
+        assigned_tasks[k].push_back(task);
+        events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
       }
   }
 }

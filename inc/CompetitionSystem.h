@@ -2,6 +2,7 @@
 // #include "BasicSystem.h"
 #include "SharedEnv.h"
 #include "Grid.h"
+#include "Tasks.h"
 #include "ActionModel.h"
 #include "MAPFPlanner.h"
 
@@ -43,7 +44,7 @@ class BaseSystem{
   int plan_time_limit;
 
   std::vector<Path> paths;
-  std::vector<std::list<std::pair<int, int> > > finished_tasks; // location + finish time
+  std::vector<std::list<Task > > finished_tasks; // location + finish time
 
   vector<State> starts;
   int num_of_agents;
@@ -54,17 +55,16 @@ class BaseSystem{
   vector<list<Action>> planner_movements;
 
   // tasks that haven't been finished but have been revealed to agents;
-  vector< vector<pair<int, int> > > goal_locations;
+  vector< deque<Task > > assigned_tasks;
 
   vector<list<std::tuple<int,int,std::string>>> events;
 
 	void initialize();
-	virtual void update_goal_locations() = 0;
+	virtual void update_tasks() = 0;
 
   void sync_shared_env();
 
-  // move agents,  update agents location, return finished tasks
-  list<tuple<int, int, int>> move(vector<Action>& actions);
+  list<Task> move(vector<Action>& actions);
   bool valid_moves(vector<State>& prev, vector<Action>& next);
 };
 
@@ -87,12 +87,16 @@ class FixedAssignSystem : public BaseSystem
       exit(1);
     }
 
+    int task_id = 0;
     num_of_agents = start_locs.size();
     starts.resize(num_of_agents);
     task_queue.resize(num_of_agents);
     for (size_t i = 0; i < start_locs.size(); i++){
       starts[i] = State(start_locs[i], 0, 0);
-      task_queue[i] = deque<int>(tasks[i].begin(), tasks[i].end());
+      for (auto& task_location: tasks[i]){
+        task_queue[i].emplace_back(task_id++, task_location, 0, (int)i);
+      }
+      // task_queue[i] = deque<int>(tasks[i].begin(), tasks[i].end());
     }
   };
 
@@ -102,9 +106,9 @@ class FixedAssignSystem : public BaseSystem
 
 
  private:
-  vector<deque<int>> task_queue;
+  vector<deque<Task>> task_queue;
 
-	void update_goal_locations();
+	void update_tasks();
 
 };
 
@@ -113,8 +117,12 @@ class TaskAssignSystem : public BaseSystem
 {
 public:
 	TaskAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
-    BaseSystem(grid, planner, model), task_queue(tasks.begin(), tasks.end())
+    BaseSystem(grid, planner, model)
   {
+    int task_id = 0;
+    for (auto& task_location: tasks){
+      task_queue.emplace_back(task_id++, task_location);
+    }
     num_of_agents = start_locs.size();
     starts.resize(num_of_agents);
     for (size_t i = 0; i < start_locs.size(); i++){
@@ -126,8 +134,8 @@ public:
 	~TaskAssignSystem(){};
 
 private:
-  deque<int> task_queue;
+  deque<Task> task_queue;
 
-	void update_goal_locations();
+	void update_tasks();
 
 };
