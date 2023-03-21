@@ -272,6 +272,8 @@ void BaseSystem::saveResults(const string &fileName) const
 
   // TODO I cout task_id:task location here 
   // This needs to go to the JSON too
+  //
+  // Added comment from Han: I realized that this is problematic because it does not show those unfinished tasks...
   for (int i = 0; i < num_of_agents; i++)
     {
       for(auto & task: finished_tasks[i])
