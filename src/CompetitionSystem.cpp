@@ -303,6 +303,7 @@ void BaseSystem::saveResults(const string &fileName) const
   js["Planner Paths"] = ppaths;
 
   //errors
+  json errors = json::array();
   for (auto error: model->errors)
   {
     std::string error_msg;
@@ -315,10 +316,10 @@ void BaseSystem::saveResults(const string &fileName) const
     e.push_back(agent2);
     e.push_back(timestep);
     e.push_back(error_msg);
-
-    js["Errors"] = e;
+    errors.push_back(e);
 
   }
+  js["Errors"] = errors;
   
   //events
   json events_json = json::array();
