@@ -347,7 +347,8 @@ void BaseSystem::saveResults(const string &fileName) const
   {
     json task = json::array();
     task.push_back(t.task_id);
-    task.push_back(t.location);
+    task.push_back(t.location/map.cols);
+    task.push_back(t.location%map.cols);
     tasks.push_back(task);
   }
   js["Task Pool"] = tasks;
