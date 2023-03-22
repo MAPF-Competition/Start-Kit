@@ -58,6 +58,7 @@ class BaseSystem{
   vector< deque<Task > > assigned_tasks;
 
   vector<list<std::tuple<int,int,std::string>>> events;
+  list<Task> all_tasks;
 
 	void initialize();
 	virtual void update_tasks() = 0;
@@ -94,7 +95,8 @@ class FixedAssignSystem : public BaseSystem
     for (size_t i = 0; i < start_locs.size(); i++){
       starts[i] = State(start_locs[i], 0, 0);
       for (auto& task_location: tasks[i]){
-        task_queue[i].emplace_back(task_id++, task_location, 0, (int)i);
+        all_tasks.emplace_back(task_id++, task_location, 0, (int)i);
+        task_queue[i].emplace_back(all_tasks.back().task_id, all_tasks.back().location, all_tasks.back().t_assigned, all_tasks.back().agent_assigned);
       }
       // task_queue[i] = deque<int>(tasks[i].begin(), tasks[i].end());
     }
@@ -121,7 +123,9 @@ public:
   {
     int task_id = 0;
     for (auto& task_location: tasks){
-      task_queue.emplace_back(task_id++, task_location);
+      all_tasks.emplace_back(task_id++, task_location);
+      task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().location);
+      //task_queue.emplace_back(task_id++, task_location);
     }
     num_of_agents = start_locs.size();
     starts.resize(num_of_agents);

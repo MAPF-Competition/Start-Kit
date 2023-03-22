@@ -1,7 +1,9 @@
 #include <cmath>
 #include "CompetitionSystem.h"
 #include <boost/tokenizer.hpp>
+#include "nlohmann/json.hpp"
 
+using json = nlohmann::ordered_json;
 
 list<Task> BaseSystem::move(vector<Action>& actions){
 
@@ -203,116 +205,270 @@ void BaseSystem::savePaths(const string &fileName, int option) const
 
 void BaseSystem::saveResults(const string &fileName) const
 {
-  std::ofstream output;
-  output.open(fileName, std::ios::out);
-  output << "{"<<endl;
-  output<<"\"Action Model\":\"MAPF_T\","<<endl;
-  output<<"\"Start\":[";
+  json js;
+  //action model
+  js["Action Model"] = "MAPF_T";
+
+  //start locations[x,y,orientation]
+  json start = json::array();
   for (int i = 0; i < num_of_agents; i++)
+  {
+    json s = json::array();
+    s.push_back(starts[i].location/map.cols);
+    s.push_back(starts[i].location%map.cols);
+    switch (starts[i].orientation)
     {
-      output<<"\"("<<starts[i].location/map.cols<<","<<starts[i].location%map.cols<<","<<starts[i].orientation<<")\"";
-      if(i <num_of_agents-1)
-        output<<",";
+      case 0:
+          s.push_back("N");
+          break;
+      case 1:
+        s.push_back("E");
+      case 2:
+        s.push_back("S");
+        break;
+      case 3:
+        s.push_back("W");
+        break;
     }
-  output<<"],"<<endl;
-  output << "\"Actual Paths\":"<<endl<<"[";
+    start.push_back(s);
+  }
+  js["Start"] = start;
+
+  //actual paths
+  json apaths = json::array();
   for (int i = 0; i < num_of_agents; i++)
+  {
+    std::string path;
+    bool first = true;
+    for (const auto action : actual_movements[i])
     {
-      if (i>0)
-        output<<" ";
-      output << "\"";
-      bool first = true;
-      for (const auto t : actual_movements[i]){
-        if (!first){output << ",";} else {
-          first = false;
-        }
-        output << t;
-      }  
-      output<<"\"";
-      if (i < num_of_agents-1)
-        {
-          output<<","<<endl;
-        }
-    }
-  output<<"],"<<endl << "\"Planned Paths\":"<<endl<<"[";
-  for (int i = 0; i < num_of_agents; i++)
-    {
-      if (i>0)
-        output<<" ";
-      output << "\"";
-      bool first = true;
-      for (const auto t : planner_movements[i]){
-        if (!first){output << ",";} else {
-          first = false;
-        }
-        output << t;
+      if (!first){path+= ",";} else 
+      {
+        first = false;
       }
-      output<<"\"";
-      if (i < num_of_agents-1)
-        {
-          output<<","<<endl;
-        }
-    }
-  output<<"],"<<endl<<"\"Errors\":[";
-  int i = 0;
+      if (action == Action::FW)
+      {
+        path+="F";
+      } 
+      else if (action == Action::CR)
+      {
+        path+="R";
+        
+      } 
+      else if (action == Action::CCR)
+      {
+        path+="C";
+      }
+      else
+      {
+        path+="W";
+      }
+    }  
+    apaths.push_back(path);
+  }
+  js["Actual Paths"] = apaths;
+
+  //planned paths
+  json ppaths = json::array();
+  for (int i = 0; i < num_of_agents; i++)
+  {
+    std::string path;
+    bool first = true;
+    for (const auto action : planner_movements[i])
+    {
+      if (!first){path+= ",";} else 
+      {
+        first = false;
+      }
+      if (action == Action::FW)
+      {
+        path+="F";
+      } 
+      else if (action == Action::CR)
+      {
+        path+="R";
+        
+      } 
+      else if (action == Action::CCR)
+      {
+        path+="C";
+      }
+      else
+      {
+        path+="W";
+      }
+    }  
+    ppaths.push_back(path);
+  }
+  js["Planner Paths"] = ppaths;
+
+  //errors
   for (auto error: model->errors)
+  {
+    std::string error_msg;
+    int agent1;
+    int agent2;
+    int timestep;
+    std::tie(error_msg,agent1,agent2,timestep) = error;
+    json e = json::array();
+    e.push_back(agent1);
+    e.push_back(agent2);
+    e.push_back(timestep);
+    e.push_back(error_msg);
+
+    js["Errors"] = e;
+
+  }
+  
+  //events
+  json events_json = json::array();
+  for (int i = 0; i < num_of_agents; i++)
+  {
+    json event = json::array();
+    for(auto e: events[i])
     {
-      std::string error_msg;
-      int agent1;
-      int agent2;
+      json ev = json::array();
+      std::string event_msg;
+      int task_id;
       int timestep;
-
-      std::tie(error_msg,agent1,agent2,timestep) = error;
-
-      output<<"\""<<agent1<<","<<agent2<<","<<timestep<<","<< error_msg <<"\"";
-      if (i < model->errors.size()-1)
-        output<<",";
-      i++;
+      std::tie(task_id,timestep,event_msg) = e;
+      ev.push_back(task_id);
+      ev.push_back(timestep);
+      ev.push_back(event_msg);
+      event.push_back(ev);
     }
+    events_json.push_back(event);
+  }
+  js["Events"] = events_json;
 
-  // TODO I cout task_id:task location here 
-  // This needs to go to the JSON too
-  //
-  // Added comment from Han: I realized that this is problematic because it does not show those unfinished tasks...
-  for (int i = 0; i < num_of_agents; i++)
-    {
-      for(auto & task: finished_tasks[i])
-        {
-          std::cout << task.task_id << ": " << task.location/map.cols << ", " << task.location%map.cols << std::endl;
-        }
-    }
+  //all tasks
+  json tasks = json::array();
+  for (auto t: all_tasks)
+  {
+    json task = json::array();
+    task.push_back(t.task_id);
+    task.push_back(t.location);
+    tasks.push_back(task);
+  }
+  js["Task Pool"] = tasks;
 
+  std::ofstream f(fileName,std::ios_base::trunc |std::ios_base::out);
+  f<<std::setw(4)<<js;
 
-  output<<"],"<<endl<<"\"Events\":"<<endl<<"["<<endl;
-  for (int i = 0; i < num_of_agents; i++)
-    {
-      // if (events[i].empty())
-      //   continue;
-      //output<<"{"<<endl<<"\"agent\":"<<i<<","<<endl<<"";
-      //output<<"\""<<i<<"\":"<<"{";
-      output<<" [";
-
-      int j = 0;
-      for(auto e: events[i])
-        {
-          std::string event_msg;
-          int task_id;
-          int timestep;
-          std::tie(task_id,timestep,event_msg) = e;
-          output<<"\"("<<task_id<<","<<timestep<<","<< event_msg <<")\"";
-          if (j < events[i].size()-1)
-            output<<",";
-          j++;
-        }
-      output<<"]";
-      if (i<num_of_agents-1)
-        output<<",";
-      output<<endl;
-    }
-  output<<"]";
-  output<<"}";
-  output.close();
 }
+
+// void BaseSystem::saveResults(const string &fileName) const
+// {
+//   std::ofstream output;
+//   output.open(fileName, std::ios::out);
+//   output << "{"<<endl;
+//   output<<"\"Action Model\":\"MAPF_T\","<<endl;
+//   output<<"\"Start\":[";
+//   for (int i = 0; i < num_of_agents; i++)
+//     {
+//       output<<"\"("<<starts[i].location/map.cols<<","<<starts[i].location%map.cols<<","<<starts[i].orientation<<")\"";
+//       if(i <num_of_agents-1)
+//         output<<",";
+//     }
+//   output<<"],"<<endl;
+//   output << "\"Actual Paths\":"<<endl<<"[";
+//   for (int i = 0; i < num_of_agents; i++)
+//     {
+//       if (i>0)
+//         output<<" ";
+//       output << "\"";
+//       bool first = true;
+//       for (const auto t : actual_movements[i]){
+//         if (!first){output << ",";} else {
+//           first = false;
+//         }
+//         output << t;
+//       }  
+//       output<<"\"";
+//       if (i < num_of_agents-1)
+//         {
+//           output<<","<<endl;
+//         }
+//     }
+//   output<<"],"<<endl << "\"Planned Paths\":"<<endl<<"[";
+//   for (int i = 0; i < num_of_agents; i++)
+//     {
+//       if (i>0)
+//         output<<" ";
+//       output << "\"";
+//       bool first = true;
+//       for (const auto t : planner_movements[i]){
+//         if (!first){output << ",";} else {
+//           first = false;
+//         }
+//         output << t;
+//       }
+//       output<<"\"";
+//       if (i < num_of_agents-1)
+//         {
+//           output<<","<<endl;
+//         }
+//     }
+//   output<<"],"<<endl<<"\"Errors\":[";
+//   int i = 0;
+//   for (auto error: model->errors)
+//     {
+//       std::string error_msg;
+//       int agent1;
+//       int agent2;
+//       int timestep;
+
+//       std::tie(error_msg,agent1,agent2,timestep) = error;
+
+//       output<<"\""<<agent1<<","<<agent2<<","<<timestep<<","<< error_msg <<"\"";
+//       if (i < model->errors.size()-1)
+//         output<<",";
+//       i++;
+//     }
+
+//   // TODO I cout task_id:task location here 
+//   // This needs to go to the JSON too
+//   //
+//   // Added comment from Han: I realized that this is problematic because it does not show those unfinished tasks...
+//   for (int i = 0; i < num_of_agents; i++)
+//     {
+//       for(auto & task: finished_tasks[i])
+//         {
+//           std::cout << task.task_id << ": " << task.location/map.cols << ", " << task.location%map.cols << std::endl;
+//         }
+//     }
+
+
+//   output<<"],"<<endl<<"\"Events\":"<<endl<<"["<<endl;
+//   for (int i = 0; i < num_of_agents; i++)
+//     {
+//       // if (events[i].empty())
+//       //   continue;
+//       //output<<"{"<<endl<<"\"agent\":"<<i<<","<<endl<<"";
+//       //output<<"\""<<i<<"\":"<<"{";
+//       output<<" [";
+
+//       int j = 0;
+//       for(auto e: events[i])
+//         {
+//           std::string event_msg;
+//           int task_id;
+//           int timestep;
+//           std::tie(task_id,timestep,event_msg) = e;
+//           output<<"\"("<<task_id<<","<<timestep<<","<< event_msg <<")\"";
+//           if (j < events[i].size()-1)
+//             output<<",";
+//           j++;
+//         }
+//       output<<"]";
+//       if (i<num_of_agents-1)
+//         output<<",";
+//       output<<endl;
+//     }
+//   output<<"]";
+//   output<<"}";
+//   output.close();
+// }
 
 bool FixedAssignSystem::load_agent_tasks(string fname){
   string line;
@@ -337,6 +493,7 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
   }
   starts.resize(num_of_agents);
   task_queue.resize(num_of_agents);
+  
   for (int i = 0; i < num_of_agents; i++) {
     cout << "agent " << i << ": ";
 
