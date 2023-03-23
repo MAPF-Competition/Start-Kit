@@ -49,9 +49,9 @@ int main(int argc, char** argv) {
 	desc.add_options()
 		("help", "produce help message")
 		("input,i", po::value<std::string>()->required(), "input file")
-		("plannerPath,po", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
-		("actualPath,ao", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
-		("output,o", po::value<std::string>()->default_value("./exp/test"), "output folder name")
+		("plannerPath", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
+		("actualPath", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
+		("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
 		("cutoffTime,t", po::value<int>()->default_value(60), "cutoff time (seconds)")
 		("seed,d", po::value<int>(), "random seed")
 		("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
@@ -70,8 +70,8 @@ int main(int argc, char** argv) {
 	po::notify(vm);
 
     // make dictionary
-	boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
-	boost::filesystem::create_directories(dir);
+	//boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
+	//boost::filesystem::create_directories(dir);
 
 	MAPFPlanner* planner = new MAPFPlanner();
 
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
   //system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
   //system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
   //system_ptr->saveErrors("./exp/error.txt");
-  system_ptr->saveResults("./exp/output.json");
+  system_ptr->saveResults(vm["output"].as<std::string>());
 
   delete model;
 	delete planner->env;
