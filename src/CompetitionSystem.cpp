@@ -58,13 +58,15 @@ void BaseSystem::simulate(int simulation_time){
   int num_of_tasks = 0;
   //I just put it out to seperate ours initilize with participants'
   planner->initialize(preprocess_time_limit);
-  for (; timestep < simulation_time; timestep += 1) {
+  for (; timestep < simulation_time; ) {
     cout << "----------------------------" << std::endl;
     cout << "Timestep " << timestep << std::endl;
 
     // find a plan
     sync_shared_env();
     vector<Action> actions = planner->plan(plan_time_limit);
+
+    timestep += 1;
 
     // move drives
     list<Task> new_finished_tasks = move(actions);
