@@ -219,15 +219,15 @@ void BaseSystem::saveResults(const string &fileName) const
     switch (starts[i].orientation)
     {
       case 0:
-          s.push_back("N");
+          s.push_back("E");
           break;
       case 1:
-        s.push_back("E");
-      case 2:
         s.push_back("S");
+      case 2:
+        s.push_back("W");
         break;
       case 3:
-        s.push_back("W");
+        s.push_back("N");
         break;
     }
     start.push_back(s);
