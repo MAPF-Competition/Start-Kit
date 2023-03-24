@@ -325,7 +325,6 @@ void BaseSystem::saveResults(const string &fileName) const
   
   //events
   json events_json = json::array();
-  bool first = true;
   for (int i = 0; i < num_of_agents; i++)
   {
     json event = json::array();
@@ -337,15 +336,7 @@ void BaseSystem::saveResults(const string &fileName) const
       int timestep;
       std::tie(task_id,timestep,event_msg) = e;
       ev.push_back(task_id);
-      if (first)
-      {
-        ev.push_back(timestep);
-        first = false;
-      }
-      else
-      {
-        ev.push_back(timestep+1);
-      }
+      ev.push_back(timestep);
       ev.push_back(event_msg);
       event.push_back(ev);
     }
