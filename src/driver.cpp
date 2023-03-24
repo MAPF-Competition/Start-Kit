@@ -48,8 +48,8 @@ int main(int argc, char** argv) {
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
-    ("inputFolder", po::value<std::string>()->required(), "input folder")
-		("inputFile", po::value<std::string>()->required(), "input file name")
+    ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
+		("inputFile,i", po::value<std::string>()->required(), "input file name")
 		("plannerPath", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
 		("actualPath", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
 		("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
@@ -79,10 +79,10 @@ int main(int argc, char** argv) {
 	std::ifstream f(vm["inputFolder"].as<std::string>() + "/" + vm["inputFile"].as<std::string>());
 	json data = json::parse(f);
 
-	Grid grid(data["map_file"].get<std::string>());
+	Grid grid(vm["inputFolder"].as<std::string>() + "/" + data["map_file"].get<std::string>());
 
-	std::vector<int> agents = read_int_vec(data["agent_file"].get<std::string>());
-	std::vector<int> tasks = read_int_vec(data["task_file"].get<std::string>());
+	std::vector<int> agents = read_int_vec(vm["inputFolder"].as<std::string>() + "/" + data["agent_file"].get<std::string>());
+	std::vector<int> tasks = read_int_vec(vm["inputFolder"].as<std::string>() + "/" + data["task_file"].get<std::string>());
 
 	std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
 
