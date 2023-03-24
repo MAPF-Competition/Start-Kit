@@ -48,7 +48,8 @@ int main(int argc, char** argv) {
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
-		("input,i", po::value<std::string>()->required(), "input file")
+    ("inputFolder", po::value<std::string>()->required(), "input folder")
+		("inputFile", po::value<std::string>()->required(), "input file name")
 		("plannerPath", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
 		("actualPath", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
 		("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
@@ -75,7 +76,7 @@ int main(int argc, char** argv) {
 
 	MAPFPlanner* planner = new MAPFPlanner();
 
-	std::ifstream f(vm["input"].as<std::string>());
+	std::ifstream f(vm["inputFolder"].as<std::string>() + "/" + vm["inputFile"].as<std::string>());
 	json data = json::parse(f);
 
 	Grid grid(data["map_file"].get<std::string>());
