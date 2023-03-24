@@ -6,7 +6,7 @@ struct State
 {
     int location;
     int timestep;
-    int orientation;  // 0:right, 1:down, 2:left, 3:up
+    int orientation;  // 0:east, 1:south, 2:west, 3:north
 
     struct Hasher {
         size_t operator()(const State& n) const {
