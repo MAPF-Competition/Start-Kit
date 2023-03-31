@@ -10,6 +10,7 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/tokenizer.hpp>
 
 using boost::heap::fibonacci_heap;
 using boost::heap::compare;
@@ -52,3 +53,41 @@ ostream& operator<<(ostream& os, const Constraint& constraint);
 ostream& operator<<(ostream& os, const Conflict& conflict);
 
 ostream& operator<<(ostream& os, const Interval& interval);
+
+
+
+
+////////////////////////////////////////////////////
+inline std::vector<int> read_int_vec(string fname){
+  std::vector<int> res;
+	string line;
+	std::ifstream myfile(fname.c_str());
+	if (!myfile.is_open()) return {};
+
+	getline(myfile, line);
+  while (!myfile.eof() && line[0] == '#') {
+    getline(myfile, line);
+  }
+
+  boost::char_separator<char> sep(",");
+  boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+  boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
+
+  int num_of_int = atoi((*beg).c_str());
+  // My benchmark
+  for (int i = 0; i < num_of_int; i++) {
+
+    getline(myfile, line);
+    while (!myfile.eof() && line[0] == '#'){
+      getline(myfile, line);
+    }
+    boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+    boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
+    // read start [row,col] for agent i
+    res.push_back(atoi((*beg).c_str()));
+
+  }
+  myfile.close();
+
+	return res;
+}

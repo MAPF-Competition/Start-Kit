@@ -18,24 +18,34 @@ public:
 
     pyEnvironment(SharedEnvironment *env):env(env){}
 
+    pyEnvironment(std::string inputJSON){
+        
+    }
+
+    void step(std::vector<int> &actions);
+
+
     pybind11::array_t<int> get_curr_states(){
         int num_agents=env->curr_states.size();
         pybind11::array_t<int,pybind11::array::c_style> states_array({num_agents,3});
-        auto states_data=states_array.mutable_unchecked();
-        for(auto i=0;i<env->map.size();i++){
-            states_data(i,0)=env->curr_states[i].location;
-            states_data(i,1)=env->curr_states[i].orientation;
-            states_data(i,2)=env->curr_states[i].timestep;
-            
-        }
+        int * states_data=states_array.mutable_data();
+        int* ptr = states_data;
+        for (auto i = 0; i < env->map.size(); i++) {
+            ptr[3 * i] = env->curr_states[i].location;
+            ptr[3 * i + 1] = env->curr_states[i].orientation;
+            ptr[3 * i + 2] = env->curr_states[i].timestep;
+        }  
+        
         return states_array;
     }
+
+
     // pybind11::array_t<int> get_goal_locations();
     pybind11::array_t<int> get_map(){
         pybind11::array_t<int> map_array(env->map.size());
-        auto map_data=map_array.mutable_unchecked<1>();
-        for(auto i=0;i<env->map.size();i++){
-            map_data[i]=env->map[i];
+        auto map_data = map_array.mutable_data();
+        for (auto i = 0; i < env->map.size(); i++) {
+            map_data[i] = env->map[i];
         }
         return map_array;
     }
@@ -47,6 +57,8 @@ public:
     std::vector<std::vector<std::pair<int,int>>>get_goal_locations(){
         return env->goal_locations;
     }
+
+
     int get_currtimestep(){return env->curr_timestep;}
 
     SharedEnvironment* env;

@@ -106,7 +106,10 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
             }
         }
     }
-    
+    for(auto v:path){
+        printf("(%d,%d), ",v.first,v.second);
+    }
+    std::cout<<std::endl;
     return path;
 }
 

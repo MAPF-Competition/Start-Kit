@@ -69,6 +69,14 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("env",&pyEnvironment::env)
         .def("get_curr_states",&pyEnvironment::get_curr_states);
 
+    pybind11::class_<MAPFPlanner>(m,"MAPFPlanner")
+        .def(pybind11::init<>())
+        .def("initialize",&MAPFPlanner::initialize)
+        .def("plan",&MAPFPlanner::plan);
+
+
+
+
 
 
 
