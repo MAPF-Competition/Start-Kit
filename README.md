@@ -7,7 +7,7 @@ cmake . -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
-If you plan to use pybind, set `USE_PYBIND` to `TRUE` on Line 6 of `CMakeLists.txt` before running `cmake`.
+
 
 ## Run the start kit
 
@@ -41,6 +41,19 @@ Errors: errors from the planner path, array of arrays ordered by timestep, each 
 
 
 
-## Pybinding usage
+## Python interface usage
+We also provide a python interface for python users based on pybind11.
 
-To write your MAPF planner using Python, you will need to implement your algorithm within the pyMAPFPlanner.py file. In order to use your pyMAPFPlanner with the starter kit, you must set USE_PYBINDING to true in the CMakeLists.txt and then compile it. An example of this process can be found in the test.cpp file within the Python directory.
+The pybind11 module mainly contains three files:
++ MAPFBinding.cpp: it binds the C++ classes to the "MAPF" pybind module, allowing users to access  C++ classes such as SharedEnvironment and Action
++ pyMAPFPlanner.py: users can implement their learning-based algorithms and return solutions as a list of actions or a numpy array.
++ pyMAPFPlanner.cpp: pyMAPFPlanner.cpp imports the above Python script and calls relevant Python functions to get the solution and return it to the C++ simulation system
+
+To use the python interface, one can use the following to compile the program that runs pyMAPFPlanner 
+
+```shell
+cmake . -DCMAKE_BUILD_TYPE=Release
+make python
+./py_lifelong --inputFolder the_input_folder_location --inputFile the_input_file_name -o output_file_location
+```
+The command "make" will comiple both "lifelong" and "py_lifelong". However, if you don't need to use python, you can use "make cpp" to  only compile  "lifelong", which runs the C++ based MAPFPlanner. Similarly, if you use "make python", it will only  compile "py_lifelong". 
