@@ -1,4 +1,5 @@
 #include "CompetitionSystem.h"
+#include "Evaluation.h"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
@@ -23,7 +24,7 @@ int main(int argc, char** argv) {
 		("seed,d", po::value<int>(), "random seed")
 		("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
 		("simulation_time", po::value<int>()->default_value(5000), "run simulation")
-		("checkconf", po::value<bool>()->default_value(true), "consider conflict")
+		("evaluation", po::value<bool>()->default_value(false), "evaluate an existing output file")
 	;
 	clock_t start_time = clock();
 	po::variables_map vm;
@@ -40,7 +41,13 @@ int main(int argc, char** argv) {
 	//boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
 	//boost::filesystem::create_directories(dir);
 
-	MAPFPlanner* planner = new MAPFPlanner();
+	MAPFPlanner* planner = nullptr;
+
+    if (vm["evaluation"].as<bool>()){
+      planner = new DummyPlanner(vm["output"].as<std::string>());
+    }else{
+      planner = new MAPFPlanner();
+    }
 
 	std::ifstream f(vm["inputFolder"].as<std::string>() + "/" + vm["inputFile"].as<std::string>());
 	json data = json::parse(f);
@@ -78,7 +85,9 @@ int main(int argc, char** argv) {
   //system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
   //system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
   //system_ptr->saveErrors("./exp/error.txt");
-  system_ptr->saveResults(vm["output"].as<std::string>());
+  if (!vm["evaluation"].as<bool>()){
+    system_ptr->saveResults(vm["output"].as<std::string>());
+  }
 
   delete model;
 	delete planner->env;
