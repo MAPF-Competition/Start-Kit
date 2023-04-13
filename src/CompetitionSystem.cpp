@@ -6,7 +6,7 @@
 using json = nlohmann::ordered_json;
 
 list<Task> BaseSystem::move(vector<Action>& actions){
-
+  actions.resize(num_of_agents, Action::W);
   for (int k = 0; k < num_of_agents; k++) {
     planner_movements[k].push_back(actions[k]);
   }
