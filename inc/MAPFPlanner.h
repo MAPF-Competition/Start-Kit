@@ -11,7 +11,7 @@ public:
 
 	//MAPFPlanner(SharedEnvironment* env): env(env){};
   MAPFPlanner(){env = new SharedEnvironment();};
-	~MAPFPlanner(){}
+	virtual ~MAPFPlanner(){}
 
 
   virtual void initialize(int preprocess_time_limit);
