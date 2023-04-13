@@ -67,6 +67,11 @@ void BaseSystem::simulate(int simulation_time){
     vector<Action> actions = planner->plan(plan_time_limit);
 
     timestep += 1;
+    for (int a = 0; a < num_of_agents; a++)
+    {
+      if (!env->goal_locations[a].empty())
+        solution_costs[a]++;
+    }
 
     // move drives
     list<Task> new_finished_tasks = move(actions);
@@ -78,6 +83,7 @@ void BaseSystem::simulate(int simulation_time){
       // std::tie(id, loc, t) = task;
       finished_tasks[task.agent_assigned].emplace_back(task);
       num_of_tasks++;
+      num_of_task_finish++;
     }
     cout << num_of_tasks << " tasks has been finished by far in total" << std::endl;
 
@@ -128,11 +134,16 @@ void BaseSystem::initialize() {
 
   actual_movements.resize(num_of_agents);
   planner_movements.resize(num_of_agents);
-  for (int i = 0; i < num_of_agents; i++)
-    {
-      // actual_movements[i].push_back(curr_states[i]);
-      // planner_movements[i].push_back(curr_states[i]);
-    }
+  solution_costs.resize(num_of_agents);
+  for (int a = 0; a < num_of_agents; a++)
+  {
+    solution_costs[a] = 0;
+  }
+  // for (int i = 0; i < num_of_agents; i++)
+  //   {
+  //     // actual_movements[i].push_back(curr_states[i]);
+  //     // planner_movements[i].push_back(curr_states[i]);
+  //   }
   //planner->initialize(preprocess_time_limit);
 }
 
@@ -211,6 +222,8 @@ void BaseSystem::saveResults(const string &fileName) const
   //action model
   js["Action Model"] = "MAPF_T";
 
+  js["Team Size"] = num_of_agents;
+
   //start locations[x,y,orientation]
   json start = json::array();
   for (int i = 0; i < num_of_agents; i++)
@@ -236,6 +249,24 @@ void BaseSystem::saveResults(const string &fileName) const
   }
   js["Start"] = start;
 
+  js["Num of Task Finished"] = num_of_task_finish;
+  int sum_of_cost = 0;
+  int makespan = 0;
+  if (num_of_agents > 0)
+  {
+    sum_of_cost = solution_costs[0];
+    makespan = solution_costs[0];
+    for (int a = 1; a < num_of_agents; a++)
+    {
+      sum_of_cost += solution_costs[a];
+      if (solution_costs[a] > makespan)
+        makespan = solution_costs[a];
+    }
+  }
+  js["Sum of Cost"] = sum_of_cost;
+  js["Makespan"] = makespan;
+  
+  
   //actual paths
   json apaths = json::array();
   for (int i = 0; i < num_of_agents; i++)
