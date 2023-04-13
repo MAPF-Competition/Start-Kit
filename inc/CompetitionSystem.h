@@ -60,6 +60,9 @@ class BaseSystem{
   vector<list<std::tuple<int,int,std::string>>> events;
   list<Task> all_tasks;
 
+  vector<int> solution_costs;
+  int num_of_task_finish = 0;
+
 	void initialize();
 	virtual void update_tasks() = 0;
 
