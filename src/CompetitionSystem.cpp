@@ -2,6 +2,9 @@
 #include "CompetitionSystem.h"
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
+#include <thread>
+#include <future>
+#include <functional>
 
 using json = nlohmann::ordered_json;
 
@@ -53,6 +56,16 @@ void BaseSystem::sync_shared_env(){
 }
 
 
+vector<Action> BaseSystem::plan(){
+  using namespace std::placeholders;
+  std::packaged_task<std::vector<Action>(int)> task(std::bind(&MAPFPlanner::plan, planner, _1));
+  std::future<std::vector<Action>> result = task.get_future();
+ 
+  std::thread task_td(std::move(task), plan_time_limit);
+  task_td.join();
+  return result.get();
+}
+
 void BaseSystem::simulate(int simulation_time){
   initialize();
   int num_of_tasks = 0;
@@ -64,7 +77,8 @@ void BaseSystem::simulate(int simulation_time){
 
     // find a plan
     sync_shared_env();
-    vector<Action> actions = planner->plan(plan_time_limit);
+    // vector<Action> actions = planner->plan(plan_time_limit);
+    vector<Action> actions = plan();
 
     timestep += 1;
     for (int a = 0; a < num_of_agents; a++)

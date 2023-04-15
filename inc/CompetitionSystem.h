@@ -68,6 +68,9 @@ class BaseSystem{
 
   void sync_shared_env();
 
+
+  vector<Action> plan();
+
   list<Task> move(vector<Action>& actions);
   bool valid_moves(vector<State>& prev, vector<Action>& next);
 };
