@@ -41,7 +41,9 @@ class BaseSystem{
   int timestep;
 
   int preprocess_time_limit;
-  int plan_time_limit;
+
+  int plan_time_limit = 3;
+  int hard_time_limit = 10;
 
   std::vector<Path> paths;
   std::vector<std::list<Task > > finished_tasks; // location + finish time

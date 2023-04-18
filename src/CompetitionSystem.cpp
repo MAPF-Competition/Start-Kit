@@ -2,7 +2,8 @@
 #include "CompetitionSystem.h"
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
-#include <thread>
+// #include <thread>
+#include <pthread.h>
 #include <future>
 #include <functional>
 
@@ -56,14 +57,41 @@ void BaseSystem::sync_shared_env(){
 }
 
 
+struct wrap {
+  MAPFPlanner* planner;
+  int time_limit;
+
+  std::vector<Action> results;
+
+  wrap( MAPFPlanner* planner, int time_limit) :planner(planner), time_limit(time_limit){}
+};
+
+void* call_func( void *f )
+{
+  std::auto_ptr< wrap > w( static_cast< wrap* >( f ) );
+  w->results = w->planner->plan(w->time_limit);
+
+  return 0;
+}
+
+pthread_t ptid;
+
+void alarm_handler(int a)
+{
+  fprintf(stdout, "Enter alarm_handler...\n");
+  pthread_cancel(ptid);    // terminate thread
+}
+
 vector<Action> BaseSystem::plan(){
   using namespace std::placeholders;
-  std::packaged_task<std::vector<Action>(int)> task(std::bind(&MAPFPlanner::plan, planner, _1));
-  std::future<std::vector<Action>> result = task.get_future();
- 
-  std::thread task_td(std::move(task), plan_time_limit);
-  task_td.join();
-  return result.get();
+
+  wrap* w = new wrap(planner, plan_time_limit);
+  pthread_create(&ptid, NULL, call_func, w);
+
+  signal(SIGALRM, alarm_handler);
+  alarm(plan_time_limit);
+  pthread_join(ptid, nullptr); // Wait for thread finish
+  return w->results;
 }
 
 void BaseSystem::simulate(int simulation_time){
