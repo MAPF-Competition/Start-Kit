@@ -57,22 +57,6 @@ void BaseSystem::sync_shared_env(){
 }
 
 
-struct wrap {
-  MAPFPlanner* planner;
-  int time_limit;
-
-  std::vector<Action> results;
-
-  wrap( MAPFPlanner* planner, int time_limit) :planner(planner), time_limit(time_limit){}
-};
-
-void* call_func( void *f )
-{
-  std::auto_ptr< wrap > w( static_cast< wrap* >( f ) );
-  w->results = w->planner->plan(w->time_limit);
-
-  return 0;
-}
 
 pthread_t ptid;
 
@@ -81,17 +65,39 @@ void alarm_handler(int a)
   fprintf(stdout, "Enter alarm_handler...\n");
   pthread_cancel(ptid);    // terminate thread
 }
+std::future<std::vector<Action>> future;
+std::thread task_td;
+bool started = false;
 
 vector<Action> BaseSystem::plan(){
   using namespace std::placeholders;
 
-  wrap* w = new wrap(planner, plan_time_limit);
-  pthread_create(&ptid, NULL, call_func, w);
+  if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready){
+    std::cout << "planner cannot run because previoud planner haven't stopped" << std::endl;
+    // future.wait_for(std::chrono::seconds(plan_time_limit));
 
-  signal(SIGALRM, alarm_handler);
-  alarm(plan_time_limit);
-  pthread_join(ptid, nullptr); // Wait for thread finish
-  return w->results;
+    if (future.wait_for(std::chrono::seconds(plan_time_limit)) == std::future_status::ready){
+      task_td.join();
+      started = false;
+      return future.get();
+    }
+    return {};
+  }
+
+  std::packaged_task<std::vector<Action>(int)> task(std::bind(&MAPFPlanner::plan, planner, _1));
+  future = task.get_future();
+
+  if (task_td.joinable()){
+    task_td.join();
+  }
+  task_td = std::thread(std::move(task), plan_time_limit);
+  started = true;
+  if (future.wait_for(std::chrono::seconds(plan_time_limit)) == std::future_status::ready){
+    task_td.join();
+    started = false;
+    return future.get();
+  }
+  return {};
 }
 
 void BaseSystem::simulate(int simulation_time){

@@ -25,6 +25,7 @@ class BaseSystem{
   int num_tasks_reveal = 1;
 
   void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
+  void set_plan_time_limit(int limit){plan_time_limit = limit;};
 
 
 
@@ -40,10 +41,9 @@ class BaseSystem{
   // #timesteps for simulation
   int timestep;
 
-  int preprocess_time_limit;
+  int preprocess_time_limit=10;
 
   int plan_time_limit = 3;
-  int hard_time_limit = 10;
 
   std::vector<Path> paths;
   std::vector<std::list<Task > > finished_tasks; // location + finish time
