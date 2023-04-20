@@ -72,14 +72,18 @@ int main(int argc, char** argv) {
     }
 
     system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, model);
-
-
   } else{
     std::cerr << "unkown task_assignment_strategy " << data["task_assignment_strategy"].get<std::string>() << std::endl;
     exit(1);
   }
 
+  if (data.contains("plan_time_limit") && data["plan_time_limit"].is_number_integer()){
+    system_ptr->set_plan_time_limit(data["plan_time_limit"].get<int>());
+  }
+
+
   system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
+
   system_ptr->simulate(vm["simulation_time"].as<int>());
 
   //system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
