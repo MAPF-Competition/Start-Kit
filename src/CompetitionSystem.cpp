@@ -9,6 +9,8 @@
 
 using json = nlohmann::ordered_json;
 
+bool interrupted = false;
+
 list<Task> BaseSystem::move(vector<Action>& actions){
   actions.resize(num_of_agents, Action::W);
   for (int k = 0; k < num_of_agents; k++) {
@@ -36,7 +38,6 @@ list<Task> BaseSystem::move(vector<Action>& actions){
 
   return finished_tasks_this_timestep;
 }
-
 
 // This function might not work correctly with small map (w or h <=2)
 bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action){
@@ -106,6 +107,9 @@ void BaseSystem::simulate(int simulation_time){
   //I just put it out to seperate ours initilize with participants'
   planner->initialize(preprocess_time_limit);
   for (; timestep < simulation_time; ) {
+
+    if (interrupted){break;}
+
     cout << "----------------------------" << std::endl;
     cout << "Timestep " << timestep << std::endl;
 
@@ -159,10 +163,15 @@ void BaseSystem::simulate(int simulation_time){
 }
 
 
+void sigint_handler(int a)
+{
+  fprintf(stdout, "stop the simulation...\n");
+  interrupted = true;
+}
+
 void BaseSystem::initialize() {
-  // starts.resize(num_of_agents);
-  // goal_locations.resize(num_of_agents);
-  // task_queue.resize(num_of_drives);
+
+  signal(SIGINT, sigint_handler);
 
   paths.resize(num_of_agents);
   events.resize(num_of_agents);
