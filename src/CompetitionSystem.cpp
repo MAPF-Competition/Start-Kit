@@ -13,9 +13,15 @@ list<Task> BaseSystem::move(vector<Action>& actions){
   // actions.resize(num_of_agents, Action::NA);
   for (int k = 0; k < num_of_agents; k++) {
     if (k >= actions.size()){
+      if (!planner_timeout_status)
+      {
+        issue_logs.push_back("Planner timeout warning, start at timestep" + planner_movements.size());
+        planner_timeout_status = true;
+      }
       planner_movements[k].push_back(Action::NA);
     } else {
       planner_movements[k].push_back(actions[k]);
+      planner_timeout_status = false;
     }
   }
 
@@ -115,6 +121,7 @@ void BaseSystem::simulate(int simulation_time){
   int num_of_tasks = 0;
   //I just put it out to seperate ours initilize with participants'
   if (!planner_initialize()){
+    issue_logs.push_back("Planner initilize faile: timeout");
     std::cerr << "planner initialization time out!" << std::endl;
     return;
   }
@@ -202,39 +209,13 @@ void BaseSystem::initialize() {
   }
 }
 
-void BaseSystem::saveErrors(const string &fileName) const
+void BaseSystem::saveSimulationIssues(const string &fileName) const
 {
   std::ofstream output;
   output.open(fileName, std::ios::out);
-  // for (int i = 0; i < num_of_agents; i++)
-  //   {
-  //     output << "Agent " << i << ": ";
-  //     if (option == 0)
-  //       {
-  //         for (const auto t : actual_movements[i])
-  //           // output << "(" << t.location
-  //           output << "(" << t.location / map.cols << "," << t.location % map.cols
-  //                  << "," << t.orientation << ")->";
-  //       }
-  //     else if (option == 1)
-  //       {
-  //         for (const auto t : planner_movements[i])
-  //           // output << "(" << t.location
-  //           output << "(" << t.location / map.cols << "," << t.location % map.cols
-  //                  << "," << t.orientation << ")->";
-  //       }
-  //     output << endl;
-  //   }
-  for (auto error: model->errors)
+  for (auto issue: issue_logs)
     {
-      std::string error_msg;
-      int agent1;
-      int agent2;
-      int timestep;
-
-      std::tie(error_msg,agent1,agent2,timestep) = error;
-
-      output<<"("<<agent1<<","<<agent2<<","<<timestep<<",\""<< error_msg <<"\")"<<endl;
+      output<<issue<<endl;
     }
   output.close();
 }
@@ -270,7 +251,6 @@ void BaseSystem::savePaths(const string &fileName, int option) const
     }
   output.close();
 }
-
 void BaseSystem::saveResults(const string &fileName) const
 {
   json js;
@@ -586,6 +566,7 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
   int task_id = 0;
   // My benchmark
   if (num_of_agents == 0) {
+    issue_logs.push_back("Load file failed");
     std::cerr << "The number of agents should be larger than 0" << endl;
     exit(-1);
   }
