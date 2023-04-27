@@ -92,6 +92,9 @@ int main(int argc, char** argv) {
     system_ptr->set_plan_time_limit(data["plan_time_limit"].get<int>());
   }
 
+  if (data.contains("preprocess_time_limit") && data["preprocess_time_limit"].is_number_integer()){
+    system_ptr->set_preprocess_time_limit(data["preprocess_time_limit"].get<int>());
+  }
 
   system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
 

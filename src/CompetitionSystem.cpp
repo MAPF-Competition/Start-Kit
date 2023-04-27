@@ -55,15 +55,6 @@ void BaseSystem::sync_shared_env(){
   env->curr_states = curr_states;
 }
 
-
-
-pthread_t ptid;
-
-void alarm_handler(int a)
-{
-  fprintf(stdout, "Enter alarm_handler...\n");
-  pthread_cancel(ptid);    // terminate thread
-}
 std::future<std::vector<Action>> future;
 std::thread task_td;
 bool started = false;
@@ -99,11 +90,30 @@ vector<Action> BaseSystem::plan(){
   return {};
 }
 
+bool BaseSystem::planner_initialize(){
+  using namespace std::placeholders;
+  std::packaged_task<void(int)> init_task(std::bind(&MAPFPlanner::initialize, planner, _1));
+  auto init_future = init_task.get_future();
+
+  auto init_td = std::thread(std::move(init_task), preprocess_time_limit);
+  if (init_future.wait_for(std::chrono::seconds(preprocess_time_limit)) == std::future_status::ready){
+    init_td.join();
+    return true;
+  
+  }
+  init_td.detach();
+  return false;
+  // planner->initialize(preprocess_time_limit);
+}
+
 void BaseSystem::simulate(int simulation_time){
   initialize();
   int num_of_tasks = 0;
   //I just put it out to seperate ours initilize with participants'
-  planner->initialize(preprocess_time_limit);
+  if (!planner_initialize()){
+    std::cerr << "planner initialization time out!" << std::endl;
+    return;
+  }
   for (; timestep < simulation_time; ) {
 
     cout << "----------------------------" << std::endl;
@@ -186,12 +196,6 @@ void BaseSystem::initialize() {
   {
     solution_costs[a] = 0;
   }
-  // for (int i = 0; i < num_of_agents; i++)
-  //   {
-  //     // actual_movements[i].push_back(curr_states[i]);
-  //     // planner_movements[i].push_back(curr_states[i]);
-  //   }
-  //planner->initialize(preprocess_time_limit);
 }
 
 void BaseSystem::saveErrors(const string &fileName) const

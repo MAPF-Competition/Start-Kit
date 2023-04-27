@@ -26,7 +26,10 @@ class BaseSystem{
 
   void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
   void set_plan_time_limit(int limit){plan_time_limit = limit;};
+  void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
 
+  bool planner_initialize();
+  vector<Action> plan();
 
 
  protected:
@@ -69,9 +72,6 @@ class BaseSystem{
 	virtual void update_tasks() = 0;
 
   void sync_shared_env();
-
-
-  vector<Action> plan();
 
   list<Task> move(vector<Action>& actions);
   bool valid_moves(vector<State>& prev, vector<Action>& next);
