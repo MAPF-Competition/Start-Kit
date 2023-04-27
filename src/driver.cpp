@@ -6,11 +6,24 @@
 #include "nlohmann/json.hpp"
 
 
+namespace po = boost::program_options;
+po::variables_map vm;
+BaseSystem* system_ptr = nullptr;
+
+void sigint_handler(int a)
+{
+  fprintf(stdout, "stop the simulation...\n");
+
+  if (!vm["evaluation"].as<bool>()){
+    system_ptr->saveResults(vm["output"].as<std::string>());
+  }
+
+  _exit(0);
+}
 
 using json = nlohmann::json;
 
 int main(int argc, char** argv) {
-	namespace po = boost::program_options;
 	// Declare the supported options.
 	po::options_description desc("Allowed options");
 	desc.add_options()
@@ -27,7 +40,6 @@ int main(int argc, char** argv) {
 		("evaluation", po::value<bool>()->default_value(false), "evaluate an existing output file")
 	;
 	clock_t start_time = clock();
-	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
 	if (vm.count("help")) {
@@ -61,7 +73,6 @@ int main(int argc, char** argv) {
 
 	ActionModelWithRotate* model = new ActionModelWithRotate(grid);
 
-  BaseSystem* system_ptr = nullptr;
 
   if (data["task_assignment_strategy"].get<std::string>()=="greedy"){
     system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
@@ -83,6 +94,8 @@ int main(int argc, char** argv) {
 
 
   system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
+
+  signal(SIGINT, sigint_handler);
 
   system_ptr->simulate(vm["simulation_time"].as<int>());
 

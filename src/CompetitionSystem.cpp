@@ -9,8 +9,6 @@
 
 using json = nlohmann::ordered_json;
 
-bool interrupted = false;
-
 list<Task> BaseSystem::move(vector<Action>& actions){
   actions.resize(num_of_agents, Action::W);
   for (int k = 0; k < num_of_agents; k++) {
@@ -108,8 +106,6 @@ void BaseSystem::simulate(int simulation_time){
   planner->initialize(preprocess_time_limit);
   for (; timestep < simulation_time; ) {
 
-    if (interrupted){break;}
-
     cout << "----------------------------" << std::endl;
     cout << "Timestep " << timestep << std::endl;
 
@@ -163,15 +159,9 @@ void BaseSystem::simulate(int simulation_time){
 }
 
 
-void sigint_handler(int a)
-{
-  fprintf(stdout, "stop the simulation...\n");
-  interrupted = true;
-}
 
 void BaseSystem::initialize() {
 
-  signal(SIGINT, sigint_handler);
 
   paths.resize(num_of_agents);
   events.resize(num_of_agents);
