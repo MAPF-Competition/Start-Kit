@@ -10,9 +10,13 @@
 using json = nlohmann::ordered_json;
 
 list<Task> BaseSystem::move(vector<Action>& actions){
-  actions.resize(num_of_agents, Action::W);
+  // actions.resize(num_of_agents, Action::NA);
   for (int k = 0; k < num_of_agents; k++) {
-    planner_movements[k].push_back(actions[k]);
+    if (k >= actions.size()){
+      planner_movements[k].push_back(Action::NA);
+    } else {
+      planner_movements[k].push_back(actions[k]);
+    }
   }
 
   list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
@@ -343,6 +347,10 @@ void BaseSystem::saveResults(const string &fileName) const
       {
         path+="C";
       }
+      else if (action == Action::NA)
+      {
+        path+="?";
+      }
       else
       {
         path+="W";
@@ -376,6 +384,10 @@ void BaseSystem::saveResults(const string &fileName) const
       else if (action == Action::CCR)
       {
         path+="C";
+      }
+      else if (action == Action::NA)
+      {
+        path+="?";
       }
       else
       {

@@ -10,7 +10,7 @@
  W - Wait
 
  */
-enum Action {FW, CR, CCR, W };
+enum Action {FW, CR, CCR, W, NA};
 
 std::ostream& operator<<(std::ostream &stream, const Action &action);
 
