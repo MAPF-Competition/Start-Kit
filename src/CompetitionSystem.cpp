@@ -15,7 +15,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
     if (k >= actions.size()){
       if (!planner_timeout_status)
       {
-        issue_logs.push_back("Planner timeout warning, start at timestep" + planner_movements.size());
+        issue_logs.push_back("Planner timeout warning: planner timeout at timestep " + std::to_string( planner_movements.size()));
         planner_timeout_status = true;
       }
       planner_movements[k].push_back(Action::NA);
@@ -121,7 +121,7 @@ void BaseSystem::simulate(int simulation_time){
   int num_of_tasks = 0;
   //I just put it out to seperate ours initilize with participants'
   if (!planner_initialize()){
-    issue_logs.push_back("Planner initilize faile: timeout");
+    issue_logs.push_back("Planner initilize failed: timeout");
     std::cerr << "planner initialization time out!" << std::endl;
     return;
   }
@@ -216,6 +216,7 @@ void BaseSystem::saveSimulationIssues(const string &fileName) const
   for (auto issue: issue_logs)
     {
       output<<issue<<endl;
+      //cout<<"issue "<<issue<<endl;
     }
   output.close();
 }
