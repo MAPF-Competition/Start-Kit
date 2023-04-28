@@ -18,6 +18,7 @@ content="${content}${pkgs}"
 # Then run compile.sh to compile codes.
 content="${content}COPY ./. /GPPC2021/codes/ \n"
 content="${content}WORKDIR /GPPC2021/codes/ \n"
+content="${content}RUN rm -rdf /GPPC2021/codes/build \n"
 content="${content}RUN chmod u+x compile.sh \n"
 content="${content}RUN ./compile.sh \n"
 echo -e $content > Dockerfile
