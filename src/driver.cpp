@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
+#include <signal.h>
 
 
 namespace po = boost::program_options;
