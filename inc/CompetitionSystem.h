@@ -19,7 +19,7 @@ class BaseSystem{
 	void simulate(int simulation_time);
 
   void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
-  void saveErrors(const string &fileName) const;
+  void saveSimulationIssues(const string &fileName) const;
   void saveResults(const string &fileName) const;
 
   int num_tasks_reveal = 1;
@@ -75,6 +75,9 @@ class BaseSystem{
 
   list<Task> move(vector<Action>& actions);
   bool valid_moves(vector<State>& prev, vector<Action>& next);
+
+  list<string> issue_logs;
+  bool planner_timeout_status = false;
 };
 
 
