@@ -1,0 +1,26 @@
+#pragma once
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+
+namespace logging = boost::log;
+namespace keywords = boost::log::keywords;
+
+
+
+class Logger
+{
+    public:
+        Logger(){init();};
+        ~Logger(){};
+
+        void set_logfile(std::string filename);
+        void log_preprocessing(bool succ);
+        void init();
+        void log_plan(bool succ,int time);
+};

@@ -7,21 +7,25 @@
 #include <future>
 #include <functional>
 
+#include <Logger.h>
+
 using json = nlohmann::ordered_json;
 
 list<Task> BaseSystem::move(vector<Action>& actions){
   // actions.resize(num_of_agents, Action::NA);
   for (int k = 0; k < num_of_agents; k++) {
+    log->log_plan(false,k);
     if (k >= actions.size()){
-      if (!planner_timeout_status)
-      {
-        issue_logs.push_back("Planner timeout warning: planner timeout at timestep " + std::to_string( planner_movements.size()));
-        planner_timeout_status = true;
-      }
+      // if (!planner_timeout_status)
+      // {
+      //   //issue_logs.push_back("Planner timeout warning: planner timeout at timestep " + std::to_string( planner_movements.size()));
+      //   log->log_plan(false,k);
+      //   planner_timeout_status = true;
+      // }
       planner_movements[k].push_back(Action::NA);
     } else {
       planner_movements[k].push_back(actions[k]);
-      planner_timeout_status = false;
+      //planner_timeout_status = false;
     }
   }
 
@@ -117,14 +121,18 @@ bool BaseSystem::planner_initialize(){
 }
 
 void BaseSystem::simulate(int simulation_time){
+  //init logger
+  //Logger* log = new Logger();
   initialize();
   int num_of_tasks = 0;
-  //I just put it out to seperate ours initilize with participants'
-  if (!planner_initialize()){
-    issue_logs.push_back("Planner initilize failed: timeout");
-    std::cerr << "planner initialization time out!" << std::endl;
-    return;
-  }
+  //if (!planner_initialize()){
+    //issue_logs.push_back("Planner initilize failed: timeout");
+    //std::cerr << "planner initialization time out!" << std::endl;
+
+    //only error when not succeed
+    //log->set_logfile("test.log"); //only for test now
+    log->log_preprocessing(planner_initialize());
+  //}
   for (; timestep < simulation_time; ) {
 
     cout << "----------------------------" << std::endl;
@@ -209,17 +217,21 @@ void BaseSystem::initialize() {
   }
 }
 
-void BaseSystem::saveSimulationIssues(const string &fileName) const
+void BaseSystem::setLoggerFile(const string &fileName) const
 {
-  std::ofstream output;
-  output.open(fileName, std::ios::out);
-  for (auto issue: issue_logs)
-    {
-      output<<issue<<endl;
-      //cout<<"issue "<<issue<<endl;
-    }
-  output.close();
+  log->set_logfile(fileName);
 }
+
+// void BaseSystem::saveSimulationIssues(const string &fileName) const
+// {
+//   std::ofstream output;
+//   output.open(fileName, std::ios::out);
+//   for (auto issue: issue_logs)
+//     {
+//       output<<issue<<endl;
+//     }
+//   output.close();
+// }
 
 void BaseSystem::savePaths(const string &fileName, int option) const
 {
@@ -567,7 +579,7 @@ bool FixedAssignSystem::load_agent_tasks(string fname){
   int task_id = 0;
   // My benchmark
   if (num_of_agents == 0) {
-    issue_logs.push_back("Load file failed");
+    //issue_logs.push_back("Load file failed");
     std::cerr << "The number of agents should be larger than 0" << endl;
     exit(-1);
   }
