@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 		("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
 		("simulation_time", po::value<int>()->default_value(5000), "run simulation")
 		("evaluation", po::value<bool>()->default_value(false), "evaluate an existing output file")
-    ("issueLog", po::value<std::string>()->default_value("./exp/simulation_issues_log.txt"), "issue log file name")
+    ("issueLog", po::value<std::string>()->default_value("./exp/simulation_issues_log.log"), "issue log file name")
 	;
 	clock_t start_time = clock();
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
 
   system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
 
+  system_ptr->setLoggerFile(vm["issueLog"].as<std::string>());
+
   signal(SIGINT, sigint_handler);
 
   system_ptr->simulate(vm["simulation_time"].as<int>());
@@ -110,7 +112,7 @@ int main(int argc, char** argv) {
   if (!vm["evaluation"].as<bool>()){
     system_ptr->saveResults(vm["output"].as<std::string>());
   }
-  system_ptr->saveSimulationIssues(vm["issueLog"].as<std::string>());
+  //system_ptr->saveSimulationIssues(vm["issueLog"].as<std::string>());
 
   delete model;
 	delete planner->env;

@@ -17,7 +17,9 @@ include_directories("inc")
 file(GLOB SOURCES "src/*.cpp")
 
 # Find Boost
-find_package( Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem)
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+#SET(Boost_USE_STATIC_LIBS ON)
+find_package( Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup)
 include_directories( ${Boost_INCLUDE_DIRS} )
 
 
@@ -42,6 +44,7 @@ set(PY_SOURCES "./src/Grid.cpp"
 "./src/ActionModel.cpp"
 "./src/CompetitionSystem.cpp" 
 "./src/MAPFPlanner.cpp"
+"./src/Logger.cpp"
 "./python/pyMAPFPlanner.cpp" 
 "./python/py_driver.cpp")
 
