@@ -11,6 +11,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/tokenizer.hpp>
+#include "nlohmann/json.hpp"
 
 using boost::heap::fibonacci_heap;
 using boost::heap::compare;
@@ -54,9 +55,6 @@ ostream& operator<<(ostream& os, const Conflict& conflict);
 
 ostream& operator<<(ostream& os, const Interval& interval);
 
-
-
-
 ////////////////////////////////////////////////////
 inline std::vector<int> read_int_vec(string fname){
   std::vector<int> res;
@@ -90,4 +88,21 @@ inline std::vector<int> read_int_vec(string fname){
   myfile.close();
 
 	return res;
+}
+
+template <typename T>
+T read_param_json(nlohmann::json& data, std::string name){
+  if (!data.contains(name)){
+    std::cerr << "missing property " << name << " in the input JSON." << std::endl;
+    exit(1);
+  }
+  return data[name].get<T>();
+}
+
+template <typename T>
+T read_param_json(nlohmann::json& data, std::string name, T default_value){
+  if (!data.contains(name)){
+    return default_value;
+  }
+  return data[name].get<T>();
 }
