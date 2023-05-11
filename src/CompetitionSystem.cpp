@@ -268,9 +268,9 @@ void BaseSystem::saveResults(const string &fileName) const
 {
   json js;
   //action model
-  js["Action Model"] = "MAPF_T";
+  js["actionModel"] = "MAPF_T";
 
-  js["Team Size"] = num_of_agents;
+  js["teamSize"] = num_of_agents;
 
   //start locations[x,y,orientation]
   json start = json::array();
@@ -295,9 +295,9 @@ void BaseSystem::saveResults(const string &fileName) const
     }
     start.push_back(s);
   }
-  js["Start"] = start;
+  js["start"] = start;
 
-  js["Num of Task Finished"] = num_of_task_finish;
+  js["numTaskFinished"] = num_of_task_finish;
   int sum_of_cost = 0;
   int makespan = 0;
   if (num_of_agents > 0)
@@ -311,8 +311,8 @@ void BaseSystem::saveResults(const string &fileName) const
         makespan = solution_costs[a];
     }
   }
-  js["Sum of Cost"] = sum_of_cost;
-  js["Makespan"] = makespan;
+  js["sumOfCost"] = sum_of_cost;
+  js["makespan"] = makespan;
   
   
   //actual paths
@@ -351,7 +351,7 @@ void BaseSystem::saveResults(const string &fileName) const
     }  
     apaths.push_back(path);
   }
-  js["Actual Paths"] = apaths;
+  js["actualPaths"] = apaths;
 
   //planned paths
   json ppaths = json::array();
@@ -389,7 +389,7 @@ void BaseSystem::saveResults(const string &fileName) const
     }  
     ppaths.push_back(path);
   }
-  js["Planner Paths"] = ppaths;
+  js["plannerPaths"] = ppaths;
 
   //errors
   json errors = json::array();
@@ -408,7 +408,7 @@ void BaseSystem::saveResults(const string &fileName) const
     errors.push_back(e);
 
   }
-  js["Errors"] = errors;
+  js["errors"] = errors;
   
   //events
   json events_json = json::array();
@@ -429,7 +429,7 @@ void BaseSystem::saveResults(const string &fileName) const
     }
     events_json.push_back(event);
   }
-  js["Events"] = events_json;
+  js["events"] = events_json;
 
   //all tasks
   json tasks = json::array();
@@ -441,7 +441,7 @@ void BaseSystem::saveResults(const string &fileName) const
     task.push_back(t.location%map.cols);
     tasks.push_back(task);
   }
-  js["Task Pool"] = tasks;
+  js["tasks"] = tasks;
 
   std::ofstream f(fileName,std::ios_base::trunc |std::ios_base::out);
   f<<std::setw(4)<<js;
