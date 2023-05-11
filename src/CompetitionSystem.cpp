@@ -14,7 +14,7 @@ using json = nlohmann::ordered_json;
 list<Task> BaseSystem::move(vector<Action>& actions){
   // actions.resize(num_of_agents, Action::NA);
   for (int k = 0; k < num_of_agents; k++) {
-    log->log_plan(false,k);
+    //log->log_plan(false,k);
     if (k >= actions.size()){
       // if (!planner_timeout_status)
       // {
