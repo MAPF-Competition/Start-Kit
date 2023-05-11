@@ -342,7 +342,7 @@ void BaseSystem::saveResults(const string &fileName) const
       }
       else if (action == Action::NA)
       {
-        path+="?";
+        path+="T";
       }
       else
       {
@@ -380,7 +380,7 @@ void BaseSystem::saveResults(const string &fileName) const
       }
       else if (action == Action::NA)
       {
-        path+="?";
+        path+="T";
       }
       else
       {
