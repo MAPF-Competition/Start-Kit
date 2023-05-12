@@ -2,6 +2,7 @@
 #include <string>
 #include "Grid.h"
 #include "States.h"
+#include "Logger.h"
 
 /*
  FW - forward
@@ -22,6 +23,8 @@ protected:
 
   int moves[4];
 
+
+  Logger* logger = nullptr;
 
   State result_state(const State & prev, Action action){
     int new_location = prev.location;
@@ -52,6 +55,7 @@ public:
   };
 
   bool is_valid(const vector<State>& prev, const vector<Action> & action);
+  void set_logger(Logger* logger){this->logger = logger;}
 
   vector<State> result_states(const vector<State>& prev, const vector<Action> & action){
     vector<State> next(prev.size());

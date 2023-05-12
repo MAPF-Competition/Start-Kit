@@ -15,12 +15,18 @@ namespace keywords = boost::log::keywords;
 
 class Logger
 {
-    public:
-        Logger(){init();};
-        ~Logger(){};
+public:
+    Logger(){init();};
+    ~Logger(){};
 
-        void set_logfile(std::string filename);
-        void log_preprocessing(bool succ);
-        void init();
-        void log_plan(bool succ,int time);
+    void set_logfile(std::string filename);
+    void init();
+
+
+    void log_info(std::string input);
+    void log_info(std::string input, int timestep);
+    void log_fatal(std::string input);
+    void log_fatal(std::string input, int timestep);
+    // void log_preprocessing(bool succ);
+    // void log_plan(bool succ,int time);
 };

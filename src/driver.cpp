@@ -53,6 +53,11 @@ int main(int argc, char** argv) {
     base_folder += "/";
   }
 
+  Logger* logger = new Logger();
+  if (vm.count("logFile"))
+    logger->set_logfile(vm["logFile"].as<std::string>());
+
+
   MAPFPlanner* planner = nullptr;
 
   if (vm["evaluationMode"].as<bool>()){
@@ -75,7 +80,7 @@ int main(int argc, char** argv) {
 
   Grid grid(base_folder + data["mapFile"].get<std::string>());
   ActionModelWithRotate* model = new ActionModelWithRotate(grid);
-
+  model->set_logger(logger);
 
   std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"));
   std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
@@ -97,12 +102,10 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  system_ptr->set_logger(logger);
   system_ptr->set_plan_time_limit(read_param_json<int>(data, "planTimeLimit", 5));
   system_ptr->set_preprocess_time_limit(read_param_json<int>(data, "preprocessTimeLimit", 10));
   system_ptr->set_num_tasks_reveal(read_param_json<int>(data, "numTasksReveal", 1));
-
-  if (vm.count("logFile"))
-    system_ptr->setLoggerFile(vm["logFile"].as<std::string>());
 
   signal(SIGINT, sigint_handler);
 

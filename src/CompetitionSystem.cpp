@@ -16,16 +16,9 @@ list<Task> BaseSystem::move(vector<Action>& actions){
   for (int k = 0; k < num_of_agents; k++) {
     //log->log_plan(false,k);
     if (k >= actions.size()){
-      // if (!planner_timeout_status)
-      // {
-      //   //issue_logs.push_back("Planner timeout warning: planner timeout at timestep " + std::to_string( planner_movements.size()));
-      //   log->log_plan(false,k);
-      //   planner_timeout_status = true;
-      // }
       planner_movements[k].push_back(Action::NA);
     } else {
       planner_movements[k].push_back(actions[k]);
-      //planner_timeout_status = false;
     }
   }
 
@@ -43,6 +36,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
       task.t_completed = timestep;
       finished_tasks_this_timestep.push_back(task);
       events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
+      log_event_finished(k, task.task_id, timestep);
     }
     paths[k].push_back(curr_states[k]);
     actual_movements[k].push_back(actions[k]);
@@ -77,14 +71,16 @@ vector<Action> BaseSystem::plan(){
   using namespace std::placeholders;
 
   if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready){
-    std::cout << "planner cannot run because previoud planner haven't stopped" << std::endl;
-    // future.wait_for(std::chrono::seconds(plan_time_limit));
+    if(logger){
+      logger->log_info("planner cannot run because the previous run is still running", timestep);
+    }
 
     if (future.wait_for(std::chrono::seconds(plan_time_limit)) == std::future_status::ready){
       task_td.join();
       started = false;
       return future.get();
     }
+    logger->log_info("planner timeout", timestep);
     return {};
   }
 
@@ -101,6 +97,7 @@ vector<Action> BaseSystem::plan(){
     started = false;
     return future.get();
   }
+  logger->log_info("planner timeout", timestep);
   return {};
 }
 
@@ -117,7 +114,24 @@ bool BaseSystem::planner_initialize(){
   }
   init_td.detach();
   return false;
-  // planner->initialize(preprocess_time_limit);
+}
+
+void BaseSystem::log_preprocessing(bool succ){
+  if (logger == nullptr){return;}
+  if (succ){
+    logger->log_info("Preprocessing success", timestep);
+  } else {
+    logger->log_fatal("Preprocessing timeout", timestep);
+  }
+}
+
+void BaseSystem::log_event_assigned(int agent_id, int task_id, int timestep){
+  
+  logger->log_info("Task " + std::to_string(task_id) + " is assigned to agent " + std::to_string(agent_id), timestep);
+}
+
+void BaseSystem::log_event_finished(int agent_id, int task_id, int timestep){
+  logger->log_info("Agent " + std::to_string(agent_id) + " finishes task " + std::to_string(task_id), timestep);
 }
 
 void BaseSystem::simulate(int simulation_time){
@@ -125,14 +139,12 @@ void BaseSystem::simulate(int simulation_time){
   //Logger* log = new Logger();
   initialize();
   int num_of_tasks = 0;
-  //if (!planner_initialize()){
-    //issue_logs.push_back("Planner initilize failed: timeout");
-    //std::cerr << "planner initialization time out!" << std::endl;
 
-    //only error when not succeed
-    //log->set_logfile("test.log"); //only for test now
-    log->log_preprocessing(planner_initialize());
-  //}
+  auto planner_initialize_success= planner_initialize();
+  log_preprocessing(planner_initialize_success);
+  if (!planner_initialize_success){
+    return;
+  }
   for (; timestep < simulation_time; ) {
 
     cout << "----------------------------" << std::endl;
@@ -184,6 +196,10 @@ void BaseSystem::simulate(int simulation_time){
       }
   }
 
+  if (started){
+    task_td.detach();
+  }
+
   cout << std::endl << "Done!" << std::endl;
 }
 
@@ -216,22 +232,6 @@ void BaseSystem::initialize() {
     solution_costs[a] = 0;
   }
 }
-
-void BaseSystem::setLoggerFile(const string &fileName) const
-{
-  log->set_logfile(fileName);
-}
-
-// void BaseSystem::saveSimulationIssues(const string &fileName) const
-// {
-//   std::ofstream output;
-//   output.open(fileName, std::ios::out);
-//   for (auto issue: issue_logs)
-//     {
-//       output<<issue<<endl;
-//     }
-//   output.close();
-// }
 
 void BaseSystem::savePaths(const string &fileName, int option) const
 {
@@ -448,119 +448,6 @@ void BaseSystem::saveResults(const string &fileName) const
 
 }
 
-// void BaseSystem::saveResults(const string &fileName) const
-// {
-//   std::ofstream output;
-//   output.open(fileName, std::ios::out);
-//   output << "{"<<endl;
-//   output<<"\"Action Model\":\"MAPF_T\","<<endl;
-//   output<<"\"Start\":[";
-//   for (int i = 0; i < num_of_agents; i++)
-//     {
-//       output<<"\"("<<starts[i].location/map.cols<<","<<starts[i].location%map.cols<<","<<starts[i].orientation<<")\"";
-//       if(i <num_of_agents-1)
-//         output<<",";
-//     }
-//   output<<"],"<<endl;
-//   output << "\"Actual Paths\":"<<endl<<"[";
-//   for (int i = 0; i < num_of_agents; i++)
-//     {
-//       if (i>0)
-//         output<<" ";
-//       output << "\"";
-//       bool first = true;
-//       for (const auto t : actual_movements[i]){
-//         if (!first){output << ",";} else {
-//           first = false;
-//         }
-//         output << t;
-//       }  
-//       output<<"\"";
-//       if (i < num_of_agents-1)
-//         {
-//           output<<","<<endl;
-//         }
-//     }
-//   output<<"],"<<endl << "\"Planned Paths\":"<<endl<<"[";
-//   for (int i = 0; i < num_of_agents; i++)
-//     {
-//       if (i>0)
-//         output<<" ";
-//       output << "\"";
-//       bool first = true;
-//       for (const auto t : planner_movements[i]){
-//         if (!first){output << ",";} else {
-//           first = false;
-//         }
-//         output << t;
-//       }
-//       output<<"\"";
-//       if (i < num_of_agents-1)
-//         {
-//           output<<","<<endl;
-//         }
-//     }
-//   output<<"],"<<endl<<"\"Errors\":[";
-//   int i = 0;
-//   for (auto error: model->errors)
-//     {
-//       std::string error_msg;
-//       int agent1;
-//       int agent2;
-//       int timestep;
-
-//       std::tie(error_msg,agent1,agent2,timestep) = error;
-
-//       output<<"\""<<agent1<<","<<agent2<<","<<timestep<<","<< error_msg <<"\"";
-//       if (i < model->errors.size()-1)
-//         output<<",";
-//       i++;
-//     }
-
-//   // TODO I cout task_id:task location here 
-//   // This needs to go to the JSON too
-//   //
-//   // Added comment from Han: I realized that this is problematic because it does not show those unfinished tasks...
-//   for (int i = 0; i < num_of_agents; i++)
-//     {
-//       for(auto & task: finished_tasks[i])
-//         {
-//           std::cout << task.task_id << ": " << task.location/map.cols << ", " << task.location%map.cols << std::endl;
-//         }
-//     }
-
-
-//   output<<"],"<<endl<<"\"Events\":"<<endl<<"["<<endl;
-//   for (int i = 0; i < num_of_agents; i++)
-//     {
-//       // if (events[i].empty())
-//       //   continue;
-//       //output<<"{"<<endl<<"\"agent\":"<<i<<","<<endl<<"";
-//       //output<<"\""<<i<<"\":"<<"{";
-//       output<<" [";
-
-//       int j = 0;
-//       for(auto e: events[i])
-//         {
-//           std::string event_msg;
-//           int task_id;
-//           int timestep;
-//           std::tie(task_id,timestep,event_msg) = e;
-//           output<<"\"("<<task_id<<","<<timestep<<","<< event_msg <<")\"";
-//           if (j < events[i].size()-1)
-//             output<<",";
-//           j++;
-//         }
-//       output<<"]";
-//       if (i<num_of_agents-1)
-//         output<<",";
-//       output<<endl;
-//     }
-//   output<<"]";
-//   output<<"}";
-//   output.close();
-// }
-
 bool FixedAssignSystem::load_agent_tasks(string fname){
   string line;
   std::ifstream myfile(fname.c_str());
@@ -624,6 +511,7 @@ void FixedAssignSystem::update_tasks(){
       task_queue[k].pop_front();
       assigned_tasks[k].push_back(task);
       events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+      log_event_assigned(k, task.task_id, timestep);
     }
   }
 }
@@ -642,6 +530,7 @@ void TaskAssignSystem::update_tasks(){
         task_queue.pop_front();
         assigned_tasks[k].push_back(task);
         events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+        log_event_assigned(k, task.task_id, timestep);
       }
   }
 }
