@@ -16,7 +16,6 @@ BaseSystem* system_ptr = nullptr;
 void sigint_handler(int a)
 {
     fprintf(stdout, "stop the simulation...\n");
-
     if (!vm["evaluationMode"].as<bool>()){
         system_ptr->saveResults(vm["output"].as<std::string>());
     }
@@ -61,6 +60,7 @@ int main(int argc, char** argv) {
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
+        logger->log_info("running the evaluation mode")
         planner = new DummyPlanner(vm["output"].as<std::string>());
     }else{
         planner = new MAPFPlanner();
@@ -84,7 +84,6 @@ int main(int argc, char** argv) {
 
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"));
     std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
-
     std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
 
     std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
@@ -95,10 +94,10 @@ int main(int argc, char** argv) {
         for(int i = 0; i < tasks.size(); i++){
             assigned_tasks[i%agents.size()].push_back(tasks[i]);
         }
-
         system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, model);
     } else{
         std::cerr << "unkown task assignment strategy " << data["taskAssignmentStrategy"].get<std::string>() << std::endl;
+        logger->log_fatal("unkown task assignment strategy " + data["taskAssignmentStrategy"].get<std::string>());
         exit(1);
     }
 
