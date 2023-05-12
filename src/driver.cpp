@@ -30,8 +30,6 @@ int main(int argc, char** argv) {
         ("help", "produce help message")
         ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
-        ("plannerPath", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
-        ("actualPath", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
         ("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
         ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
