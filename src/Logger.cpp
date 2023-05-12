@@ -9,7 +9,7 @@ void Logger::set_logfile(std::string filename)
     logging::add_file_log
     (
         keywords::file_name = filename,
-        keywords::format = "[%TimeStamp%]: %Message%"
+        keywords::format = "[%TimeStamp%]: *%Severity%* %Message%"
     );
 }
 
@@ -25,30 +25,31 @@ void Logger::init()
     );
 }
 
-void Logger::log_preprocessing(bool succ)
-{
-    logging::add_common_attributes();
 
-    using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;
-    if (!succ)
-        BOOST_LOG_SEV(lg, fatal) << "Pre-processing Failed";
-        //BOOST_LOG_TRIVIAL(fatal) << "Error: Preprocessing Failed";
-    else
-        BOOST_LOG_SEV(lg, info) << "Pre-processing Success";
-        //BOOST_LOG_TRIVIAL(info) << "Preprocessing Success";
+void Logger::log_info(std::string input)
+{
+  logging::add_common_attributes();
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+  BOOST_LOG_SEV(lg, info) << input;
 }
 
-void Logger::log_plan(bool succ, int time)
+void Logger::log_info(std::string input, int timestep)
 {
-    logging::add_common_attributes();
+  log_info("[timestep=" + std::to_string(timestep) + "] " + input);
+}
 
-    using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;
-    if (!succ)
-    {
-        BOOST_LOG_SEV(lg, fatal) << "Planner Timeout at "<< time;
-    }
-        
-        //BOOST_LOG_TRIVIAL(warning) << "Warning: Planner Timeout";
+void Logger::log_fatal(std::string input, int timestep)
+{
+  log_fatal("[timestep=" + std::to_string(timestep) + "] " + input);
+}
+
+void Logger::log_fatal(std::string input)
+{
+  logging::add_common_attributes();
+
+  using namespace logging::trivial;
+  src::severity_logger< severity_level > lg;
+  BOOST_LOG_SEV(lg, fatal) << input;
 }

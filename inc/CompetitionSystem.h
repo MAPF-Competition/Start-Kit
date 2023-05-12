@@ -29,11 +29,10 @@ class BaseSystem{
   void set_plan_time_limit(int limit){plan_time_limit = limit;};
   void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
 
-  bool planner_initialize();
   vector<Action> plan();
 
-  Logger* log = new Logger();
-  void setLoggerFile(const string &fileName) const;
+  Logger* logger = nullptr;
+  void set_logger(Logger* logger){this->logger = logger;}
 
 
  protected:
@@ -73,6 +72,7 @@ class BaseSystem{
   int num_of_task_finish = 0;
 
 	void initialize();
+  bool planner_initialize();
 	virtual void update_tasks() = 0;
 
   void sync_shared_env();
@@ -80,8 +80,11 @@ class BaseSystem{
   list<Task> move(vector<Action>& actions);
   bool valid_moves(vector<State>& prev, vector<Action>& next);
 
-  //list<string> issue_logs;
-  bool planner_timeout_status = false;
+
+  void log_preprocessing(bool succ);
+  void log_event_assigned(int agent_id, int task_id, int timestep);
+  void log_event_finished(int agent_id, int task_id, int timestep);
+
 };
 
 
