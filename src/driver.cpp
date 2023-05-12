@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
-        logger->log_info("running the evaluation mode")
+        logger->log_info("running the evaluation mode");
         planner = new DummyPlanner(vm["output"].as<std::string>());
     }else{
         planner = new MAPFPlanner();
