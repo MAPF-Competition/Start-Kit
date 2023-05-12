@@ -24,7 +24,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
 
     list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
     if (!valid_moves(curr_states, actions)){
-        actions = std::vector<Action>(curr_states.size(), Action::W);
+        actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
     curr_states = model->result_states(curr_states, actions);
