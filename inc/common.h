@@ -96,7 +96,13 @@ T read_param_json(nlohmann::json& data, std::string name){
     std::cerr << "missing property " << name << " in the input JSON." << std::endl;
     exit(1);
   }
-  return data[name].get<T>();
+  try{
+    return data[name].get<T>();
+  } catch(nlohmann::json::type_error error ) {
+    std::cerr << "Incorrect input JSON format for " << name << std::endl;
+    std::cerr << "Message: " << error.what() << std::endl;
+    exit(1);
+  }
 }
 
 template <typename T>
@@ -104,5 +110,11 @@ T read_param_json(nlohmann::json& data, std::string name, T default_value){
   if (!data.contains(name)){
     return default_value;
   }
-  return data[name].get<T>();
+  try{
+    return data[name].get<T>();
+  } catch(nlohmann::json::type_error error ) {
+    std::cerr << "Incorrect input JSON format for " << name << std::endl;
+    std::cerr << "Message: " << error.what() << std::endl;
+    exit(1);
+  }
 }
