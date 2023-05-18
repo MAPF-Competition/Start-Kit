@@ -21,7 +21,7 @@ void Logger::init()
     // );
     logging::core::get()->set_filter
     (
-        logging::trivial::severity >= logging::trivial::info
+        logging::trivial::severity > logging::trivial::info
     );
 }
 
@@ -47,7 +47,7 @@ void Logger::log_plan(bool succ, int time)
     src::severity_logger< severity_level > lg;
     if (!succ)
     {
-        BOOST_LOG_SEV(lg, fatal) << "Planner Timeout at "<< time;
+        BOOST_LOG_SEV(lg, warning) << "Planner Timeout at "<< time;
     }
         
         //BOOST_LOG_TRIVIAL(warning) << "Warning: Planner Timeout";

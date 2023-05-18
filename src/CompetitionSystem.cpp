@@ -131,7 +131,11 @@ void BaseSystem::simulate(int simulation_time){
 
     //only error when not succeed
     //log->set_logfile("test.log"); //only for test now
-    log->log_preprocessing(planner_initialize());
+    //log->log_preprocessing(planner_initialize());
+    bool preprocessing = planner_initialize();
+    log->log_preprocessing(preprocessing);
+    if (!preprocessing)
+      return;
   //}
   for (; timestep < simulation_time; ) {
 
