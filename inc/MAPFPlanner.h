@@ -19,6 +19,7 @@ public:
   // return next states for all agents
   virtual std::vector<Action> plan(int time_limit);
 
+  std::list<pair<int,int>>single_agent_plan(int start,int start_direct, int end,unordered_set<tuple<int,int,int>> reservation);
   std::list<pair<int,int>>single_agent_plan(int start,int start_direct, int end);
 
   int getManhattanDistance(int loc1, int loc2);
