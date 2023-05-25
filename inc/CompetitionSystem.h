@@ -30,6 +30,7 @@ public:
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
 
     vector<Action> plan();
+    vector<Action> plan_wrapper();
 
     Logger* logger = nullptr;
     void set_logger(Logger* logger){this->logger = logger;}

@@ -67,9 +67,15 @@ std::future<std::vector<Action>> future;
 std::thread task_td;
 bool started = false;
 
+vector<Action> BaseSystem::plan_wrapper(){
+    vector<Action> actions;
+    planner->plan(plan_time_limit, actions);
+
+    return actions;
+}
+
 vector<Action> BaseSystem::plan(){
     using namespace std::placeholders;
-
     if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready){
         if(logger){
             logger->log_info("planner cannot run because the previous run is still running", timestep);
@@ -84,13 +90,12 @@ vector<Action> BaseSystem::plan(){
         return {};
     }
 
-    std::packaged_task<std::vector<Action>(int)> task(std::bind(&MAPFPlanner::plan, planner, _1));
+    std::packaged_task<std::vector<Action>()> task(std::bind(&BaseSystem::plan_wrapper, this));
     future = task.get_future();
-
     if (task_td.joinable()){
         task_td.join();
     }
-    task_td = std::thread(std::move(task), plan_time_limit);
+    task_td = std::thread(std::move(task));
     started = true;
     if (future.wait_for(std::chrono::seconds(plan_time_limit)) == std::future_status::ready){
         task_td.join();

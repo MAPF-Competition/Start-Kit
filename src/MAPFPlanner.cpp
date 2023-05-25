@@ -26,8 +26,8 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 
 
 // return next states for all agents
-vector<Action> MAPFPlanner::plan(int time_limit) {
-  std::vector<Action> actions(env->curr_states.size(), Action::W);
+void MAPFPlanner::plan(int time_limit, vector<Action> & actions) {
+  actions = vector<Action>(env->curr_states.size(), Action::W);
   for (int i = 0; i < env->num_of_agents; i++) {
     cout << "start plan for agent " << i;
     list<pair<int,int>> path;
@@ -56,7 +56,7 @@ vector<Action> MAPFPlanner::plan(int time_limit) {
   }
 
 
-  return actions;
+  return;
   // env->curr_states;
 }
 
