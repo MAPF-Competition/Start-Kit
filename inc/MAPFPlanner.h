@@ -17,7 +17,7 @@ public:
     virtual void initialize(int preprocess_time_limit);
 
     // return next states for all agents
-    virtual std::vector<Action> plan(int time_limit);
+    virtual void plan(int time_limit, std::vector<Action> & plan);
 
     std::list<pair<int,int>>single_agent_plan(int start,int start_direct, int end);
 
