@@ -16,28 +16,28 @@ Grid::Grid(string fname){
     getline (myfile, line);
 
     if (line[0] == 't') {
-      // Benchmark 
+        // Benchmark 
         boost::char_separator<char> sep(" ");
-      getline(myfile, line);
-      boost::tokenizer<boost::char_separator<char>> tok(line, sep);
-      boost::tokenizer<boost::char_separator<char>>::iterator beg;
-      beg = tok.begin();
-      beg++;
-      rows = atoi((*beg).c_str()); // read number of rows
-      getline(myfile, line);
-      boost::tokenizer<boost::char_separator<char>> tok2(line, sep);
-      beg = tok2.begin();
-      beg++;
-      cols = atoi((*beg).c_str()); // read number of cols
-      getline(myfile, line); // skip "map"
+        getline(myfile, line);
+        boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+        boost::tokenizer<boost::char_separator<char>>::iterator beg;
+        beg = tok.begin();
+        beg++;
+        rows = atoi((*beg).c_str()); // read number of rows
+        getline(myfile, line);
+        boost::tokenizer<boost::char_separator<char>> tok2(line, sep);
+        beg = tok2.begin();
+        beg++;
+        cols = atoi((*beg).c_str()); // read number of cols
+        getline(myfile, line); // skip "map"
 
     } else {
-      boost::char_separator<char> sep(",");
-      boost::tokenizer< boost::char_separator<char> > tok(line, sep);
-      boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin();
-      rows = atoi((*beg).c_str());  // read number of rows
-      beg++;
-      cols = atoi((*beg).c_str());  // read number of cols
+        boost::char_separator<char> sep(",");
+        boost::tokenizer< boost::char_separator<char> > tok(line, sep);
+        boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin();
+        rows = atoi((*beg).c_str());  // read number of rows
+        beg++;
+        cols = atoi((*beg).c_str());  // read number of cols
     }
 
 
