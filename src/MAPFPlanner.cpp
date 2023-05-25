@@ -30,10 +30,10 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 
 
 // return next states for all agents
-vector<Action> MAPFPlanner::plan(int time_limit) 
+void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
     bool pp = true;
-    std::vector<Action> actions(env->curr_states.size(), Action::W);
+    actions = std::vector<Action>(env->curr_states.size(), Action::W);
     if (pp)
     {
         unordered_set<tuple<int,int,int>> reservation; //loc1,loc2,t
@@ -135,7 +135,8 @@ vector<Action> MAPFPlanner::plan(int time_limit)
     }
 
 
-    return actions;
+  return;
+  // env->curr_states;
 }
 
 
