@@ -76,7 +76,13 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    Grid grid(base_folder + data["mapFile"].get<std::string>());
+    auto map_path = read_param_json<std::string>(data, "mapFile");
+    Grid grid(base_folder + map_path);
+
+    planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);
+    planner->env->file_storage_path = read_param_json<std::string>(data, "fileStoragePath", "");
+
+
     ActionModelWithRotate* model = new ActionModelWithRotate(grid);
     model->set_logger(logger);
 
@@ -114,6 +120,7 @@ int main(int argc, char** argv) {
 
     delete model;
     delete planner->env;
+    delete planner;
     delete system_ptr;
     return 0;
 }
