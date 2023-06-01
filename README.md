@@ -18,7 +18,7 @@ command:
 ```
 more info on help
 
-
+:warning: *The input and output descriptions are obsolete. Please refer to the start-kit document in the shared drive*
 
 ## Input description
 + map_file: the map file location. We support the file format of the MAPF benchmarks.
