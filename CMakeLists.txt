@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(USE_PYBIND FALSE)
 IF(NOT CMAKE_BUILD_TYPE)
-    #SET(CMAKE_BUILD_TYPE "DEBUG")
+    # SET(CMAKE_BUILD_TYPE "DEBUG")
     SET(CMAKE_BUILD_TYPE "RELEASE")
     #SET(CMAKE_BUILD_TYPE "RELWITHDEBINFO")
     #SET(CMAKE_BUILD_TYPE "MINSIZEREL")
@@ -46,7 +46,8 @@ set(PY_SOURCES "./src/Grid.cpp"
 "./src/MAPFPlanner.cpp"
 "./src/Logger.cpp"
 "./python/pyMAPFPlanner.cpp" 
-"./python/py_driver.cpp")
+"./python/py_driver.cpp"
+"./src/Evaluation.cpp")
 
 
 add_executable(py_lifelong  ${PY_SOURCES})

@@ -77,6 +77,7 @@ vector<Action> BaseSystem::plan_wrapper(){
 vector<Action> BaseSystem::plan(){
     using namespace std::placeholders;
     if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready){
+        std::cout<<started<<"     "<<(future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)<<std::endl;
         if(logger){
             logger->log_info("planner cannot run because the previous run is still running", timestep);
         }
@@ -158,6 +159,8 @@ void BaseSystem::simulate(int simulation_time){
         // find a plan
         sync_shared_env();
         // vector<Action> actions = planner->plan(plan_time_limit);
+        // vector<Action> actions;
+        // planner->plan(plan_time_limit,actions);
         vector<Action> actions = plan();
 
         timestep += 1;
