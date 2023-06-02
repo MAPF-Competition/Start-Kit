@@ -9,7 +9,8 @@ import numpy as np
 
 class pyMAPFPlanner:
     def __init__(self,pyenv=None) -> None:
-        self.env=pyenv.env
+        if pyenv is not None:
+            self.env=pyenv.env
     
         print("pyMAPFPlanner initialized!  python debug")
 
@@ -35,7 +36,7 @@ class pyMAPFPlanner:
         """
 
         # example of only using single-agent search
-
+        print("I am planning")
         actions=[ MAPF.Action.W for i in range(len(self.env.curr_states))]
         for i in range(0,self.env.num_of_agents):
             print("python start plan for agent ",i,end=" ")
@@ -142,6 +143,9 @@ class pyMAPFPlanner:
 
 
         
+
+
+
 
 
 if __name__=="__main__":

@@ -23,7 +23,8 @@ public:
 
 
     void initialize(int preprocess_time_limit);
-    std::vector<Action> plan(int time_limit);
+    // std::vector<Action> plan(int time_limit);
+    void plan(int time_limit,std::vector<Action>&plan);
 
 
 

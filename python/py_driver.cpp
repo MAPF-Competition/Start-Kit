@@ -1,4 +1,4 @@
-#include"pyMAPFPlanner.hpp"
+#include "pyMAPFPlanner.hpp"
 
 #include <pybind11/embed.h>
 
@@ -7,101 +7,138 @@
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
+#include <signal.h>
+#include "Evaluation.h"
+
+namespace po = boost::program_options;
 using json = nlohmann::json;
+po::variables_map vm;
+BaseSystem *system_ptr = nullptr;
 
-
-
-
-
-void python_driver(int argc, char** argv){
-     pybind11::scoped_interpreter guard{};
-	namespace po = boost::program_options;
-	// Declare the supported options.
-	po::options_description desc("Allowed options");
-	desc.add_options()
-		("help", "produce help message")
-		("input,i", po::value<std::string>()->required(), "input file")
-		("plannerPath,po", po::value<std::string>()->default_value("./exp/test_planner.txt"), "planner path file name")
-		("actualPath,ao", po::value<std::string>()->default_value("./exp/test_actual.txt"), "actual path file name")
-		("output,o", po::value<std::string>()->default_value("./exp/test"), "output folder name")
-		("cutoffTime,t", po::value<int>()->default_value(60), "cutoff time (seconds)")
-		("seed,d", po::value<int>(), "random seed")
-		("screen,s", po::value<int>()->default_value(1), "screen option (0: none; 1: results; 2:all)")
-		("simulation_time", po::value<int>()->default_value(5000), "run simulation")
-		("checkconf", po::value<bool>()->default_value(true), "consider conflict")
-	;
-	clock_t start_time = clock();
-	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-
-	if (vm.count("help")) {
-		std::cout << desc << std::endl;
-		return ;
-	}
-
-	po::notify(vm);
-
-    // make dictionary
-	boost::filesystem::path dir(vm["output"].as<std::string>() +"/");
-	boost::filesystem::create_directories(dir);
-
-	// MAPFPlanner* planner = new MAPFPlanner();
-    MAPFPlanner* planner=new pyMAPFPlanner();
-
-	std::ifstream f(vm["input"].as<std::string>());
-	json data = json::parse(f);
-
-	Grid grid(data["map_file"].get<std::string>());
-
-	std::vector<int> agents = read_int_vec(data["agent_file"].get<std::string>());
-	std::vector<int> tasks = read_int_vec(data["task_file"].get<std::string>());
-
-	std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
-
-	ActionModelWithRotate* model = new ActionModelWithRotate(grid);
-
-  BaseSystem* system_ptr = nullptr;
-
-  if (data["task_assignment_strategy"].get<std::string>()=="greedy"){
-    system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
-  } else if (data["task_assignment_strategy"].get<std::string>()=="roundrobin"){
-    std::vector<vector<int>> assigned_tasks(agents.size());
-    for(int i = 0; i < tasks.size(); i++){
-      assigned_tasks[i%agents.size()].push_back(tasks[i]);
+void sigint_handler(int a)
+{
+    fprintf(stdout, "stop the simulation...\n");
+    if (!vm["evaluationMode"].as<bool>())
+    {
+        system_ptr->saveResults(vm["output"].as<std::string>());
     }
 
-    system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, model);
-
-
-  } else{
-    std::cerr << "unkown task_assignment_strategy " << data["task_assignment_strategy"].get<std::string>() << std::endl;
-    exit(1);
-  }
-
-  system_ptr->set_num_tasks_reveal(data["num_tasks_reveal"].get<int>());
-  system_ptr->simulate(vm["simulation_time"].as<int>());
-
-//   system_ptr->savePaths(vm["plannerPath"].as<std::string>(),1);
-//   system_ptr->savePaths(vm["actualPath"].as<std::string>(),0);
-//   system_ptr->saveErrors("./exp/error.txt");
-    system_ptr->saveResults("./exp/output.json");
-
-  delete model;
-	delete planner->env;
-  delete system_ptr;
-	// return 0;
+    _exit(0);
 }
 
-void test(){
+void python_driver(int argc, char **argv)
+{
     pybind11::scoped_interpreter guard{};
-    MAPFPlanner* planner=new pyMAPFPlanner();
-    planner->plan(666);
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help", "produce help message")
+        ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
+        ("inputFile,i", po::value<std::string>()->required(), "input file name")
+        ("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
+        ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
+        ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
+        ("logFile,l", po::value<std::string>(), "issue log file name")
+        ;
+    clock_t start_time = clock();
+    po::store(po::parse_command_line(argc, argv, desc), vm);
 
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+    }
+
+    po::notify(vm);
+
+    std::string base_folder = vm["inputFolder"].as<std::string>();
+    if (base_folder.size() > 0 && base_folder.back()!='/'){
+        base_folder += "/";
+    }
+
+    Logger* logger = new Logger();
+    if (vm.count("logFile"))
+        logger->set_logfile(vm["logFile"].as<std::string>());
+
+
+    MAPFPlanner* planner = nullptr;
+
+    if (vm["evaluationMode"].as<bool>()){
+        logger->log_info("running the evaluation mode");
+        planner = new DummyPlanner(vm["output"].as<std::string>());
+    }else{
+        planner = new pyMAPFPlanner();
+    }
+
+    auto input_json_file = base_folder + vm["inputFile"].as<std::string>();
+    json data;
+    std::ifstream f(input_json_file);
+    try{
+        data = json::parse(f);
+    }
+    catch(json::parse_error error ) {
+        std::cerr << "Failed to load " << input_json_file << std::endl;
+        std::cerr << "Message: " << error.what() << std::endl;
+        exit(1);
+    }
+
+    auto map_path = read_param_json<std::string>(data, "mapFile");
+    Grid grid(base_folder + map_path);
+
+    planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);
+    planner->env->file_storage_path = read_param_json<std::string>(data, "fileStoragePath", "");
+
+
+    ActionModelWithRotate* model = new ActionModelWithRotate(grid);
+    model->set_logger(logger);
+
+    std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"));
+    std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
+    std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
+
+    std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
+    if (task_assignment_strategy=="greedy"){
+        system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
+    } else if (task_assignment_strategy=="roundrobin"){
+        std::vector<vector<int>> assigned_tasks(agents.size());
+        for(int i = 0; i < tasks.size(); i++){
+            assigned_tasks[i%agents.size()].push_back(tasks[i]);
+        }
+        system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, model);
+    } else{
+        std::cerr << "unkown task assignment strategy " << data["taskAssignmentStrategy"].get<std::string>() << std::endl;
+        logger->log_fatal("unkown task assignment strategy " + data["taskAssignmentStrategy"].get<std::string>());
+        exit(1);
+    }
+
+    system_ptr->set_logger(logger);
+    system_ptr->set_plan_time_limit(read_param_json<int>(data, "planTimeLimit", 5));
+    system_ptr->set_preprocess_time_limit(read_param_json<int>(data, "preprocessTimeLimit", 10));
+    system_ptr->set_num_tasks_reveal(read_param_json<int>(data, "numTasksReveal", 1));
+
+    signal(SIGINT, sigint_handler);
+
+    system_ptr->simulate(vm["simulationTime"].as<int>());
+
+    if (!vm["evaluationMode"].as<bool>()){
+        system_ptr->saveResults(vm["output"].as<std::string>());
+    }
+
+    delete model;
+    delete planner->env;
+    delete planner;
+    delete system_ptr;
+    // return 0;
+    // return 0;
 }
 
+void test()
+{
+    pybind11::scoped_interpreter guard{};
+    MAPFPlanner *planner = new pyMAPFPlanner();
+    std::vector<Action> plan;
+    planner->plan(666, plan);
+}
 
-int main(int argc, char** argv) {
-    python_driver(argc,argv);
+int main(int argc, char **argv)
+{
+    python_driver(argc, argv);
     return 0;
-
 }
