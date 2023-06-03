@@ -68,7 +68,9 @@ std::thread task_td;
 bool started = false;
 
 vector<Action> BaseSystem::plan_wrapper(){
+    std::cout<<"wrapper called"<<std::endl;
     vector<Action> actions;
+    std::cout<<"planning"<<std::endl;
     planner->plan(plan_time_limit, actions);
 
     return actions;
@@ -147,6 +149,7 @@ void BaseSystem::simulate(int simulation_time){
     int num_of_tasks = 0;
 
     auto planner_initialize_success= planner_initialize();
+    
     log_preprocessing(planner_initialize_success);
     if (!planner_initialize_success){
         return;
