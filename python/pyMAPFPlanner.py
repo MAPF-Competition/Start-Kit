@@ -21,7 +21,7 @@ class pyMAPFPlanner:
             preprocess_time_limit (_type_): _description_
         """
         pass
-        print("planner initialize done" )
+        print("planner initialize done... python debug" )
         return True
         # raise NotImplementedError()
 

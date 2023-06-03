@@ -25,10 +25,11 @@ void pyMAPFPlanner::initialize(int preprocess_time_limit){
 
 
 void pyMAPFPlanner::plan(int time_limit,std::vector<Action> &plan){
-    pybind11::gil_scoped_acquire acquire;
-    std::cout<<"calling python planner"<<std::endl;
+    // pybind11::gil_scoped_acquire acquire;
+    // std::cout<<"calling python planner"<<std::endl;
+
     auto action_object=py_planner.attr("plan")(time_limit);
-    std::cout.flush(); // Flush the output buffer
+
     try{
         plan=action_object.cast<std::vector<Action>>();
         // assert(plan.empty()==false);
@@ -44,10 +45,7 @@ void pyMAPFPlanner::plan(int time_limit,std::vector<Action> &plan){
         // assert(actions.empty()==false);
         // return actions;
     }
-    for(auto action:plan){
-        std::cout<<"debug  "<<action<<std::endl;
-        std::cout.flush(); // Flush the output buffer
-    }
+ 
 }
 
 
