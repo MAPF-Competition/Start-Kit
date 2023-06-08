@@ -23,10 +23,6 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("map_name",&Grid::map_name)
         .def_readonly("rows",&Grid::rows);
 
-    // pybind11::class_<MAPFPlanner>(m,"Grid")
-    //     .def(pybind11::init<>())
-    //     .def("initialize",&MAPFPlanner::initialize);
-    //     .def("")
 
     pybind11::class_<State>(m, "State")
         .def(pybind11::init<>())
@@ -69,8 +65,11 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("env",&pyEnvironment::env)
         .def("get_curr_states",&pyEnvironment::get_curr_states);
 
+    
+
     // pybind11::class_<MAPFPlanner>(m,"MAPFPlanner")
     //     .def(pybind11::init<>())
+    //     .def(pybind11::init<SharedEnvironment*>())
     //     .def("initialize",&MAPFPlanner::initialize)
     //     .def("plan",&MAPFPlanner::plan);
 
