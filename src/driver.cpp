@@ -5,7 +5,7 @@
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
 #include <signal.h>
-
+#include <climits>
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
@@ -33,6 +33,9 @@ int main(int argc, char** argv) {
         ("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
         ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
+        ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
+        ("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")
+        ("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")
         ("logFile,l", po::value<std::string>(), "issue log file name")
         ;
     clock_t start_time = clock();
@@ -80,7 +83,7 @@ int main(int argc, char** argv) {
     Grid grid(base_folder + map_path);
 
     planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);
-    planner->env->file_storage_path = read_param_json<std::string>(data, "fileStoragePath", "");
+    planner->env->file_storage_path = vm["fileStoragePath"].as<std::string>();
 
 
     ActionModelWithRotate* model = new ActionModelWithRotate(grid);
@@ -106,8 +109,9 @@ int main(int argc, char** argv) {
     }
 
     system_ptr->set_logger(logger);
-    system_ptr->set_plan_time_limit(read_param_json<int>(data, "planTimeLimit", 5));
-    system_ptr->set_preprocess_time_limit(read_param_json<int>(data, "preprocessTimeLimit", 10));
+    system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
+    system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
+
     system_ptr->set_num_tasks_reveal(read_param_json<int>(data, "numTasksReveal", 1));
 
     signal(SIGINT, sigint_handler);
