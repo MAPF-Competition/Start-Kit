@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
-        ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
+        // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
         ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
@@ -48,7 +48,11 @@ int main(int argc, char** argv) {
 
     po::notify(vm);
 
-    std::string base_folder = vm["inputFolder"].as<std::string>();
+    // std::string base_folder = vm["inputFolder"].as<std::string>();
+    boost::filesystem::path p(vm["inputFile"].as<std::string>());
+    boost::filesystem::path dir = p.parent_path();
+    std::string base_folder = dir.string();
+    std::cout << base_folder << std::endl;
     if (base_folder.size() > 0 && base_folder.back()!='/'){
         base_folder += "/";
     }
@@ -67,7 +71,7 @@ int main(int argc, char** argv) {
         planner = new MAPFPlanner();
     }
 
-    auto input_json_file = base_folder + vm["inputFile"].as<std::string>();
+    auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
     std::ifstream f(input_json_file);
     try{

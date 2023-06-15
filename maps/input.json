@@ -1,11 +1,11 @@
 {
-    "mapFile": "maps/kiva.map",
-    "agentFile": "maps/kiva_agents3.txt",
-    "taskFile": "maps/kiva_tasks3.txt",
+    "mapFile": "kiva.map",
+    "agentFile": "kiva_agents3.txt",
+    "taskFile": "kiva_tasks3.txt",
     "numTasksReveal":1,
     "taskAssignmentStrategy":"roundrobin",
     "fileStoragePath": "./storage",
     "planTimeLimit": 1,
     "preprocessTimeLimit": 1,
-    "teamSize":30
+    "teamSize":20
 }
