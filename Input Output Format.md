@@ -3,7 +3,6 @@
 | options               |                                                                                                                                        |
 |-----------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | --help                |                                                                                                                                        |
-| --inputFolder         | String <br /> The root directory for the input file (and the file names specified in the input file)                                   |
 | --inputFile           | String <br /> The input JSON file                                                                                                      |
 | --output              | String  <br /> The output JSON file                                                                                                    |
 | --evaluationMode      | Boolean  <br /> If set true, the start kit will evaluate the planner outputs in the output JSON file instead of running the simulation |
@@ -19,9 +18,10 @@
 |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | mapFile                | String <br /> File that describes the graph. We support the benchmark format.                                                                                                                                                                  |
 | agentFile              | String <br /> File that describes the start locations for agents.  Each line in the file contains a single integer. The first line indicates the number of agents n. The following n lines correspond to the start locations of the n agents.* |
-| taskFile               | String <br /> File that describes the locations for tasks.  Each line in the file contains a single integer. The first line indicates the number of tasks m. The following m lines correspond to the locations of the m tasks.\*                |
+| taskFile               | String <br /> File that describes the locations for tasks.  Each line in the file contains a single integer. The first line indicates the number of tasks m. The following m lines correspond to the locations of the m tasks.\*               |
 | numTasksReveal         | Int (=1) <br /> Number of tasks that is                                                                                                                                                                                                        |
 | taskAssignmentStrategy | String <br /> The strategy for assigning tasks (“greedy” or “roundrobin”).                                                                                                                                                                     |
+| teamSize               | Int <br /> The number of agents consider                                                                                                                                                                                                       |
 
 
 \* We linearize the a 2-D coordinate and use a single integer to represent a location. 
