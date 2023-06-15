@@ -6,5 +6,6 @@
     "taskAssignmentStrategy":"roundrobin",
     "fileStoragePath": "./storage",
     "planTimeLimit": 1,
-    "preprocessTimeLimit": 1
+    "preprocessTimeLimit": 1,
+    "teamSize":30
 }
