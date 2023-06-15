@@ -89,7 +89,9 @@ int main(int argc, char** argv) {
     ActionModelWithRotate* model = new ActionModelWithRotate(grid);
     model->set_logger(logger);
 
-    std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"));
+    int team_size = read_param_json<int>(data, "teamSize");
+
+    std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"),team_size);
     std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
 
