@@ -32,11 +32,14 @@ void python_driver(int argc, char **argv)
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
-        ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
+        // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./exp/test.json"), "output file name")
         ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
+        ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
+        ("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")
+        ("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")
         ("logFile,l", po::value<std::string>(), "issue log file name")
         ;
     clock_t start_time = clock();
@@ -44,11 +47,16 @@ void python_driver(int argc, char **argv)
 
     if (vm.count("help")) {
         std::cout << desc << std::endl;
+        return;
     }
 
     po::notify(vm);
 
-    std::string base_folder = vm["inputFolder"].as<std::string>();
+    // std::string base_folder = vm["inputFolder"].as<std::string>();
+    boost::filesystem::path p(vm["inputFile"].as<std::string>());
+    boost::filesystem::path dir = p.parent_path();
+    std::string base_folder = dir.string();
+    std::cout << base_folder << std::endl;
     if (base_folder.size() > 0 && base_folder.back()!='/'){
         base_folder += "/";
     }
@@ -67,7 +75,7 @@ void python_driver(int argc, char **argv)
         planner = new pyMAPFPlanner();
     }
 
-    auto input_json_file = base_folder + vm["inputFile"].as<std::string>();
+    auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
     std::ifstream f(input_json_file);
     try{
@@ -83,13 +91,15 @@ void python_driver(int argc, char **argv)
     Grid grid(base_folder + map_path);
 
     planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);
-    planner->env->file_storage_path = read_param_json<std::string>(data, "fileStoragePath", "");
+    planner->env->file_storage_path = vm["fileStoragePath"].as<std::string>();
 
 
     ActionModelWithRotate* model = new ActionModelWithRotate(grid);
     model->set_logger(logger);
 
-    std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"));
+    int team_size = read_param_json<int>(data, "teamSize");
+
+    std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"),team_size);
     std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
 
@@ -109,8 +119,9 @@ void python_driver(int argc, char **argv)
     }
 
     system_ptr->set_logger(logger);
-    system_ptr->set_plan_time_limit(read_param_json<int>(data, "planTimeLimit", 5));
-    system_ptr->set_preprocess_time_limit(read_param_json<int>(data, "preprocessTimeLimit", 10));
+    system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
+    system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
+
     system_ptr->set_num_tasks_reveal(read_param_json<int>(data, "numTasksReveal", 1));
 
     signal(SIGINT, sigint_handler);
