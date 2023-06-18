@@ -36,6 +36,12 @@ class pyMAPFPlanner:
         """
 
         # example of only using single-agent search
+        return self.sample_priority_planner(time_limit)
+        # print("python binding debug")
+        # print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
+        # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
+
+    def naive_a_star(self,time_limit):
         print("I am planning")
         actions = [MAPF.Action.W for i in range(len(self.env.curr_states))]
         for i in range(0, self.env.num_of_agents):
@@ -64,9 +70,6 @@ class pyMAPFPlanner:
         actions = [int(a) for a in actions]
         # print(actions)
         return np.array(actions, dtype=int)
-        # print("python binding debug")
-        # print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
-        # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
 
     def single_agent_plan(self, start: int, start_direct: int, end: int):
         print(start, start_direct, end)
@@ -148,49 +151,60 @@ class pyMAPFPlanner:
         path = []
         open_list = PriorityQueue()
         all_nodes = {}  # loc+dict, t
-
-        s = (start, start_direct, 0, self.get_manhattan_distance(start, end))
+        parent={}
+        s = (start, start_direct, 0, self.getManhattanDistance(start, end))
         open_list.put((s[3], id(s), s))
-        all_nodes[(start * 4 + start_direct, 0)] = s
+        # all_nodes[(start * 4 + start_direct, 0)] = s
+        parent[(start * 4 + start_direct, 0)]=None
 
         while not open_list.empty():
-            _, _, curr = open_list.get()
+            n=open_list.get()
+            # print("n=",n)
+            _, _, curr = n
+        
             curr_location, curr_direction, curr_g, _ = curr
 
+            if (curr_location*4+curr_direction,curr_g) in all_nodes:
+                continue
+            all_nodes[(curr_location*4+curr_direction,curr_g)]=curr
             if curr_location == end:
-                while curr:
+                while True:
                     path.append((curr[0], curr[1]))
-                    curr = curr[5]
+                    curr=parent[(curr[0]*4+curr[1],curr[2])]
+                    if curr is None:
+                        break
+                    # curr = curr[5]
+                path.pop()
                 path.reverse()
                 break
-
-            neighbors = self.get_neighbors(curr_location, curr_direction)
+            
+            neighbors = self.getNeighbors(curr_location, curr_direction)
 
             for neighbor in neighbors:
                 neighbor_location, neighbor_direction = neighbor
 
-                if (neighbor_location, -1, curr[3] + 1) in reservation:
+                if (neighbor_location, -1, curr[2] + 1) in reservation:
                     continue
 
-                if (neighbor_location, curr_location, curr[3] + 1) in reservation:
+                if (neighbor_location, curr_location, curr[2] + 1) in reservation:
                     continue
 
                 neighbor_key = (neighbor_location * 4 +
-                                neighbor_direction, curr[3] + 1)
+                                neighbor_direction, curr[2] + 1)
 
                 if neighbor_key in all_nodes:
                     old = all_nodes[neighbor_key]
-                    if old[4]:
-                        continue
                     if curr_g + 1 < old[2]:
-                        old = (old[0], old[1], curr_g + 1, old[3], old[4], curr)
+                        old = (old[0], old[1], curr_g + 1, old[3], old[4])
                 else:
                     next_node = (neighbor_location, neighbor_direction, curr_g + 1,
-                                self.get_manhattan_distance(neighbor_location, end), curr[3] + 1, curr)
+                                self.getManhattanDistance(neighbor_location, end))
+        
                     open_list.put(
                         (next_node[3] + next_node[2], id(next_node), next_node))
-                    all_nodes[(neighbor_location * 4 +
-                            neighbor_direction, next_node[3])] = next_node
+                
+                    parent[(neighbor_location * 4 +
+                            neighbor_direction, next_node[2])]=curr
 
         for v in path:
             print(f"({v[0]},{v[1]}), ", end="")
@@ -214,7 +228,7 @@ class pyMAPFPlanner:
             path = []
             if self.env.goal_locations[i]:
                 print("with start and goal:")
-                path = self.single_agent_plan(
+                path = self.space_time_plan(
                     self.env.curr_states[i].location,
                     self.env.curr_states[i].orientation,
                     self.env.goal_locations[i][0][0],
