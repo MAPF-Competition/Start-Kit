@@ -4,7 +4,27 @@
 pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
     auto sys=pybind11::module_::import("sys");
     py_env=new pyEnvironment(env);
-    sys.attr("path").attr("append")("./python");
+    std::ifstream configFile("config.json");
+    if(!configFile){
+        //default
+        std::cout<<"setting to default python path"<<std::endl;
+        sys.attr("path").attr("append")("./python");
+    }
+    else{
+        nlohmann::json configData;
+        try{
+            configFile>>configData;
+            if(configData.contains("path")){
+                std::string python_path=configData["path"];
+                std::cout<<"addinng "<<python_path<<" to system path"<<std::endl;
+                sys.attr("path").attr("append")(python_path);
+            }
+        }
+        catch(const nlohmann::json::parse_error& e){
+            std::cerr << "Error: Failed to parse config file. " << e.what() << std::endl;
+        }
+    }
+    
     std::cout<<"trying to import pyMAPFPlanner module"<<std::endl;
     auto py_mapf_planner_module=pybind11::module_::import("pyMAPFPlanner");
     std::cout<<"trying to create pyMAPFPlanner"<<std::endl;
