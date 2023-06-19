@@ -43,11 +43,11 @@ The pybind11 module mainly contains three files:
 To use the python interface, one can use the following to compile the program that runs pyMAPFPlanner 
 
 ```shell
-cmake . -DCMAKE_BUILD_TYPE=Release
-make python
-./py_lifelong --inputFolder the_input_folder_location --inputFile the_input_file_name -o output_file_location
+cmake . -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
+make
+./lifelong --inputFolder the_input_folder_location --inputFile the_input_file_name -o output_file_location
 ```
-The command "make" will comiple both "lifelong" and "py_lifelong". However, if you don't need to use python, you can use "make cpp" to  only compile  "lifelong", which runs the C++ based MAPFPlanner. Similarly, if you use "make python", it will only  compile "py_lifelong". 
+
 
 ## Evaluation Test
 - Input description
