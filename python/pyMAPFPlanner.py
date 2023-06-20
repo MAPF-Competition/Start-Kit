@@ -3,7 +3,7 @@ import MAPF
 from typing import Dict, List, Tuple,Set
 from queue import PriorityQueue
 import numpy as np
-
+import testlib
 
 # 0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 
@@ -21,6 +21,7 @@ class pyMAPFPlanner:
             preprocess_time_limit (_type_): _description_
         """
         pass
+        # testlib.test_torch()
         print("planner initialize done... python debug")
         return True
         # raise NotImplementedError()
@@ -261,3 +262,4 @@ class pyMAPFPlanner:
 
 if __name__ == "__main__":
     test_planner = pyMAPFPlanner()
+    test_planner.initialize(100)

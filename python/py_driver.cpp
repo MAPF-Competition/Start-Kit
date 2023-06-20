@@ -9,6 +9,7 @@
 #include "nlohmann/json.hpp"
 #include <signal.h>
 #include "Evaluation.h"
+#include <cuda_runtime_api.h>  // Add this header for CUDA initialization
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
@@ -28,6 +29,7 @@ void sigint_handler(int a)
 
 void python_driver(int argc, char **argv)
 {
+    // cudaFree(0);
     pybind11::scoped_interpreter guard{};
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -133,9 +135,10 @@ void python_driver(int argc, char **argv)
     }
 
     delete model;
-    delete planner->env;
-    delete planner;
+    // delete planner->env;
+    // delete planner;
     delete system_ptr;
+    std::cout<<"?????"<<std::endl;
     // return 0;
     // return 0;
 }
