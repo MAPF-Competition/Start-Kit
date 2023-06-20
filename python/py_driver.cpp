@@ -31,6 +31,7 @@ void python_driver(int argc, char **argv)
 {
     // cudaFree(0);
     pybind11::scoped_interpreter guard{};
+
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")

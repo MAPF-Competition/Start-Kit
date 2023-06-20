@@ -18,7 +18,7 @@ class pyMAPFPlanner:public MAPFPlanner{
 public:
     pyMAPFPlanner();
     ~pyMAPFPlanner(){
-        delete py_env;
+        // delete py_env;
     }
 
 
