@@ -37,17 +37,18 @@ pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
 
 
 void pyMAPFPlanner::initialize(int preprocess_time_limit){
+    pybind11::gil_scoped_release release;
+    pybind11::gil_scoped_acquire acquire;
     std::cout<<"pyMAPFPlanner begin to initialize"<<std::endl;
     py_planner.attr("initialize")(preprocess_time_limit);
-
-
 
     // env=py_planner.attr("env").cast<SharedEnvironment*>();
 }
 
 
 void pyMAPFPlanner::plan(int time_limit,std::vector<Action> &plan){
-    // pybind11::gil_scoped_acquire acquire;
+    pybind11::gil_scoped_release release;
+    pybind11::gil_scoped_acquire acquire;
     // std::cout<<"calling python planner"<<std::endl;
 
     auto action_object=py_planner.attr("plan")(time_limit);
@@ -67,6 +68,7 @@ void pyMAPFPlanner::plan(int time_limit,std::vector<Action> &plan){
         // assert(actions.empty()==false);
         // return actions;
     }
+    // pybind11::gil_scoped_release release;
  
 }
 

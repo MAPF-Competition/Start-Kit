@@ -12,7 +12,7 @@ class pyMAPFPlanner:
         if pyenv is not None:
             self.env = pyenv.env
 
-        print("pyMAPFPlanner initialized!  python debug")
+        print("pyMAPFPlanner created!  python debug")
 
     def initialize(self, preprocess_time_limit: int):
         """_summary_
