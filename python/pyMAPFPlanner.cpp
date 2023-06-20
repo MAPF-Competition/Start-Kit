@@ -16,8 +16,8 @@ pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
         nlohmann::json configData;
         try{
             configFile>>configData;
-            if(configData.contains("path")){
-                std::string python_path=configData["path"];
+            if(configData.contains("python_path")){
+                std::string python_path=configData["python_path"];
                 std::cout<<"addinng "<<python_path<<" to system path"<<std::endl;
                 sys.attr("path").attr("append")(python_path);
             }
