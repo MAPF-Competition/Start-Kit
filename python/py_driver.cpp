@@ -9,7 +9,7 @@
 #include "nlohmann/json.hpp"
 #include <signal.h>
 #include "Evaluation.h"
-#include <cuda_runtime_api.h>  // Add this header for CUDA initialization
+#include <cuda_runtime_api.h>  // Add this header for CUDA initialization, comment this if cuda is not used
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
@@ -111,6 +111,9 @@ void python_driver(int argc, char **argv)
     if (task_assignment_strategy=="greedy"){
         system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
     } else if (task_assignment_strategy=="roundrobin"){
+        system_ptr = new InfAssignSystem(grid, planner, agents, tasks, model);
+    }
+    else if (task_assignment_strategy=="roundrobin_fixed"){
         std::vector<vector<int>> assigned_tasks(agents.size());
         for(int i = 0; i < tasks.size(); i++){
             assigned_tasks[i%agents.size()].push_back(tasks[i]);
