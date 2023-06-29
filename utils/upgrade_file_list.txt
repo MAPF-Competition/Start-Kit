@@ -2,7 +2,7 @@ inc/ActionModel.h
 inc/Grid.h
 inc/SharedEnv.h
 inc/Validator.h
-inc/CompetitionSystem.h 
+inc/CompetitionSystem.h
 inc/Logger.h
 inc/States.h
 inc/common.h
