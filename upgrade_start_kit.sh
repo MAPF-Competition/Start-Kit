@@ -16,4 +16,3 @@ echo restore files: $files
 git restore --staged --worktree --source=upstream/main $files
 
 git commit -m "updated to latest startkit"
-git push origin
