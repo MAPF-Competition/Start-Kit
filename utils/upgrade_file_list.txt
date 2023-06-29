@@ -24,7 +24,7 @@ python/pyMAPFPlanner.cpp
 python/pyEnvironment.hpp
 python/pyMAPFPlanner.hpp
 python/py_driver.cpp
-Input Output Format.md
-Submission Instruction.md
-Prepare Your Planner.md
+Input_Output_Format.md
+Submission_Instruction.md
+Prepare_Your_Planner.md
 version.txt
