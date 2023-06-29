@@ -69,8 +69,11 @@ protected:
     vector<list<std::tuple<int,int,std::string>>> events;
     list<Task> all_tasks;
 
+    //for evaluation
     vector<int> solution_costs;
     int num_of_task_finish = 0;
+    list<double> planner_times; 
+
 
 	void initialize();
     bool planner_initialize();

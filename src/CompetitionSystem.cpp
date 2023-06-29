@@ -164,7 +164,12 @@ void BaseSystem::simulate(int simulation_time){
         // vector<Action> actions = planner->plan(plan_time_limit);
         // vector<Action> actions;
         // planner->plan(plan_time_limit,actions);
+
+        auto start = std::chrono::steady_clock::now();
+
         vector<Action> actions = plan();
+
+        auto end = std::chrono::steady_clock::now();
 
         timestep += 1;
         for (int a = 0; a < num_of_agents; a++)
@@ -175,6 +180,15 @@ void BaseSystem::simulate(int simulation_time){
 
         // move drives
         list<Task> new_finished_tasks = move(actions);
+        if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA) //add planning time to last record
+        {
+            planner_times.back()+=plan_time_limit;
+        }
+        else
+        {
+            auto diff = end-start;
+            planner_times.push_back(std::chrono::duration<double>(diff).count());
+        }
         cout << new_finished_tasks.size() << " tasks has been finished in this timestep" << std::endl;
 
         // update tasks
@@ -401,6 +415,13 @@ void BaseSystem::saveResults(const string &fileName) const
             ppaths.push_back(path);
         }
     js["plannerPaths"] = ppaths;
+
+    json planning_times = json::array();
+    for (double time: planner_times)
+    {
+        planning_times.push_back(time);
+    }
+    js["plannerTimes"] = planning_times;
 
     //errors
     json errors = json::array();
