@@ -29,7 +29,7 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 
 IF(PYTHON)
     message(STATUS "Python support is enabled")
-    find_package(Python3 3.7 EXACT REQUIRED COMPONENTS Interpreter Development)
+    find_package(Python3 3.7 REQUIRED COMPONENTS Interpreter Development)
     find_package(PythonInterp 3.7  REQUIRED)
     find_package(pybind11 REQUIRED)
     set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
