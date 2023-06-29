@@ -149,14 +149,6 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
     open_list.push(s);
     all_nodes[make_pair(start*4 + start_direct,0)] = s;
 
-    // cout<<"reservations "<<reservation.size()<<endl;
-    // for (auto r: reservation)
-    // {
-    //     int a,b,c;
-    //     std::tie(a,b,c) = r;
-    //     cout<<"( "<<a<<", "<<b<<", "<<c<<") ";
-    // }
-
     while (!open_list.empty()) {
         AstarNode* curr = open_list.top();
         open_list.pop();
@@ -309,12 +301,5 @@ list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
         new_direction = 0;
     neighbors.emplace_back(make_pair(location,new_direction));
     neighbors.emplace_back(make_pair(location,direction)); //wait
-    //turn 180
-    //seems like we do not allow turn 180 anymore
-    // if (direction == 0 || direction == 1)
-    //     new_direction = direction + 2;
-    // else
-    //     new_direction = direction - 2;
-    // neighbors.emplace_back(make_pair(location,new_direction));
     return neighbors;
 }

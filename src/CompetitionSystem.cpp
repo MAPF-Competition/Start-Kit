@@ -545,3 +545,21 @@ void TaskAssignSystem::update_tasks(){
             }
     }
 }
+
+void InfAssignSystem::update_tasks(){
+    for (int k = 0; k < num_of_agents; k++) {
+        while (assigned_tasks[k].size() < num_tasks_reveal ) {
+            int i = task_counter[k] * num_of_agents + k;
+            int loc = tasks[i%tasks_size];
+            Task task(task_id,loc,timestep,k);
+            assigned_tasks[k].push_back(task);
+            events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+            log_event_assigned(k, task.task_id, timestep);
+
+            task_id++;
+            task_counter[k]++;
+
+        }
+    }
+}
+
