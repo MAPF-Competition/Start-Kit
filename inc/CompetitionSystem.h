@@ -73,6 +73,7 @@ protected:
     vector<int> solution_costs;
     int num_of_task_finish = 0;
     list<double> planner_times; 
+    bool fast_mover_feasible = true;
 
 
 	void initialize();
