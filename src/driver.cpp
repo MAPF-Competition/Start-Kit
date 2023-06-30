@@ -61,14 +61,15 @@ int main(int argc, char** argv) {
     if (vm.count("logFile"))
         logger->set_logfile(vm["logFile"].as<std::string>());
 
-
+    DummyPlanner dummy(vm["output"].as<std::string>());
+    MAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
         logger->log_info("running the evaluation mode");
-        planner = new DummyPlanner(vm["output"].as<std::string>());
+        planner = &dummy;
     }else{
-        planner = new MAPFPlanner();
+        planner = &competition;
     }
 
     auto input_json_file = vm["inputFile"].as<std::string>();
@@ -133,7 +134,6 @@ int main(int argc, char** argv) {
 
     delete model;
     delete planner->env;
-    delete planner;
     delete system_ptr;
     return 0;
 }
