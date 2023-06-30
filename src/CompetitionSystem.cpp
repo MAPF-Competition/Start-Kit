@@ -16,6 +16,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
     for (int k = 0; k < num_of_agents; k++) {
         //log->log_plan(false,k);
         if (k >= actions.size()){
+            fast_mover_feasible = false;
             planner_movements[k].push_back(Action::NA);
         } else {
             planner_movements[k].push_back(actions[k]);
@@ -24,6 +25,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
 
     list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
     if (!valid_moves(curr_states, actions)){
+        fast_mover_feasible = false;
         actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
@@ -295,6 +297,9 @@ void BaseSystem::saveResults(const string &fileName) const
     //action model
     js["actionModel"] = "MAPF_T";
 
+    std::string feasible = fast_mover_feasible ? "Yes" : "No";
+    js["AllValid"] = feasible;
+
     js["teamSize"] = num_of_agents;
 
     //start locations[x,y,orientation]
@@ -326,16 +331,16 @@ void BaseSystem::saveResults(const string &fileName) const
     int sum_of_cost = 0;
     int makespan = 0;
     if (num_of_agents > 0)
-        {
-            sum_of_cost = solution_costs[0];
-            makespan = solution_costs[0];
-            for (int a = 1; a < num_of_agents; a++)
-                {
-                    sum_of_cost += solution_costs[a];
-                    if (solution_costs[a] > makespan)
-                        makespan = solution_costs[a];
-                }
-        }
+    {
+        sum_of_cost = solution_costs[0];
+        makespan = solution_costs[0];
+        for (int a = 1; a < num_of_agents; a++)
+            {
+                sum_of_cost += solution_costs[a];
+                if (solution_costs[a] > makespan)
+                    makespan = solution_costs[a];
+            }
+    }
     js["sumOfCost"] = sum_of_cost;
     js["makespan"] = makespan;
   
