@@ -14,7 +14,7 @@ make
 Runing startkit using
 command: 
 ```
-./lifelong --inputFolder the_input_folder_location --inputFile the_input_file_name -o output_file_location
+./lifelong --inputFile the_input_file_name -o output_file_location
 ```
 more info on help
 
@@ -54,6 +54,6 @@ To use the python interface, one can use the following to compile the program th
 ```shell
 cmake . -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
 make
-./lifelong --inputFolder the_input_folder_location --inputFile the_input_file_name -o output_file_location
+./lifelong --inputFile the_input_file_name -o output_file_location
 ```
 
