@@ -61,12 +61,13 @@ int main(int argc, char** argv) {
     if (vm.count("logFile"))
         logger->set_logfile(vm["logFile"].as<std::string>());
 
-    DummyPlanner dummy(vm["output"].as<std::string>());
+    DummyPlanner dummy;
     MAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
         logger->log_info("running the evaluation mode");
+        dummy.load_plans(vm["output"].as<std::string>());
         planner = &dummy;
     }else{
         planner = &competition;
