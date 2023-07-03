@@ -70,13 +70,16 @@ void python_driver(int argc, char **argv)
         logger->set_logfile(vm["logFile"].as<std::string>());
 
 
+    DummyPlanner dummy;
+    MAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
         logger->log_info("running the evaluation mode");
-        planner = new DummyPlanner(vm["output"].as<std::string>());
+        dummy.load_plans(vm["output"].as<std::string>());
+        planner = &dummy;
     }else{
-        planner = new pyMAPFPlanner();
+        planner = &competition;
     }
 
     auto input_json_file = vm["inputFile"].as<std::string>();
@@ -141,7 +144,7 @@ void python_driver(int argc, char **argv)
 
     delete model;
     delete planner->env;
-    delete planner;
+    // delete planner;
     delete system_ptr;
     // std::cout<<"?????"<<std::endl;
     // return 0;
