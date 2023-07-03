@@ -50,7 +50,7 @@ Grid::Grid(string fname){
         getline(myfile, line);
         for (int j = 0; j < cols; j++) {
             int id = cols * i + j;
-            if (line[j] == '.') // free space
+            if (line[j] != '@') // free space
                 map[id] = 0;
             else   // obstacle
                 map[id] = 1;
