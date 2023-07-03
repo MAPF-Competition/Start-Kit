@@ -32,7 +32,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 // return next states for all agents
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
-    bool pp = true;
+    bool pp = false;
     actions = std::vector<Action>(env->curr_states.size(), Action::W);
     if (pp)
     {
@@ -141,7 +141,6 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
 
 
 list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end, unordered_set<tuple<int,int,int>> reservation) {
-    cout << start<<" "<<start_direct << " " << end << endl;
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<pair<int,int>,AstarNode*> all_nodes; //loc+dict,t
