@@ -551,6 +551,7 @@ void FixedAssignSystem::update_tasks(){
             task_queue[k].pop_front();
             assigned_tasks[k].push_back(task);
             events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+            all_tasks.push_back(task);
             log_event_assigned(k, task.task_id, timestep);
         }
     }
@@ -570,6 +571,7 @@ void TaskAssignSystem::update_tasks(){
                 task_queue.pop_front();
                 assigned_tasks[k].push_back(task);
                 events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+                all_tasks.push_back(task);
                 log_event_assigned(k, task.task_id, timestep);
             }
     }
@@ -584,7 +586,7 @@ void InfAssignSystem::update_tasks(){
             assigned_tasks[k].push_back(task);
             events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
             log_event_assigned(k, task.task_id, timestep);
-
+            all_tasks.push_back(task);
             task_id++;
             task_counter[k]++;
 
