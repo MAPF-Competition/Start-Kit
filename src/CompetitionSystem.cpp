@@ -150,12 +150,6 @@ void BaseSystem::simulate(int simulation_time){
     initialize();
     int num_of_tasks = 0;
 
-    auto planner_initialize_success= planner_initialize();
-    
-    log_preprocessing(planner_initialize_success);
-    if (!planner_initialize_success){
-        return;
-    }
     for (; timestep < simulation_time; ) {
 
         cout << "----------------------------" << std::endl;
@@ -246,6 +240,15 @@ void BaseSystem::initialize() {
     timestep = 0;
     curr_states = starts;
     assigned_tasks.resize(num_of_agents);
+
+    //planner initilise before knowing the first goals
+    auto planner_initialize_success= planner_initialize();
+    
+    log_preprocessing(planner_initialize_success);
+    if (!planner_initialize_success){
+        return;
+    }
+
     // initialize_goal_locations();
     update_tasks();
 
