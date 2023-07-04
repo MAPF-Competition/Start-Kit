@@ -1,7 +1,7 @@
 project(lifelong)
 
 cmake_minimum_required(VERSION 3.16)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 # Set the default value of PYTHON to false
 option(PYTHON "Enable Python" OFF)
@@ -9,8 +9,6 @@ option(PYTHON "Enable Python" OFF)
 
 # Print the value of PYTHON
 message(STATUS "PYTHON: ${PYTHON}")
-
-
 
 IF(NOT CMAKE_BUILD_TYPE)
     # SET(CMAKE_BUILD_TYPE "DEBUG")
@@ -31,8 +29,10 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 
 IF(PYTHON)
     message(STATUS "Python support is enabled")
+    # find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter Development)
+    # find_package(PythonInterp 3.6 REQUIRED)
     find_package(Python3 3.6 EXACT REQUIRED COMPONENTS Interpreter Development)
-    find_package(PythonInterp 3.6  REQUIRED)
+    find_package(PythonInterp 3.6 EXACT  REQUIRED)
     find_package(pybind11 REQUIRED)
     set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
@@ -40,20 +40,13 @@ IF(PYTHON)
     pybind11_add_module(MAPF "./src/Grid.cpp"   "./src/States.cpp" "./python/MAPFbinding.cpp")
     target_link_libraries(MAPF PRIVATE ) 
 
-    set(PY_SOURCES "./src/Grid.cpp"  
-    "./src/States.cpp" 
-    "./src/common.cpp"
-    "./src/Validator.cpp"
-    "./src/ActionModel.cpp"
-    "./src/CompetitionSystem.cpp" 
-    "./src/MAPFPlanner.cpp"
-    "./src/Logger.cpp"
-    "./python/pyMAPFPlanner.cpp" 
-    "./python/py_driver.cpp"
-    "./src/Evaluation.cpp")
+    file(GLOB SOURCES "src/*.cpp")
+    list(FILTER SOURCES EXCLUDE REGEX ".*src/driver\.cpp")
 
+    file(GLOB PY_SOURCES "python/*.cpp")
+    list(FILTER PY_SOURCES EXCLUDE REGEX ".*python/MAPFbinding\.cpp")
 
-    add_executable(lifelong  ${PY_SOURCES})
+    add_executable(lifelong  ${PY_SOURCES} ${SOURCES})
     target_link_libraries(lifelong PRIVATE pybind11::embed ${Boost_LIBRARIES})
 
 ELSE()
@@ -61,22 +54,9 @@ ELSE()
     
     file(GLOB SOURCES "src/*.cpp")
 
-
-
-
     add_executable(lifelong ${SOURCES} )
     target_link_libraries(lifelong ${Boost_LIBRARIES})
 ENDIF()
-
-
-
-
-# IF(USE_PYBIND)
-    # replace 3.6 to the python version you use
-
-
-
-
 
 
 add_custom_target(clean_all
@@ -94,10 +74,5 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
      ${CMAKE_BINARY_DIR}/*.so"
 )
 
-# ENDIF()
 
-
-
-
-# Python Binding
 

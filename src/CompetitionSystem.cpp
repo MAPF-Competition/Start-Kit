@@ -16,6 +16,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
     for (int k = 0; k < num_of_agents; k++) {
         //log->log_plan(false,k);
         if (k >= actions.size()){
+            fast_mover_feasible = false;
             planner_movements[k].push_back(Action::NA);
         } else {
             planner_movements[k].push_back(actions[k]);
@@ -24,6 +25,7 @@ list<Task> BaseSystem::move(vector<Action>& actions){
 
     list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
     if (!valid_moves(curr_states, actions)){
+        fast_mover_feasible = false;
         actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
@@ -149,12 +151,6 @@ void BaseSystem::simulate(int simulation_time){
     initialize();
     int num_of_tasks = 0;
 
-    auto planner_initialize_success= planner_initialize();
-    
-    log_preprocessing(planner_initialize_success);
-    if (!planner_initialize_success){
-        return;
-    }
     for (; timestep < simulation_time; ) {
 
         cout << "----------------------------" << std::endl;
@@ -165,7 +161,12 @@ void BaseSystem::simulate(int simulation_time){
         // vector<Action> actions = planner->plan(plan_time_limit);
         // vector<Action> actions;
         // planner->plan(plan_time_limit,actions);
+
+        auto start = std::chrono::steady_clock::now();
+
         vector<Action> actions = plan();
+
+        auto end = std::chrono::steady_clock::now();
 
         timestep += 1;
         for (int a = 0; a < num_of_agents; a++)
@@ -176,6 +177,15 @@ void BaseSystem::simulate(int simulation_time){
 
         // move drives
         list<Task> new_finished_tasks = move(actions);
+        if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA) //add planning time to last record
+        {
+            planner_times.back()+=plan_time_limit;
+        }
+        else
+        {
+            auto diff = end-start;
+            planner_times.push_back(std::chrono::duration<double>(diff).count());
+        }
         cout << new_finished_tasks.size() << " tasks has been finished in this timestep" << std::endl;
 
         // update tasks
@@ -231,6 +241,15 @@ void BaseSystem::initialize() {
     timestep = 0;
     curr_states = starts;
     assigned_tasks.resize(num_of_agents);
+
+    //planner initilise before knowing the first goals
+    auto planner_initialize_success= planner_initialize();
+    
+    log_preprocessing(planner_initialize_success);
+    if (!planner_initialize_success){
+        return;
+    }
+
     // initialize_goal_locations();
     update_tasks();
 
@@ -282,6 +301,9 @@ void BaseSystem::saveResults(const string &fileName) const
     //action model
     js["actionModel"] = "MAPF_T";
 
+    std::string feasible = fast_mover_feasible ? "Yes" : "No";
+    js["AllValid"] = feasible;
+
     js["teamSize"] = num_of_agents;
 
     //start locations[x,y,orientation]
@@ -313,16 +335,16 @@ void BaseSystem::saveResults(const string &fileName) const
     int sum_of_cost = 0;
     int makespan = 0;
     if (num_of_agents > 0)
-        {
-            sum_of_cost = solution_costs[0];
-            makespan = solution_costs[0];
-            for (int a = 1; a < num_of_agents; a++)
-                {
-                    sum_of_cost += solution_costs[a];
-                    if (solution_costs[a] > makespan)
-                        makespan = solution_costs[a];
-                }
-        }
+    {
+        sum_of_cost = solution_costs[0];
+        makespan = solution_costs[0];
+        for (int a = 1; a < num_of_agents; a++)
+            {
+                sum_of_cost += solution_costs[a];
+                if (solution_costs[a] > makespan)
+                    makespan = solution_costs[a];
+            }
+    }
     js["sumOfCost"] = sum_of_cost;
     js["makespan"] = makespan;
   
@@ -402,6 +424,13 @@ void BaseSystem::saveResults(const string &fileName) const
             ppaths.push_back(path);
         }
     js["plannerPaths"] = ppaths;
+
+    json planning_times = json::array();
+    for (double time: planner_times)
+    {
+        planning_times.push_back(time);
+    }
+    js["plannerTimes"] = planning_times;
 
     //errors
     json errors = json::array();
@@ -523,6 +552,7 @@ void FixedAssignSystem::update_tasks(){
             task_queue[k].pop_front();
             assigned_tasks[k].push_back(task);
             events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+            all_tasks.push_back(task);
             log_event_assigned(k, task.task_id, timestep);
         }
     }
@@ -542,7 +572,26 @@ void TaskAssignSystem::update_tasks(){
                 task_queue.pop_front();
                 assigned_tasks[k].push_back(task);
                 events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+                all_tasks.push_back(task);
                 log_event_assigned(k, task.task_id, timestep);
             }
     }
 }
+
+void InfAssignSystem::update_tasks(){
+    for (int k = 0; k < num_of_agents; k++) {
+        while (assigned_tasks[k].size() < num_tasks_reveal ) {
+            int i = task_counter[k] * num_of_agents + k;
+            int loc = tasks[i%tasks_size];
+            Task task(task_id,loc,timestep,k);
+            assigned_tasks[k].push_back(task);
+            events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+            log_event_assigned(k, task.task_id, timestep);
+            all_tasks.push_back(task);
+            task_id++;
+            task_counter[k]++;
+
+        }
+    }
+}
+

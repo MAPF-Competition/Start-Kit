@@ -9,7 +9,7 @@
 #include "nlohmann/json.hpp"
 #include <signal.h>
 #include "Evaluation.h"
-#include <cuda_runtime_api.h>  // Add this header for CUDA initialization
+// #include <cuda_runtime_api.h>  // Add this header for CUDA initialization, comment this if cuda is not used
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
@@ -30,7 +30,7 @@ void sigint_handler(int a)
 void python_driver(int argc, char **argv)
 {
     // cudaFree(0);
-    // pybind11::scoped_interpreter guard{};
+
     pybind11::initialize_interpreter();
 
     po::options_description desc("Allowed options");
@@ -70,13 +70,16 @@ void python_driver(int argc, char **argv)
         logger->set_logfile(vm["logFile"].as<std::string>());
 
 
+    DummyPlanner dummy;
+    pyMAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
         logger->log_info("running the evaluation mode");
-        planner = new DummyPlanner(vm["output"].as<std::string>());
+        dummy.load_plans(vm["output"].as<std::string>());
+        planner = &dummy;
     }else{
-        planner = new pyMAPFPlanner();
+        planner = &competition;
     }
 
     auto input_json_file = vm["inputFile"].as<std::string>();
@@ -111,6 +114,9 @@ void python_driver(int argc, char **argv)
     if (task_assignment_strategy=="greedy"){
         system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
     } else if (task_assignment_strategy=="roundrobin"){
+        system_ptr = new InfAssignSystem(grid, planner, agents, tasks, model);
+    }
+    else if (task_assignment_strategy=="roundrobin_fixed"){
         std::vector<vector<int>> assigned_tasks(agents.size());
         for(int i = 0; i < tasks.size(); i++){
             assigned_tasks[i%agents.size()].push_back(tasks[i]);
@@ -138,7 +144,7 @@ void python_driver(int argc, char **argv)
 
     delete model;
     delete planner->env;
-    delete planner;
+    // delete planner;
     delete system_ptr;
     // std::cout<<"?????"<<std::endl;
     // return 0;

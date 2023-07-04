@@ -61,14 +61,16 @@ int main(int argc, char** argv) {
     if (vm.count("logFile"))
         logger->set_logfile(vm["logFile"].as<std::string>());
 
-
+    DummyPlanner dummy;
+    MAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){
         logger->log_info("running the evaluation mode");
-        planner = new DummyPlanner(vm["output"].as<std::string>());
+        dummy.load_plans(vm["output"].as<std::string>());
+        planner = &dummy;
     }else{
-        planner = new MAPFPlanner();
+        planner = &competition;
     }
 
     auto input_json_file = vm["inputFile"].as<std::string>();
@@ -103,6 +105,9 @@ int main(int argc, char** argv) {
     if (task_assignment_strategy=="greedy"){
         system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
     } else if (task_assignment_strategy=="roundrobin"){
+        system_ptr = new InfAssignSystem(grid, planner, agents, tasks, model);
+    }
+    else if (task_assignment_strategy=="roundrobin_fixed"){
         std::vector<vector<int>> assigned_tasks(agents.size());
         for(int i = 0; i < tasks.size(); i++){
             assigned_tasks[i%agents.size()].push_back(tasks[i]);
@@ -130,7 +135,6 @@ int main(int argc, char** argv) {
 
     delete model;
     delete planner->env;
-    delete planner;
     delete system_ptr;
     return 0;
 }

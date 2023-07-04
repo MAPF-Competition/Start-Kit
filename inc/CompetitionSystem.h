@@ -69,8 +69,12 @@ protected:
     vector<list<std::tuple<int,int,std::string>>> events;
     list<Task> all_tasks;
 
+    //for evaluation
     vector<int> solution_costs;
     int num_of_task_finish = 0;
+    list<double> planner_times; 
+    bool fast_mover_feasible = true;
+
 
 	void initialize();
     bool planner_initialize();
@@ -158,6 +162,37 @@ public:
 
 private:
     deque<Task> task_queue;
+
+	void update_tasks();
+
+};
+
+
+class InfAssignSystem : public BaseSystem
+{
+public:
+	InfAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
+        tasks(tasks), BaseSystem(grid, planner, model)
+    {
+
+        num_of_agents = start_locs.size();
+        starts.resize(num_of_agents);
+        task_counter.resize(num_of_agents,0);
+        tasks_size = tasks.size();
+
+        for (size_t i = 0; i < start_locs.size(); i++){
+            starts[i] = State(start_locs[i], 0, 0);
+        }
+    };
+
+
+	~InfAssignSystem(){};
+
+private:
+    std::vector<int>& tasks;
+    std::vector<int> task_counter;
+    int tasks_size;
+    int task_id = 0;
 
 	void update_tasks();
 
