@@ -1,4 +1,5 @@
 #include <MAPFPlanner.h>
+#include <random>
 
 
 struct AstarNode {
@@ -32,8 +33,12 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 // return next states for all agents
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
-    bool pp = false;
+    bool pp = true;
     actions = std::vector<Action>(env->curr_states.size(), Action::W);
+    vector<int> orders;
+    orders.resize(env->num_of_agents);
+    int max_constraint_time = 0;
+
     if (pp)
     {
         unordered_set<tuple<int,int,int>> reservation; //loc1,loc2,t
@@ -47,9 +52,13 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
                 path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
                 reservation.emplace(make_tuple(env->curr_states[i].location,-1,1));
             } 
+            orders[i] = i;
         }
-        for (int i = 0; i < env->num_of_agents; i++) 
+        auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::shuffle(orders.begin(),orders.end(),std::default_random_engine(seed));
+        for (int agent = 0; agent < env->num_of_agents; agent++) 
         {
+            int i = orders[agent];
             cout << "start plan for agent " << i;
             list<pair<int,int>> path;
             if (!env->goal_locations[i].empty())
@@ -58,7 +67,7 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
                 path = single_agent_plan(env->curr_states[i].location,
                                         env->curr_states[i].orientation,
                                         env->goal_locations[i].front().first,
-                                        reservation);
+                                        reservation,max_constraint_time);
             }
             if (!path.empty())
             {
@@ -85,6 +94,8 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
                 for (auto p: path)
                 {
                     reservation.emplace(make_tuple(p.first,-1,t));
+                    if (t > max_constraint_time)
+                        max_constraint_time = t;
                     if (last_loc!=-1)
                         reservation.emplace(make_tuple(last_loc,p.first,t));
                     last_loc = p.first;
@@ -140,7 +151,7 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
 }
 
 
-list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end, unordered_set<tuple<int,int,int>> reservation) {
+list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end, unordered_set<tuple<int,int,int>> reservation, int max_constraint_time) {
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<pair<int,int>,AstarNode*> all_nodes; //loc+dict,t
@@ -164,20 +175,23 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
         list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
         for (const pair<int,int>& neighbor: neighbors) 
         {
-            if (reservation.find(make_tuple(neighbor.first,-1,curr->t+1)) != reservation.end())
+            int next_t = curr->t+1;
+            if (next_t > max_constraint_time)
+                next_t--;
+            if (reservation.find(make_tuple(neighbor.first,-1,next_t)) != reservation.end())
             {
                 continue;
                 cout<<"reserved"<<endl;
             }
                 
-            if (reservation.find(make_tuple(neighbor.first,curr->location,curr->t+1)) != reservation.end())
+            if (reservation.find(make_tuple(neighbor.first,curr->location,next_t)) != reservation.end())
             {
                 continue;
                 cout<<"reserved"<<endl;
             }
-            if (all_nodes.find(make_pair(neighbor.first*4 + neighbor.second,curr->t+1)) != all_nodes.end()) 
+            if (all_nodes.find(make_pair(neighbor.first*4 + neighbor.second,next_t)) != all_nodes.end()) 
             {
-                AstarNode* old = all_nodes[make_pair(neighbor.first*4 + neighbor.second,curr->t+1)];
+                AstarNode* old = all_nodes[make_pair(neighbor.first*4 + neighbor.second,next_t)];
                 if (old->closed)
                     continue;
                 if (curr->g + 1 < old->g) 
@@ -190,7 +204,7 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
             else 
             {
                 AstarNode* next_node = new AstarNode(neighbor.first, neighbor.second,
-                    curr->g+1,getManhattanDistance(neighbor.first,end), curr->t+1, curr);
+                    curr->g+1,getManhattanDistance(neighbor.first,end), next_t, curr);
                 open_list.push(next_node);
                 all_nodes[make_pair(neighbor.first*4+neighbor.second,next_node->t)] = next_node;
             }

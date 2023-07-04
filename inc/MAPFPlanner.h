@@ -19,7 +19,7 @@ public:
     virtual void plan(int time_limit, std::vector<Action> & plan);
 
     // Start kit dummy implementation
-    std::list<pair<int,int>>single_agent_plan(int start,int start_direct, int end,unordered_set<tuple<int,int,int>> reservation);
+    std::list<pair<int,int>>single_agent_plan(int start,int start_direct, int end,unordered_set<tuple<int,int,int>> reservation, int time);
     std::list<pair<int,int>>single_agent_plan(int start,int start_direct, int end);
     int getManhattanDistance(int loc1, int loc2);
     std::list<pair<int,int>> getNeighbors(int location, int direction);
