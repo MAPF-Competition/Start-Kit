@@ -14,4 +14,4 @@ make -j
 # cd build
 # cmake ../ -DPYTHON=true
 # make -j
-# cp *so ../*.so  #make sue the library is in the working directory
+# cp ./*.so ../  #make sue the library is in the working directory
