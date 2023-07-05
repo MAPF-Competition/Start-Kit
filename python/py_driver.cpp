@@ -9,7 +9,7 @@
 #include "nlohmann/json.hpp"
 #include <signal.h>
 #include "Evaluation.h"
-#include <cuda_runtime_api.h>  // Add this header for CUDA initialization, comment this if cuda is not used
+// #include <cuda_runtime_api.h>  // Add this header for CUDA initialization, comment this if cuda is not used
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
@@ -30,7 +30,7 @@ void sigint_handler(int a)
 void python_driver(int argc, char **argv)
 {
     // cudaFree(0);
-    // pybind11::scoped_interpreter guard{};
+
     pybind11::initialize_interpreter();
 
     po::options_description desc("Allowed options");
@@ -71,7 +71,7 @@ void python_driver(int argc, char **argv)
 
 
     DummyPlanner dummy;
-    MAPFPlanner competition;
+    pyMAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
 
     if (vm["evaluationMode"].as<bool>()){

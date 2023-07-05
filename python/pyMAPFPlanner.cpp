@@ -49,7 +49,7 @@ void pyMAPFPlanner::initialize(int preprocess_time_limit){
 void pyMAPFPlanner::plan(int time_limit,std::vector<Action> &plan){
     pybind11::gil_scoped_release release;
     pybind11::gil_scoped_acquire acquire;
-    // std::cout<<"calling python planner"<<std::endl;
+    std::cout<<"calling python planner"<<std::endl;
 
     auto action_object=py_planner.attr("plan")(time_limit);
 
