@@ -181,6 +181,11 @@ public:
         tasks_size = tasks.size();
 
         for (size_t i = 0; i < start_locs.size(); i++){
+            if (grid.map[start_locs[i]] == 1)
+            {
+                cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
+                exit(0);
+            }
             starts[i] = State(start_locs[i], 0, 0);
         }
     };
