@@ -115,13 +115,14 @@ bool BaseSystem::planner_initialize(){
     using namespace std::placeholders;
     std::packaged_task<void(int)> init_task(std::bind(&MAPFPlanner::initialize, planner, _1));
     auto init_future = init_task.get_future();
-
+    
     auto init_td = std::thread(std::move(init_task), preprocess_time_limit);
     if (init_future.wait_for(std::chrono::seconds(preprocess_time_limit)) == std::future_status::ready){
         init_td.join();
         return true;
   
     }
+
     init_td.detach();
     return false;
 }

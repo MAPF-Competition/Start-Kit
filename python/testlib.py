@@ -16,7 +16,7 @@ def test_torch():
     # device = torch.device("cpu")
     # x = x.to(device)
     x=torch.tensor([1,2,3],device=device)
-    print(("completed"))
+    print("completed",x)
     # Define a model and move it to the appropriate device
     # model = MyModel()
     # model = model.to(device)

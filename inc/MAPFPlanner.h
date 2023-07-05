@@ -3,12 +3,14 @@
 #include "SharedEnv.h"
 #include "ActionModel.h"
 
+
 class MAPFPlanner
 {
 public:
 
     SharedEnvironment* env;
 
+	MAPFPlanner(SharedEnvironment* env): env(env){};
     MAPFPlanner(){env = new SharedEnvironment();};
 	virtual ~MAPFPlanner(){}
 
@@ -24,6 +26,8 @@ public:
     int getManhattanDistance(int loc1, int loc2);
     std::list<pair<int,int>> getNeighbors(int location, int direction);
     bool validateMove(int loc,int loc2);
+
+
 
 
 };
