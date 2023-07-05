@@ -33,138 +33,46 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 // return next states for all agents
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
-    bool pp = true;
     actions = std::vector<Action>(env->curr_states.size(), Action::W);
-    vector<int> orders;
-    orders.resize(env->num_of_agents);
-    int max_constraint_time = 0;
-
-    auto start = std::chrono::steady_clock::now();
-
-    if (pp)
+    for (int i = 0; i < env->num_of_agents; i++) 
     {
-        bool find_free_solution = false;
-        while(!find_free_solution)
+        //cout << "start plan for agent " << i;
+        list<pair<int,int>> path;
+        if (env->goal_locations[i].empty()) 
         {
-            unordered_set<tuple<int,int,int>> reservation; //loc1,loc2,t
-            for (int i = 0; i < env->num_of_agents; i++) 
-            {
-                //cout << "start plan for agent " << i;
-                list<pair<int,int>> path;
-                if (env->goal_locations[i].empty()) 
-                {
-                    //cout << ", which does not have any goal left." << endl;
-                    path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
-                    reservation.emplace(make_tuple(env->curr_states[i].location,-1,1));
-                } 
-                orders[i] = i;
-            }
-            auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-            std::shuffle(orders.begin(),orders.end(),std::default_random_engine(seed));
-            for (int agent = 0; agent < env->num_of_agents; agent++) 
-            {
-                int i = orders[agent];
-                //cout << "start plan for order " << agent<< " "<<i<<endl;
-                list<pair<int,int>> path;
-                if (!env->goal_locations[i].empty())
-                {
-                    //cout << " with start and goal: ";
-                    path = single_agent_plan(env->curr_states[i].location,
-                                            env->curr_states[i].orientation,
-                                            env->goal_locations[i].front().first,
-                                            reservation,max_constraint_time);
-                }
-                if (!path.empty())
-                {
-                    //cout<< "current location: " << path.front().first << " current direction: " << 
-                    //path.front().second << endl;
-                    if (path.front().first != env->curr_states[i].location)
-                    {
-                        actions[i] = Action::FW;
-                    } 
-                    else if (path.front().second!= env->curr_states[i].orientation)
-                    {
-                        int incr = path.front().second - env->curr_states[i].orientation;
-                        if (incr == 1 || incr == -3)
-                        {
-                            actions[i] = Action::CR;
-                        } 
-                        else if (incr == -1 || incr == 3)
-                        {
-                            actions[i] = Action::CCR;
-                        } 
-                    }
-                    int last_loc = env->curr_states[i].location;
-                    int t = 1;
-                    for (auto p: path)
-                    {
-                        reservation.emplace(make_tuple(p.first,-1,t));
-                        if (t > max_constraint_time)
-                            max_constraint_time = t;
-                        if (last_loc!=-1)
-                            reservation.emplace(make_tuple(last_loc,p.first,t));
-                        last_loc = p.first;
-                        t++;
-                    }
-                    find_free_solution = true;
-                }
-                else
-                {
-                    find_free_solution = false;
-                    break;
-                }
-            }
-            auto end = std::chrono::steady_clock::now();
-            auto diff = end-start;
-            if (std::chrono::duration<double>(diff).count()/2 > time_limit) //allow for runing more time than given time limit
-            {
-                return;
-            }
+            //cout << ", which does not have any goal left." << endl;
+            path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
+        } 
+        else 
+        {
+            //cout << " with start and goal: ";
+            path = single_agent_plan(env->curr_states[i].location,
+                                    env->curr_states[i].orientation,
+                                    env->goal_locations[i].front().first);
         }
-    }
-    else//single agent shorest path finding
-    {
-        for (int i = 0; i < env->num_of_agents; i++) 
+        //cout<< "current location: " << path.front().first << " current direction: " << 
+            //path.front().second << endl;
+        if (path.front().first != env->curr_states[i].location)
         {
-            //cout << "start plan for agent " << i;
-            list<pair<int,int>> path;
-            if (env->goal_locations[i].empty()) 
+            actions[i] = Action::FW;
+        } 
+        else if (path.front().second!= env->curr_states[i].orientation)
+        {
+            int incr = path.front().second - env->curr_states[i].orientation;
+            if (incr == 1 || incr == -3)
             {
-                //cout << ", which does not have any goal left." << endl;
-                path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
+                actions[i] = Action::CR;
             } 
-            else 
+            else if (incr == -1 || incr == 3)
             {
-                //cout << " with start and goal: ";
-                path = single_agent_plan(env->curr_states[i].location,
-                                        env->curr_states[i].orientation,
-                                        env->goal_locations[i].front().first);
-            }
-            //cout<< "current location: " << path.front().first << " current direction: " << 
-                //path.front().second << endl;
-            if (path.front().first != env->curr_states[i].location)
-            {
-                actions[i] = Action::FW;
+                actions[i] = Action::CCR;
             } 
-            else if (path.front().second!= env->curr_states[i].orientation)
-            {
-                int incr = path.front().second - env->curr_states[i].orientation;
-                if (incr == 1 || incr == -3)
-                {
-                    actions[i] = Action::CR;
-                } 
-                else if (incr == -1 || incr == 3)
-                {
-                    actions[i] = Action::CCR;
-                } 
-            }
+        }
 
-        }
     }
 
 
   return;
-  // env->curr_states;
 }
 
 
