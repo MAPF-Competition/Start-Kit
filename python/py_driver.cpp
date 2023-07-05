@@ -143,12 +143,8 @@ void python_driver(int argc, char **argv)
     }
 
     delete model;
-    delete planner->env;
-    // delete planner;
     delete system_ptr;
-    // std::cout<<"?????"<<std::endl;
-    // return 0;
-    // return 0;
+    delete logger;
 }
 
 void test()
