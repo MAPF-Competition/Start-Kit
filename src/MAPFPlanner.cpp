@@ -44,11 +44,11 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
         unordered_set<tuple<int,int,int>> reservation; //loc1,loc2,t
         for (int i = 0; i < env->num_of_agents; i++) 
         {
-            cout << "start plan for agent " << i;
+            //cout << "start plan for agent " << i;
             list<pair<int,int>> path;
             if (env->goal_locations[i].empty()) 
             {
-                cout << ", which does not have any goal left." << endl;
+                //cout << ", which does not have any goal left." << endl;
                 path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
                 reservation.emplace(make_tuple(env->curr_states[i].location,-1,1));
             } 
@@ -59,11 +59,11 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
         for (int agent = 0; agent < env->num_of_agents; agent++) 
         {
             int i = orders[agent];
-            cout << "start plan for agent " << i;
+            //cout << "start plan for order " << agent<< " "<<i<<endl;
             list<pair<int,int>> path;
             if (!env->goal_locations[i].empty())
             {
-                cout << " with start and goal: ";
+                //cout << " with start and goal: ";
                 path = single_agent_plan(env->curr_states[i].location,
                                         env->curr_states[i].orientation,
                                         env->goal_locations[i].front().first,
@@ -71,8 +71,8 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
             }
             if (!path.empty())
             {
-                cout<< "current location: " << path.front().first << " current direction: " << 
-                path.front().second << endl;
+                //cout<< "current location: " << path.front().first << " current direction: " << 
+                //path.front().second << endl;
                 if (path.front().first != env->curr_states[i].location)
                 {
                     actions[i] = Action::FW;
@@ -103,28 +103,27 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
                 }
             }
         }
-
     }
     else//single agent shorest path finding
     {
         for (int i = 0; i < env->num_of_agents; i++) 
         {
-            cout << "start plan for agent " << i;
+            //cout << "start plan for agent " << i;
             list<pair<int,int>> path;
             if (env->goal_locations[i].empty()) 
             {
-                cout << ", which does not have any goal left." << endl;
+                //cout << ", which does not have any goal left." << endl;
                 path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
             } 
             else 
             {
-                cout << " with start and goal: ";
+                //cout << " with start and goal: ";
                 path = single_agent_plan(env->curr_states[i].location,
                                         env->curr_states[i].orientation,
                                         env->goal_locations[i].front().first);
             }
-            cout<< "current location: " << path.front().first << " current direction: " << 
-                path.front().second << endl;
+            //cout<< "current location: " << path.front().first << " current direction: " << 
+                //path.front().second << endl;
             if (path.front().first != env->curr_states[i].location)
             {
                 actions[i] = Action::FW;
@@ -181,13 +180,13 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
             if (reservation.find(make_tuple(neighbor.first,-1,next_t)) != reservation.end())
             {
                 continue;
-                cout<<"reserved"<<endl;
+                //cout<<"reserved"<<endl;
             }
                 
             if (reservation.find(make_tuple(neighbor.first,curr->location,next_t)) != reservation.end())
             {
                 continue;
-                cout<<"reserved"<<endl;
+                //cout<<"reserved"<<endl;
             }
             if (all_nodes.find(make_pair(neighbor.first*4 + neighbor.second,next_t)) != all_nodes.end()) 
             {
@@ -210,15 +209,18 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
             }
         }
     }
-    for(auto v:path){
-        printf("(%d,%d), ",v.first,v.second);
+    //clear nodes
+    for (auto n: all_nodes)
+    {
+        delete n.second;
     }
-    std::cout<<std::endl;
+    all_nodes.clear();
+
     return path;
 }
 
 list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
-    cout << start<<" "<<start_direct << " " << end << endl;
+    //cout << start<<" "<<start_direct << " " << end << endl;
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<int,AstarNode*> all_nodes;
@@ -262,10 +264,10 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
             }
         }
     }
-    for(auto v:path){
-        printf("(%d,%d), ",v.first,v.second);
-    }
-    std::cout<<std::endl;
+    // for(auto v:path){
+    //     printf("(%d,%d), ",v.first,v.second);
+    // }
+    // std::cout<<std::endl;
     return path;
 }
 
