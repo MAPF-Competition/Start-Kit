@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     }
 
     delete model;
-    delete planner->env;
     delete system_ptr;
+    delete logger;
     return 0;
 }
