@@ -3,8 +3,7 @@
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
 // #include <thread>
-#include <pthread.h>
-#include <future>
+
 #include <functional>
 
 #include <Logger.h>
@@ -65,9 +64,7 @@ void BaseSystem::sync_shared_env(){
     env->curr_states = curr_states;
 }
 
-std::future<std::vector<Action>> future;
-std::thread task_td;
-bool started = false;
+
 
 vector<Action> BaseSystem::plan_wrapper(){
     std::cout<<"wrapper called"<<std::endl;
@@ -216,10 +213,6 @@ void BaseSystem::simulate(int simulation_time){
                 cout << std::endl << "All task finished!" << std::endl;
                 break;
             }
-    }
-
-    if (started){
-        task_td.detach();
     }
 
     cout << std::endl << "Done!" << std::endl;
