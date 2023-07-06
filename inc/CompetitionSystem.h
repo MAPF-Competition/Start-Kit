@@ -6,6 +6,8 @@
 #include "ActionModel.h"
 #include "MAPFPlanner.h"
 #include "Logger.h"
+#include <pthread.h>
+#include <future>
 
 class BaseSystem{
 public:
@@ -15,7 +17,16 @@ public:
         map(grid), planner(planner), env(planner->env), model(model)
     {}
 
-	virtual ~BaseSystem(){};
+	virtual ~BaseSystem(){
+
+        //safely exit: wait for join the thread then delete planner and exit
+        if (started){
+            task_td.join();
+        }
+        if (planner != nullptr){
+            delete planner;
+        }
+    };
 
 	void simulate(int simulation_time);
 
@@ -39,6 +50,10 @@ public:
 protected:
 
     Grid map;
+
+    std::future<std::vector<Action>> future;
+    std::thread task_td;
+    bool started = false;
 
     MAPFPlanner* planner;
     SharedEnvironment* env;

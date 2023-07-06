@@ -9,12 +9,14 @@
 #include "nlohmann/json.hpp"
 #include <signal.h>
 #include "Evaluation.h"
+#include <memory>
+
 // #include <cuda_runtime_api.h>  // Add this header for CUDA initialization, comment this if cuda is not used
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
 po::variables_map vm;
-BaseSystem *system_ptr = nullptr;
+std::unique_ptr<BaseSystem> system_ptr;
 
 void sigint_handler(int a)
 {
@@ -70,16 +72,13 @@ void python_driver(int argc, char **argv)
         logger->set_logfile(vm["logFile"].as<std::string>());
 
 
-    DummyPlanner dummy;
-    pyMAPFPlanner competition;
     MAPFPlanner* planner = nullptr;
-
+    //Planner is inited here, but will be managed and deleted by system_ptr deconstructor
     if (vm["evaluationMode"].as<bool>()){
         logger->log_info("running the evaluation mode");
-        dummy.load_plans(vm["output"].as<std::string>());
-        planner = &dummy;
+        planner = new DummyPlanner(vm["output"].as<std::string>());
     }else{
-        planner = &competition;
+        planner = new pyMAPFPlanner();
     }
 
     auto input_json_file = vm["inputFile"].as<std::string>();
@@ -112,16 +111,16 @@ void python_driver(int argc, char **argv)
 
     std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
     if (task_assignment_strategy=="greedy"){
-        system_ptr = new TaskAssignSystem(grid, planner, agents, tasks, model);
+        system_ptr = std::make_unique<TaskAssignSystem>(grid, planner, agents, tasks, model);
     } else if (task_assignment_strategy=="roundrobin"){
-        system_ptr = new InfAssignSystem(grid, planner, agents, tasks, model);
+        system_ptr = std::make_unique<InfAssignSystem>(grid, planner, agents, tasks, model);
     }
     else if (task_assignment_strategy=="roundrobin_fixed"){
         std::vector<vector<int>> assigned_tasks(agents.size());
         for(int i = 0; i < tasks.size(); i++){
             assigned_tasks[i%agents.size()].push_back(tasks[i]);
         }
-        system_ptr = new FixedAssignSystem(grid, planner, agents, assigned_tasks, model);
+        system_ptr = std::make_unique<FixedAssignSystem>(grid, planner, agents, assigned_tasks, model);
     } else{
         std::cerr << "unkown task assignment strategy " << data["taskAssignmentStrategy"].get<std::string>() << std::endl;
         logger->log_fatal("unkown task assignment strategy " + data["taskAssignmentStrategy"].get<std::string>());
@@ -143,7 +142,6 @@ void python_driver(int argc, char **argv)
     }
 
     delete model;
-    delete system_ptr;
     delete logger;
 }
 
