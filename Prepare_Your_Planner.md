@@ -1,16 +1,20 @@
 # Prepare Your Planner
 
 ## Start-kit Download
+- Follow the [Submission_Instruction.md] to create an account on the competition website.
 - Login with your Github account.
-- Download the start kit
+- Find the private repo we created for your account.
+- Clone the private repo, which contains a copy of Start-kit codes.
 
-## Start-kit Test
+## Compile and Run
 - Compile the start kit: 
 
   Run using command:
 ```shell
-  cmake . -DCMAKE_BUILD_TYPE=Release
-  make
+  mkdir build
+  cd  build
+  cmake ../ -DCMAKE_BUILD_TYPE=Release
+  make -j
 ```
 - Run the start kit:
   Once compiled, run using command:
@@ -43,35 +47,31 @@ The pybind11 module mainly contains three files:
 To use the python interface, one can use the following to compile the program that runs pyMAPFPlanner 
 
 ```shell
-cmake . -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
-make
-./lifelong --inputFolder the_input_folder_location --inputFile the_input_file_name -o output_file_location
+mkdir build
+cd buld
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
+make -j
+./lifelong --inputFile the_input_file_name -o output_file_location
 ```
 
+## Compile.sh
 
 ## Evaluation Test
-- Input description
-    - map_file: the map file location. We support the file format of the MAPF benchmarks.
-    - agent_file: the agent file location. The agent file format is first line agent number, then each line is the location of an agent at timestep 0.
-    - task_file: the task file location, task file format similar to agent_file.
-    - num_task_reveal: how many tasks we reveal to the plan at the initial goal assignment or after an agent finish its goal.
-    - task_assignment_strategy: how we assign the task to agents, roundrobin (fix assign using round robin strategy) or greedy (next agent gets the next task).
-
-- Output description
-    - Action Model: the action model of the current problem, MAPF_T by default.
-    - Starts: the start state for each agent, array of arraies, the outer array ordered by agent id, the inner array contains [location x, location y, orientation].
-    - Actual Paths: the actual path the system execute, array of strings ordered by agent id. For each action, F--forward, W--wait, C--counter clockwise rotate, R--clockwise rotate.
-    - Planner Paths: the path planner gives the system, array of strings ordered by agent id.
-    - Errors: errors from the planner path, array of arrays ordered by timestep, each item in the outer array is an error, the inner array contains [agent 1, agent 2, timestep, error msg].
-    - Events: events for each agent, the outer array ordered by agent id represents all the events for a certain agent, for each agent arrary, each event contains[task id, timestep, event msg].
-    - Task Pool, an array contains all tasks, each task contains [task id, task location x, task location y].
+- Input Output Description
+    - Refer to the [Input_Output_Format.md]
 - Local Test
-    - Once your planner implemented, run your code according to the instructions in Start-kit Test
+    - Test problems are provided under `example_problems` folder. Use any json input file there for testing.
+    - Once your planner is implemented, run your code according to the instructions in Compile and Run section
     - Results are in the output_file_location that you specify in the command line
-    - You can also test via visulisation tools, instructions can be found at (visulisar instruction link)
-- Test on server side
+
+## Visualisation
+We provide a visualisattion tool written in python: [https://github.com/MAPF-Competition/MAPF_analysis](https://github.com/MAPF-Competition/MAPF_analysis)
+
+It is able to visualise the output of start-kit program and help participants to debug the implementations.
+
+## Test in Docker
 
 ## Preprocessing and Large File Storage
-to be udpate once issue #7 and #8 closed
+
 ## How to Submit
-- Submit your file acocrding to the instruction on: (submission instruction link)
+- Refer to [Submission_Instruction.md](./Submission_Instruction.md)

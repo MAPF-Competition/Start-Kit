@@ -16,8 +16,6 @@ $ cd your_submission_repo
 
 ## Implement your algorithm
 
-Read the `Problem Definition.md` in the start-kit to check the problem definitions.
-
 Read the start-kit `README.md` and `Prepare Your Planner.md` to know what files you should (not) modify, and how you could implement your algorithm.
 
 When your implementation is ready to evaluate, add, commit, and push all your changes by running the following commands in your local repo:
