@@ -35,7 +35,8 @@
     - Don’t modify any start kit functions
     - Don’t modify / call / interfere with any start kit variables or objects
     - Don’t interfere with the running program -- stack manipulation etc
-- Specify your dependency packages in apt.txt. The packages must be available for installation through apt-get on Ubuntu 22.
+- Including dependencies in the submission repo,
+- or specify your dependency packages in apt.txt. The packages must be available for installation through apt-get on Ubuntu 22.
 - Modify compile.sh and make sure your code can be compiled by executing this script.
 
 We also provide a python interface for python users based on pybind11.
