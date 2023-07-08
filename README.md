@@ -17,12 +17,20 @@ make -j
 
 ## Run the start kit
 
-Runing startkit using
-command: 
-```
+Runing startkit using command: 
+```shell
 ./lifelong --inputFile the_input_file_name -o output_file_location
 ```
-more info on help
+
+for example:
+```shell
+./lifelong --inputFile ../example_problems/random.domain/random_20.json -o test.json
+```
+
+more info on help:
+```shell
+./lifelong --help
+```
 
 ## Input output description
 
@@ -30,7 +38,12 @@ Please refer to the [Input_Output_Format.md](./Input_Output_Format.md).
 
 ## Prepare Your Planner
 
-Please refer to the [Prepare_Your_Planner.md](./Prepare_Your_Planner.md)
+Please refer to the [Prepare_Your_Planner.md](./Prepare_Your_Planner.md).
+
+## Visualisation
+We provide a visualisattion tool written in python: [https://github.com/MAPF-Competition/MAPF_analysis](https://github.com/MAPF-Competition/MAPF_analysis).
+
+It is able to visualise the output of start-kit program and help participants to debug the implementations.
 
 ## Submission Instruction
 

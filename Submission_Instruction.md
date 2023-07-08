@@ -16,11 +16,11 @@ $ cd your_submission_repo
 
 ## Implement your algorithm
 
-Read the start-kit `README.md` and `Prepare Your Planner.md` to know what files you should (not) modify, and how you could implement your algorithm.
+Read the start-kit [README.md](./README.md) and [Prepare_Your_Planner.md](./Prepare_Your_Planner.md) to know what files you should (not) modify, and how you could implement your algorithm.
 
 When your implementation is ready to evaluate, add, commit, and push all your changes by running the following commands in your local repo:
 ```
-$ git add *
+$ git add [modified/new created files]
 $ git commit -m "Some message to describe this commit."
 $ git push origin
 ```
@@ -36,5 +36,5 @@ Then click the "Start Evaluation" button on this page to evaluate your new submi
 
 ## Track evaluation progress and history submission
 
-You can find a "My Submissions" panel on My Submission Page.
+You can find a `My Submissions` panel on My Submission Page.
 Click the info button on an entry to see the details and track the progress of a running evaluation.

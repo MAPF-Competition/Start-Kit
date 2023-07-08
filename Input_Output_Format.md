@@ -26,6 +26,23 @@
 
 \* We linearize the a 2-D coordinate and use a single integer to represent a location. 
 
+## Map File Format
+
+All maps begin with the lines:
+
+> type octile <br />
+> height y <br />
+> width x <br />
+> map <br />
+
+Map Symbols:
+| symbols                |                                                                                                                                                                                                                                                |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| @                      | hard obstacle.                                                                                                                                                                  |
+| .                      | free space |
+| E                      | emitter point (for ‘delivery’ goal) - traversable              |
+| S                      | service point (for ‘pick up’ goal) - traversable                                                                                                                                                                                                        |
+
 ## Output JSON Format
 
 The output file of `./lifelong` is a JSON file consisting of the planner output, actual paths of agents, and the statistics.

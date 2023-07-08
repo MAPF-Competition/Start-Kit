@@ -16,16 +16,16 @@ content="${content}${pkgs}"
 
 # Copy codes to target dir and set codes dir to be the working directory.
 # Then run compile.sh to compile codes.
-content="${content}COPY ./. /GPPC2021/codes/ \n"
-content="${content}WORKDIR /GPPC2021/codes/ \n"
-content="${content}RUN rm -rdf /GPPC2021/codes/build \n"
+content="${content}COPY ./. /MAPF/codes/ \n"
+content="${content}WORKDIR /MAPF/codes/ \n"
+content="${content}RUN rm -rdf /MAPF/codes/build \n"
 content="${content}RUN chmod u+x compile.sh \n"
 content="${content}RUN ./compile.sh \n"
 echo -e $content > Dockerfile
 
 echo "Remove container and images if exist... ..."
-out=$(docker container stop gppc_test 2>&1 ; docker container rm gppc_test 2>&1 ; docker rmi gppc_image 2>&1)
+out=$(docker container stop mapf_test 2>&1 ; docker container rm mapf_test 2>&1 ; docker rmi mapf_image 2>&1)
 
 echo "Build image and run the container... ..."
-docker build --no-cache -t gppc_image ./
-docker container run -it --name gppc_test gppc_image
+docker build --no-cache -t mapf_image ./
+docker container run -it --name mapf_test mapf_image
