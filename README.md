@@ -1,5 +1,19 @@
 # Start-Kit
 
+## Join the competition
+
+Login to the [competition website](http://www.leagueofrobotrunners.org/) with a GitHub account, and we will automatically create a private GitHub submission repo for you.
+The repo will be the place that you submit codes to. In the `My Submission` page, you can click "My Repo" to open your GitHub submission repo page.
+
+## Clone your submission repo
+
+Clone your submission repo to your local machine. The repo contains starter code to help you prepare your submission.
+
+```
+$ git clone git@github.com:your_submission_repo_address
+$ cd your_submission_repo
+```
+
 ## Compile the start-kit
 
 Using `compile.sh`:
