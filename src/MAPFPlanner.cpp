@@ -30,42 +30,37 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 }
 
 
-// return next states for all agents
+// plan using simple A* that ignores the time dimension
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
     actions = std::vector<Action>(env->curr_states.size(), Action::W);
     for (int i = 0; i < env->num_of_agents; i++) 
     {
-        //cout << "start plan for agent " << i;
         list<pair<int,int>> path;
         if (env->goal_locations[i].empty()) 
         {
-            //cout << ", which does not have any goal left." << endl;
             path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
         } 
         else 
         {
-            //cout << " with start and goal: ";
             path = single_agent_plan(env->curr_states[i].location,
                                     env->curr_states[i].orientation,
                                     env->goal_locations[i].front().first);
         }
-        //cout<< "current location: " << path.front().first << " current direction: " << 
-            //path.front().second << endl;
         if (path.front().first != env->curr_states[i].location)
         {
-            actions[i] = Action::FW;
+            actions[i] = Action::FW; //forward action
         } 
         else if (path.front().second!= env->curr_states[i].orientation)
         {
             int incr = path.front().second - env->curr_states[i].orientation;
             if (incr == 1 || incr == -3)
             {
-                actions[i] = Action::CR;
+                actions[i] = Action::CR; //C--counter clockwise rotate
             } 
             else if (incr == -1 || incr == 3)
             {
-                actions[i] = Action::CCR;
+                actions[i] = Action::CCR; //CCR--clockwise rotate
             } 
         }
 
@@ -75,77 +70,7 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
   return;
 }
 
-
-list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end, unordered_set<tuple<int,int,int>> reservation, int max_constraint_time) {
-    list<pair<int,int>> path;
-    priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
-    unordered_map<pair<int,int>,AstarNode*> all_nodes; //loc+dict,t
-    AstarNode* s = new AstarNode(start, start_direct, 0, getManhattanDistance(start,end),0, nullptr);
-    open_list.push(s);
-    all_nodes[make_pair(start*4 + start_direct,0)] = s;
-
-    while (!open_list.empty()) {
-        AstarNode* curr = open_list.top();
-        open_list.pop();
-        curr->closed = true;
-        //keep track of the current best
-        if (curr->location == end) 
-        {
-            while(curr->parent!=NULL) 
-            {
-                path.emplace_front(make_pair(curr->location, curr->direction));
-                curr = curr->parent;
-            }
-            break;
-        }
-        list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
-        for (const pair<int,int>& neighbor: neighbors) 
-        {
-            int next_t = curr->t+1;
-            if (next_t > max_constraint_time+1)
-                next_t--;
-            if (reservation.find(make_tuple(neighbor.first,-1,next_t)) != reservation.end())
-            {
-                continue;
-            }
-                
-            if (reservation.find(make_tuple(neighbor.first,curr->location,next_t)) != reservation.end())
-            {
-                continue;
-            }
-            if (all_nodes.find(make_pair(neighbor.first*4 + neighbor.second,next_t)) != all_nodes.end()) 
-            {
-                AstarNode* old = all_nodes[make_pair(neighbor.first*4 + neighbor.second,next_t)];
-                if (old->closed)
-                    continue;
-                if (curr->g + 1 < old->g) 
-                {
-                    old->g = curr->g+1;
-                    old->f = old->h+old->g;
-                    old->parent = curr;
-                }
-            } 
-            else 
-            {
-                AstarNode* next_node = new AstarNode(neighbor.first, neighbor.second,
-                    curr->g+1,getManhattanDistance(neighbor.first,end), next_t, curr);
-                open_list.push(next_node);
-                all_nodes[make_pair(neighbor.first*4+neighbor.second,next_node->t)] = next_node;
-            }
-        }
-    }
-    //clear nodes
-    for (auto n: all_nodes)
-    {
-        delete n.second;
-    }
-    all_nodes.clear();
-
-    return path;
-}
-
 list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
-    //cout << start<<" "<<start_direct << " " << end << endl;
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<int,AstarNode*> all_nodes;
@@ -159,21 +84,16 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
         open_list.pop();
         close_list.emplace(curr->location*4 + curr->direction);
         if (curr->location == end) {
-            //std::cout<<"test"<<std::endl;
             while(curr->parent!=NULL) {
-                //std::cout<<curr->location<<", "<<curr->direction<<" "; 
                 path.emplace_front(make_pair(curr->location, curr->direction));
                 curr = curr->parent;
             }
-            //std::cout<<endl;
             break;
         }
         list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
         for (const pair<int,int>& neighbor: neighbors) {
-            //std::cout<<"neighbor: "<<neighbor.first<<" "<<neighbor.second<<std::endl;
             if (close_list.find(neighbor.first*4 + neighbor.second) != close_list.end())
                 continue;
-            //std::cout<<"1"<<std::endl;
             if (all_nodes.find(neighbor.first*4 + neighbor.second) != all_nodes.end()) {
                 AstarNode* old = all_nodes[neighbor.first*4 + neighbor.second];
                 if (curr->g + 1 < old->g) {
