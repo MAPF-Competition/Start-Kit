@@ -68,6 +68,28 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
             errors.push_back(make_tuple("edge conflict",i,occupied[edge_idx],next[i].timestep));
             return false;
         }
+        
+        //orthogonal movement collisions
+        //check if next.location to other location, this happen only when agents are doing forwarding
+        if (prev[i].location != next[i].location)
+        {
+            int loc1 = next[i].location;
+            int candidates[4] = { loc1 + 1,loc1 + cols, loc1 - 1, loc1 - cols};
+            for (auto loc2: candidates)
+            {
+                if (loc2 == prev[i].location)
+                    continue;
+                if ((loc2 - loc1) == (loc1 - prev[i].location))
+                    continue;
+                edge_idx = (loc2+1)* rows * cols + loc1;
+
+                if (occupied.find(edge_idx) != occupied.end()) {
+                cout << "ERROR: agents " << i << " and " << occupied[edge_idx] << " have an vertex conflict. " << endl;
+                errors.push_back(make_tuple("vertex conflict",i,occupied[edge_idx],next[i].timestep));
+                return false;
+            }
+            }
+        }
 
         occupied[next[i].location] = i;
         int r_edge_idx = (next[i].location + 1) * rows * cols +  prev[i].location;
