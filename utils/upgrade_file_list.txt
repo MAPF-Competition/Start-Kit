@@ -27,4 +27,6 @@ python/py_driver.cpp
 Input_Output_Format.md
 Submission_Instruction.md
 Prepare_Your_Planner.md
+README.md
 version.txt
+RunInDocker.sh
