@@ -25,9 +25,36 @@
 ```shell
   ./lifelong --help
 ```
+SharedEnvironment API
+How to read the map
+Coordination system of the map: define (0,0), (x,y)->(row, columns)
+Meaning of Action enum
+Definition of orientation
+How to read the current state of an agent.
+State API
+How to read the tasks for agents.
+What should be written to Actions in the plan function call, e.g. requirement of the size of the vector
 
 ## Planner Integration
-- Read the interface implementation in src/MAPFPlanner.cpp, inc/MAPFPlanner.h,  inc/SharedEnv.h.
+- Before your planning, getting familiar with the data structures:
+    - Map: the map is a vector of int, the index is calculated by linearise the (row, column) of a location to row*column + column, the value is either 1: non-traversable or 0: traversable.
+    - A State of agent: a state contains the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
+    - Tasks of agents: a task of an agent is a int, represents a single location (linearised) in the map.
+    - Action enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
+- Start your planing with SharedEnvironment API: Your planner can have access to the shared environment (defined as env in inc/MAPFPlanner.h) and plan based on the things we shared with you in the shared environment. The shared environment contains:
+    -  num_of_agents: int, the total team size.
+    -  rows: int, the number of rows of the map.
+    -  cols: int, the number of columns of the map.
+    -  map_name: string, the map file name.
+    -  map: vector of int, stores the map.  
+    -  file_storage_path: string, use for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
+    -  goal locations, vector of vector of pair <int,int>: current tasks locations allocate to each agent.
+    -  current_timestep: int, the current time step that our system already simulated the agents' actions.
+    -  curr_states: vector of State, the current state for each agent at the current time step, 
+- Return your plan using actions: Once you have plans for the next timestep, you can directly re-assign valuses to the input paramter 'actions' to your plans.
+    - actions: vector of Action, given in input parameter. It contains the actions for each agent that we require you to plan for the next timestep. 
+
+- For more details, read the interface implementation in src/MAPFPlanner.cpp, inc/MAPFPlanner.h,  inc/SharedEnv.h.
 - Implement your planner in the file src/MAPFPlanner.cpp and inc/MAPFPlanner.h. See examples in src/MAPFPlanner.cpp
     - Implement your preprocessing in the function MAPFPlanner::initialize that provided to you. 
     - Implement your planner in the function MAPFPlanner::plan that provided to you
@@ -128,8 +155,3 @@ To uoload files larger than than 2 GB, participants should use the large file st
 The uploaded file will be synced to the evaluation server when evaluation starts:
 - The folder stores these files will be mounted to the docker container with read only access.
 - The path to the folder can be accessed at `MAPFPlanner::env->file_storage_path`
-
-
-
-## How to Submit
-- Refer to [Submission_Instruction.md](./Submission_Instruction.md)
