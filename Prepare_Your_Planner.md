@@ -37,7 +37,7 @@ What should be written to Actions in the plan function call, e.g. requirement of
 
 ## Planner Integration
 - Before your planning, getting familiar with the data structures:
-    - Map: the map is a vector of int, the index is calculated by linearise the (row, column) of a location to row*column + column, the value is either 1: non-traversable or 0: traversable.
+    - Map: the map is a vector of int, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
     - A State of agent: a state contains the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
     - Tasks of agents: a task of an agent is a int, represents a single location (linearised) in the map.
     - Action enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
