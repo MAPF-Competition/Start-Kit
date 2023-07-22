@@ -21,7 +21,8 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
     }
 
     vector<State> next = result_states(prev, actions);
-    unordered_map<int, int> occupied;
+    unordered_map<int, int> vertex_occupied;
+    unordered_map<pair<int, int>, int> edge_occupied;
 
     for (int i = 0; i < prev.size(); i ++) {
         /*
@@ -57,15 +58,15 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
             return false;
         }
 
-        if (occupied.find(next[i].location) != occupied.end()) {
-            cout << "ERROR: agents " << i << " and " << occupied[next[i].location] << " have a vertex conflict. " << endl;
-            errors.push_back(make_tuple("vertex conflict",i,occupied[next[i].location],next[i].timestep));
+        if (vertex_occupied.find(next[i].location) != vertex_occupied.end()) {
+            cout << "ERROR: agents " << i << " and " << vertex_occupied[next[i].location] << " have a vertex conflict. " << endl;
+            errors.push_back(make_tuple("vertex conflict",i,vertex_occupied[next[i].location], next[i].timestep));
             return false;
         }
         int edge_idx = (prev[i].location + 1) * rows * cols +  next[i].location;
-        if (occupied.find(edge_idx) != occupied.end()) {
-            cout << "ERROR: agents " << i << " and " << occupied[edge_idx] << " have an edge conflict. " << endl;
-            errors.push_back(make_tuple("edge conflict",i,occupied[edge_idx],next[i].timestep));
+        if (edge_occupied.find({prev[i].location, next[i].location}) != edge_occupied.end()) {
+            cout << "ERROR: agents " << i << " and " << edge_occupied[{prev[i].location, next[i].location}] << " have an edge conflict. " << endl;
+            errors.push_back(make_tuple("edge conflict", i, edge_occupied[{prev[i].location, next[i].location}], next[i].timestep));
             return false;
         }
         
@@ -91,9 +92,9 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
         //     }
         // }
 
-        occupied[next[i].location] = i;
+        vertex_occupied[next[i].location] = i;
         int r_edge_idx = (next[i].location + 1) * rows * cols +  prev[i].location;
-        occupied[r_edge_idx] = i;
+        edge_occupied[{next[i].location, prev[i].location}] = i;
     }
 
     return true;
