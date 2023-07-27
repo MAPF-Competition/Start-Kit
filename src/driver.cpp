@@ -99,6 +99,8 @@ int main(int argc, char** argv) {
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"),team_size);
     std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
+    if (agents.size() > tasks.size())
+        logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
     std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
     if (task_assignment_strategy=="greedy"){

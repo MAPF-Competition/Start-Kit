@@ -27,6 +27,8 @@ public:
     void log_info(std::string input, int timestep);
     void log_fatal(std::string input);
     void log_fatal(std::string input, int timestep);
+    void log_warning(std::string input);
+    void log_warning(std::string input, int timestep);
     // void log_preprocessing(bool succ);
     // void log_plan(bool succ,int time);
 };
