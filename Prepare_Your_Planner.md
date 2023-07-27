@@ -1,39 +1,5 @@
 # Prepare Your Planner
-
-## Start-kit Download
-- Follow the [Submission_Instruction.md] to create an account on the competition website.
-- Login with your Github account.
-- Find the private repo we created for your account.
-- Clone the private repo, which contains a copy of Start-kit codes.
-
-## Compile and Run
-- Compile the start kit: 
-
-  Run using command:
-```shell
-  mkdir build
-  cd  build
-  cmake ../ -DCMAKE_BUILD_TYPE=Release
-  make -j
-```
-- Run the start kit:
-  Once compiled, run using command:
-```shell
-  ./lifelong --inputFile the_input_file_name -o output_file_location
-```
-  More information can be found on help by using command:
-```shell
-  ./lifelong --help
-```
-SharedEnvironment API
-How to read the map
-Coordination system of the map: define (0,0), (x,y)->(row, columns)
-Meaning of Action enum
-Definition of orientation
-How to read the current state of an agent.
-State API
-How to read the tasks for agents.
-What should be written to Actions in the plan function call, e.g. requirement of the size of the vector
+To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
 
 ## Planner Integration
 - Before your planning, getting familiar with the data structures:
