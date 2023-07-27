@@ -53,3 +53,17 @@ void Logger::log_fatal(std::string input)
     src::severity_logger< severity_level > lg;
     BOOST_LOG_SEV(lg, fatal) << input;
 }
+
+void Logger::log_warning(std::string input)
+{
+    logging::add_common_attributes();
+
+    using namespace logging::trivial;
+    src::severity_logger< severity_level > lg;
+    BOOST_LOG_SEV(lg, warning) << input;
+}
+
+void Logger::log_warning(std::string input, int timestep)
+{
+    log_warning("[timestep=" + std::to_string(timestep) + "] " + input);
+}
