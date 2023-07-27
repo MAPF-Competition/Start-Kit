@@ -17,6 +17,7 @@ To run the program, please refer to [README.md](./README.md) to download the sta
     -  goal locations, vector of vector of pair <int,int>: current tasks locations allocate to each agent.
     -  current_timestep: int, the current time step that our system already simulated the agents' actions.
     -  curr_states: vector of State, the current state for each agent at the current time step, 
+- Be aware of time is ticking while planning: at every timestep, we will ask your planner to compute the next valid action for each robot within a given planing time limit. This is given as the input parameter of the function in the planner class (preprocess_time_limit in function 'initialize' and time_limit in function 'plan', both are int). The preprocess_time_limit is the maximum time to preprocess your map. If this process cost more than the time limit, then your planner fails and the system terminates with fail to preprocess within time limit. As for the time_limit in function plan, it is a soft limit, which means if you do not return actions within the time limit, the program will continues, and all robots will wait in place until the next planning episode.
 - Return your plan using actions: Once you have plans for the next timestep, you can directly re-assign valuses to the input paramter 'actions' to your plans.
     - actions: vector of Action, given in input parameter. It contains the actions for each agent that we require you to plan for the next timestep. 
 
