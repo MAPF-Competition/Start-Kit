@@ -15,4 +15,4 @@ echo restore files: $files
 
 git restore --staged --worktree --source=upstream/main $files
 
-git commit -m "updated to latest startkit"
+echo "Update pulled, please check the changes and commit them."

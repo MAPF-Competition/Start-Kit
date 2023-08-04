@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
-    pybind11::module::import("torch").attr("cuda").attr("init")();
+    // pybind11::module::import("torch").attr("cuda").attr("init")();
     auto sys=pybind11::module_::import("sys");
     py_env=new pyEnvironment(env);
     std::ifstream configFile("config.json");
@@ -11,6 +11,7 @@ pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
         //default
         std::cout<<"setting to default python path"<<std::endl;
         sys.attr("path").attr("append")("./python");
+        sys.attr("path").attr("append")("../python");
     }
     else{
         nlohmann::json configData;
@@ -29,6 +30,7 @@ pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
     
     std::cout<<"trying to import pyMAPFPlanner module"<<std::endl;
     auto py_mapf_planner_module=pybind11::module_::import("pyMAPFPlanner");
+
     std::cout<<"trying to create pyMAPFPlanner"<<std::endl;
     py_planner=py_mapf_planner_module.attr("pyMAPFPlanner")(py_env);
 

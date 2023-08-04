@@ -46,6 +46,18 @@ more info on help:
 ./lifelong --help
 ```
 
+## Upgrade Your Start-Kit
+
+If your private startk-kit copy repo was created before a start-kit upgrade, you need to run the `upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
+
+You can check `version.txt` to know the current version of your start-kit.
+
+The `upgrade_start_kit.sh` will check which file is marked as upgrade needed and pull thoese files from start-kit.
+
+The upgrade may overwrite some of your changes to `CMakeLists.txt` and `apt.txt`, you could compare the difference using `git diff` and decided wether to revert some changes on these files.
+
+The upgrade script will not touch any participants created file, `python/pyMAPFPlanner.py`, `inc/MAPFPlanner.h` and `src/MAPFPlanner.cpp`. So that participants implementations should not be influnced by the start-kit upgrade.
+
 ## Input output description
 
 Please refer to the [Input_Output_Format.md](./Input_Output_Format.md).
