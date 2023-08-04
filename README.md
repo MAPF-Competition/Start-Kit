@@ -48,7 +48,7 @@ more info on help:
 
 ## Upgrade Your Start-Kit
 
-If your private startk-kit copy repo was created before a start-kit upgrade, you need to run the `upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
+If your private startk-kit copy repo was created before a start-kit upgrade, you need to run the `./upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
 
 You can check `version.txt` to know the current version of your start-kit.
 
