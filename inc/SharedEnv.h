@@ -4,15 +4,14 @@
 #include "nlohmann/json.hpp"
 
 
-class SharedEnvironment {
+class SharedEnvironment
+{
 public:
     int num_of_agents;
-
     int rows;
     int cols;
     std::string map_name;
     std::vector<int> map;
-
     std::string file_storage_path;
 
     // goal locations for each agent
@@ -23,5 +22,4 @@ public:
     vector<State> curr_states;
 
     SharedEnvironment(){}
-
 };

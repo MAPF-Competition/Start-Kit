@@ -2,7 +2,8 @@
 #include <random>
 
 
-struct AstarNode {
+struct AstarNode
+{
     int location;
     int direction;
     int f,g,h;
@@ -16,8 +17,10 @@ struct AstarNode {
 };
 
 
-struct cmp {
-    bool operator()(AstarNode* a, AstarNode* b) {
+struct cmp
+{
+    bool operator()(AstarNode* a, AstarNode* b)
+    {
         if(a->f == b->f) return a->g <= b->g;
         else return a->f > b->f;
     }
@@ -25,7 +28,8 @@ struct cmp {
 
 
 
-void MAPFPlanner::initialize(int preprocess_time_limit) {
+void MAPFPlanner::initialize(int preprocess_time_limit)
+{
     cout << "planner initialize done" << endl;
 }
 
@@ -65,12 +69,12 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
         }
 
     }
-
-
   return;
 }
 
-list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
+
+list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end)
+{
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<int,AstarNode*> all_nodes;
@@ -79,29 +83,37 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
     open_list.push(s);
     all_nodes[start*4 + start_direct] = s;
 
-    while (!open_list.empty()) {
+    while (!open_list.empty())
+    {
         AstarNode* curr = open_list.top();
         open_list.pop();
         close_list.emplace(curr->location*4 + curr->direction);
-        if (curr->location == end) {
-            while(curr->parent!=NULL) {
+        if (curr->location == end)
+        {
+            while(curr->parent!=NULL) 
+            {
                 path.emplace_front(make_pair(curr->location, curr->direction));
                 curr = curr->parent;
             }
             break;
         }
         list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
-        for (const pair<int,int>& neighbor: neighbors) {
+        for (const pair<int,int>& neighbor: neighbors)
+        {
             if (close_list.find(neighbor.first*4 + neighbor.second) != close_list.end())
                 continue;
-            if (all_nodes.find(neighbor.first*4 + neighbor.second) != all_nodes.end()) {
+            if (all_nodes.find(neighbor.first*4 + neighbor.second) != all_nodes.end())
+            {
                 AstarNode* old = all_nodes[neighbor.first*4 + neighbor.second];
-                if (curr->g + 1 < old->g) {
+                if (curr->g + 1 < old->g)
+                {
                     old->g = curr->g+1;
                     old->f = old->h+old->g;
                     old->parent = curr;
                 }
-            } else {
+            }
+            else
+            {
                 AstarNode* next_node = new AstarNode(neighbor.first, neighbor.second,
                     curr->g+1,getManhattanDistance(neighbor.first,end), curr);
                 open_list.push(next_node);
@@ -118,13 +130,15 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
 }
 
 
-int MAPFPlanner::getManhattanDistance(int loc1, int loc2) {
+int MAPFPlanner::getManhattanDistance(int loc1, int loc2)
+{
     int loc1_x = loc1/env->cols;
     int loc1_y = loc1%env->cols;
     int loc2_x = loc2/env->cols;
     int loc2_y = loc2%env->cols;
     return abs(loc1_x - loc2_x) + abs(loc1_y - loc2_y);
 }
+
 
 bool MAPFPlanner::validateMove(int loc, int loc2)
 {
@@ -143,7 +157,8 @@ bool MAPFPlanner::validateMove(int loc, int loc2)
 }
 
 
-list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
+list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction)
+{
     list<pair<int,int>> neighbors;
     //forward
     int candidates[4] = { location + 1,location + env->cols, location - 1, location - env->cols};

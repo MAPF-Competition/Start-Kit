@@ -22,6 +22,7 @@ using json = nlohmann::json;
 po::variables_map vm;
 std::unique_ptr<BaseSystem> system_ptr;
 
+
 void sigint_handler(int a)
 {
     fprintf(stdout, "stop the simulation...\n");
@@ -29,9 +30,9 @@ void sigint_handler(int a)
     {
         system_ptr->saveResults(vm["output"].as<std::string>());
     }
-
     _exit(0);
 }
+
 
 int main(int argc, char **argv)
 {
@@ -45,7 +46,14 @@ int main(int argc, char **argv)
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")
         // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
-        ("inputFile,i", po::value<std::string>()->required(), "input file name")("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")("simulationTime", po::value<int>()->default_value(5000), "run simulation")("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")("logFile,l", po::value<std::string>(), "issue log file name");
+        ("inputFile,i", po::value<std::string>()->required(), "input file name")
+        ("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")
+        ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
+        ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
+        ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
+        ("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")
+        ("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")
+        ("logFile,l", po::value<std::string>(), "issue log file name");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 

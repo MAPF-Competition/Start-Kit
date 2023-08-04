@@ -1,11 +1,13 @@
 #include "ActionModel.h"
 
-std::ostream& operator<<(std::ostream &stream, const Action &action){
-    if (action == Action::FW){
+
+std::ostream& operator<<(std::ostream &stream, const Action &action)
+{
+    if (action == Action::FW) {
         stream << "F";
-    } else if (action == Action::CR){
+    } else if (action == Action::CR) {
         stream << "R";
-    } else if (action == Action::CCR){
+    } else if (action == Action::CCR) {
         stream << "C";
     } else {
         stream << "W";
@@ -14,8 +16,11 @@ std::ostream& operator<<(std::ostream &stream, const Action &action){
     return stream;
 }
 
-bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Action> & actions){
-    if (prev.size() != actions.size()) {
+
+bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Action> & actions)
+{
+    if (prev.size() != actions.size())
+    {
         errors.push_back(make_tuple("incorrect vector size",-1,-1,prev[0].timestep+1));
         return false;
     }
@@ -23,7 +28,8 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
     vector<State> next = result_states(prev, actions);
     unordered_map<int, int> occupied;
 
-    for (int i = 0; i < prev.size(); i ++) {
+    for (int i = 0; i < prev.size(); i ++) 
+    {
         /*
           if (prev[i].location == next[i].location) {
           // check if the rotation is not larger than 90 degree
@@ -51,19 +57,23 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
           }
           }
         */
-        if (grid.map[next[i].location] == 1) {
+        if (grid.map[next[i].location] == 1)
+        {
             cout << "ERROR: agent " << i << " moves to an obstacle. " << endl;
             errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
             return false;
         }
 
-        if (occupied.find(next[i].location) != occupied.end()) {
+        if (occupied.find(next[i].location) != occupied.end())
+        {
             cout << "ERROR: agents " << i << " and " << occupied[next[i].location] << " have a vertex conflict. " << endl;
             errors.push_back(make_tuple("vertex conflict",i,occupied[next[i].location],next[i].timestep));
             return false;
         }
+
         int edge_idx = (prev[i].location + 1) * rows * cols +  next[i].location;
-        if (occupied.find(edge_idx) != occupied.end()) {
+        if (occupied.find(edge_idx) != occupied.end())
+        {
             cout << "ERROR: agents " << i << " and " << occupied[edge_idx] << " have an edge conflict. " << endl;
             errors.push_back(make_tuple("edge conflict",i,occupied[edge_idx],next[i].timestep));
             return false;
