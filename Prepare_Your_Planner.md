@@ -33,7 +33,11 @@ To run the program, please refer to [README.md](./README.md) to download the sta
 - or specify your dependency packages in apt.txt. The packages must be available for installation through apt-get on Ubuntu 22.
 - Modify compile.sh and make sure your code can be compiled by executing this script.
 
+
+## Python Interface
 We also provide a python interface for python users based on pybind11.
+
+Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
 
 The pybind11 module mainly contains three files:
 + MAPFBinding.cpp: it binds the C++ classes to the "MAPF" pybind module, allowing users to access  C++ classes such as SharedEnvironment and Action
@@ -49,6 +53,21 @@ cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
 make -j
 ./lifelong --inputFile the_input_file_name -o output_file_location
 ```
+Once compiled, the program looks for `pyMAPFPlanner` python module under `./python` or `../python` relative to the location of `lifelong`. Alternatively, you can specify a path in `config.json` and use cmake flag `-DCOPY_PY_PATH_CONFIG=ON` (which copies the `config.json` to target build folder), so that the problem will look for the `pyMAPFPlanner` in the specified folder.
+
+Additionally, you can specify a specific python version by `-DPYBIND11_PYTHON_VERSION` or an exact python install by `-DPYTHON_EXECUTABLE`
+
+For example:
+```shell
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYBIND11_PYTHON_VERSION=3.6
+
+#or
+
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYTHON_EXECUTABLE=path/to/python
+```
+
+Python packages can also be installed through apt-get, thus you can specify the package you want to install in `apt.txt`.
+For example, to install `numpy`, you can put `python3-numpy` in `apt.txt``.
 
 ## Compile.sh
 
