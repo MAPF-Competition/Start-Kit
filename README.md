@@ -48,15 +48,15 @@ more info on help:
 
 ## Upgrade Your Start-Kit
 
-If your private start-kit copy repo was created before a start-kit upgrade, you could run the ./upgrade_start_kit.sh to upgrade your start-kit to the latest version.
+If your private start-kit copy repo was created before a start-kit upgrade, you could run the `./upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
 
-You can check version.txt to know the current version of your start-kit.
+You can check `version.txt` to know the current version of your start-kit.
 
-The upgrade_start_kit.sh will check which file is marked as an upgrade needed and pull those files from the start-kit.
+The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit.
 
-The upgrade may overwrite some of your changes to CMakeLists.txt and apt.txt, you could compare the difference using git diff and decide whether to revert some modifications on these files.
+The upgrade may overwrite some of your changes to `CMakeLists.txt` and `apt.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications on these files.
 
-The upgrade script will not touch any participants' created file, python/pyMAPFPlanner.py, inc/MAPFPlanner.h and src/MAPFPlanner.cpp. So that participants' implementations should not be influenced by the start-kit upgrade.
+The upgrade script will not touch any participants' created file, `python/pyMAPFPlanner.py`, `inc/MAPFPlanner.h` and `src/MAPFPlanner.cpp`. So that participants' implementations should not be influenced by the start-kit upgrade.
 
 ## Input output description
 
