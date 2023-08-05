@@ -8,11 +8,11 @@ Added:
 
 Changed:
 - Updated documentation (adding more descriptions): Input_Output_Format.md, Prepare_Your_Planner.md 
-- Add upgrade instruction in README.md
-- Add warnings in logger when number of tasks in problem file is smaller than team size
+- Add upgrade instructions in README.md
+- Add warnings in the logger when the number of tasks in the problem file is smaller than the team size
 - Merge py_driver.cpp and drive.cpp into one
-- Simpified the CMakeList for python binding, allow specify python version/executable with cmake flags.
-- Find add both ./python and ../python to python interpreter path. Allow custom path with config.json.
+- Simplified the CMakeList for Python binding, allowing specifying Python version/executable with cmake flags.
+- Add both ./python and ../python to the Python interpreter path. Allow custom path with config.json.
 
 Fixed:
 - Fixed issue with example task file for warehouse large only has 1000 tasks (smaller than team size), of which 10000 tasks must be replaced
