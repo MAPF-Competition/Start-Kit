@@ -1,33 +1,27 @@
 # Prepare Your Planner
-
-## Start-kit Download
-- Follow the [Submission_Instruction.md] to create an account on the competition website.
-- Login with your Github account.
-- Find the private repo we created for your account.
-- Clone the private repo, which contains a copy of Start-kit codes.
-
-## Compile and Run
-- Compile the start kit: 
-
-  Run using command:
-```shell
-  mkdir build
-  cd  build
-  cmake ../ -DCMAKE_BUILD_TYPE=Release
-  make -j
-```
-- Run the start kit:
-  Once compiled, run using command:
-```shell
-  ./lifelong --inputFile the_input_file_name -o output_file_location
-```
-  More information can be found on help by using command:
-```shell
-  ./lifelong --help
-```
+To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
 
 ## Planner Integration
-- Read the interface implementation in src/MAPFPlanner.cpp, inc/MAPFPlanner.h,  inc/SharedEnv.h.
+- Before your planning, getting familiar with the data structures:
+    - Map: the map is a vector of int, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
+    - A State of agent: a state contains the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
+    - Tasks of agents: a task of an agent is a int, represents a single location (linearised) in the map.
+    - Action enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
+- Start your planing with SharedEnvironment API: Your planner can have access to the shared environment (defined as env in inc/MAPFPlanner.h) and plan based on the things we shared with you in the shared environment. The shared environment contains:
+    -  num_of_agents: int, the total team size.
+    -  rows: int, the number of rows of the map.
+    -  cols: int, the number of columns of the map.
+    -  map_name: string, the map file name.
+    -  map: vector of int, stores the map.  
+    -  file_storage_path: string, use for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
+    -  goal locations, vector of vector of pair <int,int>: current tasks locations allocate to each agent.
+    -  current_timestep: int, the current time step that our system already simulated the agents' actions.
+    -  curr_states: vector of State, the current state for each agent at the current time step, 
+- Be aware of time is ticking while planning: at every timestep, we will ask your planner to compute the next valid action for each robot within a given planing time limit. This is given as the input parameter of the function in the planner class (preprocess_time_limit in function 'initialize' and time_limit in function 'plan', both are int). The preprocess_time_limit is the maximum time to preprocess your map. If this process cost more than the time limit, then your planner fails and the system terminates with fail to preprocess within time limit. As for the time_limit in function plan, it is a soft limit, which means if you do not return actions within the time limit, the program will continues, and all robots will wait in place until the next planning episode.
+- Return your plan using actions: Once you have plans for the next timestep, you can directly re-assign valuses to the input paramter 'actions' to your plans.
+    - actions: vector of Action, given in input parameter. It contains the actions for each agent that we require you to plan for the next timestep. 
+
+- For more details, read the interface implementation in src/MAPFPlanner.cpp, inc/MAPFPlanner.h,  inc/SharedEnv.h.
 - Implement your planner in the file src/MAPFPlanner.cpp and inc/MAPFPlanner.h. See examples in src/MAPFPlanner.cpp
     - Implement your preprocessing in the function MAPFPlanner::initialize that provided to you. 
     - Implement your planner in the function MAPFPlanner::plan that provided to you
@@ -39,7 +33,11 @@
 - or specify your dependency packages in apt.txt. The packages must be available for installation through apt-get on Ubuntu 22.
 - Modify compile.sh and make sure your code can be compiled by executing this script.
 
+
+## Python Interface
 We also provide a python interface for python users based on pybind11.
+
+Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
 
 The pybind11 module mainly contains three files:
 + MAPFBinding.cpp: it binds the C++ classes to the "MAPF" pybind module, allowing users to access  C++ classes such as SharedEnvironment and Action
@@ -55,6 +53,21 @@ cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
 make -j
 ./lifelong --inputFile the_input_file_name -o output_file_location
 ```
+Once compiled, the program looks for `pyMAPFPlanner` python module under `./python` or `../python` relative to the location of `lifelong`. Alternatively, you can specify a path in `config.json` and use cmake flag `-DCOPY_PY_PATH_CONFIG=ON` (which copies the `config.json` to target build folder), so that the problem will look for the `pyMAPFPlanner` in the specified folder.
+
+Additionally, you can specify a specific python version by `-DPYBIND11_PYTHON_VERSION` or an exact python install by `-DPYTHON_EXECUTABLE`
+
+For example:
+```shell
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYBIND11_PYTHON_VERSION=3.6
+
+#or
+
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYTHON_EXECUTABLE=path/to/python
+```
+
+Python packages can also be installed through apt-get, thus you can specify the package you want to install in `apt.txt`.
+For example, to install `numpy`, you can put `python3-numpy` in `apt.txt``.
 
 ## Compile.sh
 
@@ -128,8 +141,3 @@ To uoload files larger than than 2 GB, participants should use the large file st
 The uploaded file will be synced to the evaluation server when evaluation starts:
 - The folder stores these files will be mounted to the docker container with read only access.
 - The path to the folder can be accessed at `MAPFPlanner::env->file_storage_path`
-
-
-
-## How to Submit
-- Refer to [Submission_Instruction.md](./Submission_Instruction.md)

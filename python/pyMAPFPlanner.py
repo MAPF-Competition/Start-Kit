@@ -3,7 +3,6 @@ import MAPF
 from typing import Dict, List, Tuple,Set
 from queue import PriorityQueue
 import numpy as np
-import testlib
 
 # 0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 

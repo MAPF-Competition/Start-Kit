@@ -5,44 +5,18 @@
 #include "Logger.h"
 
 /*
-  FW - forward
-  CR - Clockwise rotate
+  FW  - forward
+  CR  - Clockwise rotate
   CCR - Counter clockwise rotate
-  W - Wait
-
+  W   - Wait
+  NA  - Not applicable
 */
 enum Action {FW, CR, CCR, W, NA};
 
 std::ostream& operator<<(std::ostream &stream, const Action &action);
 
-class ActionModelWithRotate{
-protected:
-    const Grid& grid;
-    int rows;
-    int cols;
-
-    int moves[4];
-
-
-    Logger* logger = nullptr;
-
-    State result_state(const State & prev, Action action){
-        int new_location = prev.location;
-        int new_orientation = prev.orientation;
-        if (action == Action::FW){
-            new_location = new_location += moves[prev.orientation];
-        } else if (action == Action::CR){
-            new_orientation = (prev.orientation + 1) % 4;
-      
-        } else if (action == Action::CCR){
-            new_orientation = (prev.orientation - 1) % 4;
-            if (new_orientation == -1)
-                new_orientation = 3;
-        }
-
-        return State(new_location, prev.timestep + 1, new_orientation);
-    }
-
+class ActionModelWithRotate
+{
 public:
     list<std::tuple<std::string,int,int,int>> errors;
 
@@ -64,4 +38,35 @@ public:
         }
         return next;
     };
+
+
+protected:
+    const Grid& grid;
+    int rows;
+    int cols;
+    int moves[4];
+    Logger* logger = nullptr;
+
+    State result_state(const State & prev, Action action)
+    {
+        int new_location = prev.location;
+        int new_orientation = prev.orientation;
+        if (action == Action::FW)
+        {
+            new_location = new_location += moves[prev.orientation];
+        }
+        else if (action == Action::CR)
+        {
+            new_orientation = (prev.orientation + 1) % 4;
+      
+        }
+        else if (action == Action::CCR)
+        {
+            new_orientation = (prev.orientation - 1) % 4;
+            if (new_orientation == -1)
+                new_orientation = 3;
+        }
+
+        return State(new_location, prev.timestep + 1, new_orientation);
+    }
 };

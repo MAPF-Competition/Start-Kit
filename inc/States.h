@@ -8,8 +8,10 @@ struct State
     int timestep;
     int orientation;  // 0:east, 1:south, 2:west, 3:north
 
-    struct Hasher {
-        size_t operator()(const State& n) const {
+    struct Hasher
+    {
+        size_t operator()(const State& n) const
+        {
             size_t loc_hash = std::hash<int>()(n.location);
             size_t time_hash = std::hash<int>()(n.timestep);
             size_t ori_hash = std::hash<int>()(n.orientation);
@@ -17,17 +19,20 @@ struct State
         }
     };
 
-    void operator = (const State& other) {
+    void operator = (const State& other)
+    {
         timestep = other.timestep;
         location = other.location;
         orientation = other.orientation;
     }
 
-    bool operator == (const State& other) const {
+    bool operator == (const State& other) const
+    {
         return timestep == other.timestep && location == other.location && orientation == other.orientation;
     }
 
-    bool operator != (const State& other) const {
+    bool operator != (const State& other) const
+    {
         return timestep != other.timestep || location != other.location || orientation != other.orientation;
     }
 
@@ -41,7 +46,6 @@ struct State
 };
 
 std::ostream & operator << (std::ostream &out, const State &s);
-
 
 typedef std::vector<State> Path;
 

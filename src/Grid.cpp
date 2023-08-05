@@ -1,10 +1,13 @@
 #include "Grid.h"
 #include <boost/tokenizer.hpp>
 
-Grid::Grid(string fname){
+
+Grid::Grid(string fname)
+{
     std::string line;
     std::ifstream myfile ((fname).c_str());
-    if (!myfile.is_open()) {
+    if (!myfile.is_open())
+    {
         cout << "Map file " << fname << " does not exist. " << std::endl;
         exit(-1);
     }
@@ -15,7 +18,8 @@ Grid::Grid(string fname){
     map_name = fname.substr(0, pos);  // get the name without extension
     getline (myfile, line);
 
-    if (line[0] == 't') {
+    if (line[0] == 't')
+    {
         // Benchmark 
         boost::char_separator<char> sep(" ");
         getline(myfile, line);
@@ -31,7 +35,9 @@ Grid::Grid(string fname){
         cols = atoi((*beg).c_str()); // read number of cols
         getline(myfile, line); // skip "map"
 
-    } else {
+    }
+    else
+    {
         boost::char_separator<char> sep(",");
         boost::tokenizer< boost::char_separator<char> > tok(line, sep);
         boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin();
@@ -40,15 +46,16 @@ Grid::Grid(string fname){
         cols = atoi((*beg).c_str());  // read number of cols
     }
 
-
     map.resize(cols * rows, 0);
 
     //DeliverGoal.resize(row*col, false);
     // read map
     //int ep = 0, ag = 0;
-    for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; i++)
+    {
         getline(myfile, line);
-        for (int j = 0; j < cols; j++) {
+        for (int j = 0; j < cols; j++)
+        {
             int id = cols * i + j;
             if (line[j] != '@') // free space
                 map[id] = 0;
