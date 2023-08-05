@@ -2,7 +2,8 @@
 
 #include "common.h"
 
-class Grid{
+class Grid
+{
 public:
     Grid(string fname);
 

@@ -7,8 +7,9 @@ private:
     std::vector<std::deque<Action>> agent_plans;
 public:
 
-    DummyPlanner(): MAPFPlanner(){};
-    DummyPlanner(std::string fname): MAPFPlanner() {
+    DummyPlanner(): MAPFPlanner() {};
+    DummyPlanner(std::string fname): MAPFPlanner()
+    {
         load_plans(fname);
     };
 	~DummyPlanner(){}

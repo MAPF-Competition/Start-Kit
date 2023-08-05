@@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 # Set the default value of PYTHON to false
 option(PYTHON "Enable Python" OFF)
 
+if(PYTHON)
+    set(PYTHON_FLAG 1)
+else()
+    set(PYTHON_FLAG 0)
+endif()
+
 
 # Print the value of PYTHON
 message(STATUS "PYTHON: ${PYTHON}")
@@ -28,11 +34,9 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 
 
 IF(PYTHON)
+    include_directories("python")
     message(STATUS "Python support is enabled")
-    # find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter Development)
-    # find_package(PythonInterp 3.6 REQUIRED)
-    find_package(Python3 3.6 EXACT REQUIRED COMPONENTS Interpreter Development)
-    find_package(PythonInterp 3.6 EXACT  REQUIRED)
+
     find_package(pybind11 REQUIRED)
     set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
@@ -41,13 +45,18 @@ IF(PYTHON)
     target_link_libraries(MAPF PRIVATE ) 
 
     file(GLOB SOURCES "src/*.cpp")
-    list(FILTER SOURCES EXCLUDE REGEX ".*src/driver\.cpp")
 
     file(GLOB PY_SOURCES "python/*.cpp")
     list(FILTER PY_SOURCES EXCLUDE REGEX ".*python/MAPFbinding\.cpp")
 
     add_executable(lifelong  ${PY_SOURCES} ${SOURCES})
     target_link_libraries(lifelong PRIVATE pybind11::embed ${Boost_LIBRARIES})
+    target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+
+    if (COPY_PY_PATH_CONFIG)
+        file(COPY "config.json" DESTINATION ${CMAKE_BINARY_DIR})
+    endif()
+
 
 ELSE()
     message(STATUS "Python support is disabled")
@@ -56,6 +65,7 @@ ELSE()
 
     add_executable(lifelong ${SOURCES} )
     target_link_libraries(lifelong ${Boost_LIBRARIES})
+    target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
 ENDIF()
 
 

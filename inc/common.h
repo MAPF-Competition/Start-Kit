@@ -56,7 +56,8 @@ ostream& operator<<(ostream& os, const Conflict& conflict);
 ostream& operator<<(ostream& os, const Interval& interval);
 
 ////////////////////////////////////////////////////
-inline std::vector<int> read_int_vec(string fname, int team_size){
+inline std::vector<int> read_int_vec(string fname, int team_size)
+{
     std::vector<int> res;
 	string line;
 	std::ifstream myfile(fname.c_str());
@@ -95,7 +96,9 @@ inline std::vector<int> read_int_vec(string fname, int team_size){
 	return res;
 }
 
-inline std::vector<int> read_int_vec(string fname){
+
+inline std::vector<int> read_int_vec(string fname)
+{
     std::vector<int> res;
 	string line;
 	std::ifstream myfile(fname.c_str());
@@ -112,46 +115,59 @@ inline std::vector<int> read_int_vec(string fname){
 
     int team_size = atoi((*beg).c_str());
     // My benchmark
-    for (int i = 0; i < team_size; i++) {
+    for (int i = 0; i < team_size; i++)
+    {
 
         getline(myfile, line);
-        while (!myfile.eof() && line[0] == '#'){
+        while (!myfile.eof() && line[0] == '#')
+        {
             getline(myfile, line);
         }
         boost::tokenizer<boost::char_separator<char>> tok(line, sep);
         boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
         // read start [row,col] for agent i
         res.push_back(atoi((*beg).c_str()));
-
     }
     myfile.close();
 
 	return res;
 }
 
+
 template <typename T>
-T read_param_json(nlohmann::json& data, std::string name){
-    if (!data.contains(name)){
+T read_param_json(nlohmann::json& data, std::string name)
+{
+    if (!data.contains(name))
+    {
         std::cerr << "missing property " << name << " in the input JSON." << std::endl;
         exit(1);
     }
-    try{
+    try
+    {
         return data[name].get<T>();
-    } catch(nlohmann::json::type_error error ) {
+    }
+    catch(nlohmann::json::type_error error)
+    {
         std::cerr << "Incorrect input JSON format for " << name << std::endl;
         std::cerr << "Message: " << error.what() << std::endl;
         exit(1);
     }
 }
 
+
 template <typename T>
-T read_param_json(nlohmann::json& data, std::string name, T default_value){
-    if (!data.contains(name)){
+T read_param_json(nlohmann::json& data, std::string name, T default_value)
+{
+    if (!data.contains(name))
+    {
         return default_value;
     }
-    try{
+    try
+    {
         return data[name].get<T>();
-    } catch(nlohmann::json::type_error error ) {
+    }
+    catch(nlohmann::json::type_error error )
+    {
         std::cerr << "Incorrect input JSON format for " << name << std::endl;
         std::cerr << "Message: " << error.what() << std::endl;
         exit(1);
