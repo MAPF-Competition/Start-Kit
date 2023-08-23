@@ -46,6 +46,18 @@ more info on help:
 ./lifelong --help
 ```
 
+## Windows users
+If you are a Windows user, the most straightforward method to utilize our start-kits is by employing the WSL (Windows Subsystem for Linux) subsystem. Follow these steps:
+1. Install WSL, please refer to [https://learn.microsoft.com/en-us/windows/wsl/install](https://learn.microsoft.com/en-us/windows/wsl/install)
+2. Open a shell in WSL and execute the following commands to install the necessary tools (CMake, GCC, Boost, pip, Pybind11):
+```shell
+sudo apt-get update
+sudo apt-get install cmake g++ libboost-all-dev python3-pip python3-pybind11 
+```
+3. Employ the commands provided above to compile the start-kit.
+
+While it's technically possible to use our start-kit with Cygwin, Mingw, and MSVC, doing so would be more complex compared to using WSL. You would likely need to configure the environment yourself.
+
 ## Upgrade Your Start-Kit
 
 If your private start-kit copy repo was created before a start-kit upgrade, you could run the `./upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
