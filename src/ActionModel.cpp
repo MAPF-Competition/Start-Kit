@@ -31,12 +31,6 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
 
     for (int i = 0; i < prev.size(); i ++) 
     {
-
-        if (abs(next[i].location / cols - prev[i].location/cols) + abs(next[i].location % cols - prev[i].location %cols) > 1  ){
-          cout << "ERROR: agent " << i << " moves more than 1 steps. " << endl;
-          errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
-          return false;
-        }
         
         if (next[i].location < 0 || next[i].location >= grid.map.size() || 
             (abs(next[i].location / cols - prev[i].location/cols) + abs(next[i].location % cols - prev[i].location %cols) > 1 ))
@@ -47,10 +41,9 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
         }
         if (grid.map[next[i].location] == 1) {
             cout << "ERROR: agent " << i << " moves to an obstacle. " << endl;
-            // errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
-            // return false;
+            errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
+            return false;
         }
-
 
         if (vertex_occupied.find(next[i].location) != vertex_occupied.end()) {
             cout << "ERROR: agents " << i << " and " << vertex_occupied[next[i].location] << " have a vertex conflict. " << endl;
