@@ -25,10 +25,11 @@ To run the program, please refer to [README.md](./README.md) to download the sta
 - Implement your planner in the file src/MAPFPlanner.cpp and inc/MAPFPlanner.h. See examples in src/MAPFPlanner.cpp
     - Implement your preprocessing in the function MAPFPlanner::initialize that provided to you. 
     - Implement your planner in the function MAPFPlanner::plan that provided to you
+    - You are free to create additional files (ie. .cpp and .h file) to implement your own algorithms.
     - Don’t override any operating system related functions (signal handlers)
-    - Don’t modify any start kit functions
-    - Don’t modify / call / interfere with any start kit variables or objects
+    - Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, scr/Evaluation.cpp, src/Grid.cpp, src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
     - Don’t interfere with the running program -- stack manipulation etc
+    - See below of the file list that cannot be modified
 - Including dependencies in the submission repo,
 - or specify your dependency packages in apt.txt. The packages must be available for installation through apt-get on Ubuntu 22.
 - Modify compile.sh and make sure your code can be compiled by executing this script.
