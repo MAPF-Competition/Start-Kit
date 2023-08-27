@@ -16,6 +16,22 @@ $ cd your_submission_repo
 
 ## Compile the start-kit
 
+### Denpendencies
+
+- [cmake >= 3.16](https://cmake.org/)
+- [libboost >= 1.49.0](https://www.boost.org/)
+- Python3 and [pybind11](https://pybind11.readthedocs.io/en/stable/) (for python interface user)
+
+Install dependencies on Ubuntu or Debian Linux:
+```shell
+sudo apt-get update
+sudo apt-get install build-essential libboost-all-dev python3-dev python3-pybind11 
+```
+
+[Homebrew](https://brew.sh/) is recomanded for installing dependencies on Mac OS.
+
+### Compiling
+
 Using `compile.sh`:
 ```shell
 ./compile.sh
@@ -45,6 +61,18 @@ more info on help:
 ```shell
 ./lifelong --help
 ```
+
+## Windows users
+If you are a Windows user, the most straightforward method to utilize our start-kits is by employing the WSL (Windows Subsystem for Linux) subsystem. Follow these steps:
+1. Install WSL, please refer to [https://learn.microsoft.com/en-us/windows/wsl/install](https://learn.microsoft.com/en-us/windows/wsl/install)
+2. Open a shell in WSL and execute the following commands to install the necessary tools (CMake, GCC, Boost, pip, Pybind11):
+```shell
+sudo apt-get update
+sudo apt-get install cmake g++ libboost-all-dev python3-pip python3-pybind11 
+```
+3. Employ the commands provided above to compile the start-kit.
+
+While it's technically possible to use our start-kit with Cygwin, Mingw, and MSVC, doing so would be more complex compared to using WSL. You would likely need to configure the environment yourself.
 
 ## Upgrade Your Start-Kit
 
