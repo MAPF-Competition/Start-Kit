@@ -16,6 +16,22 @@ $ cd your_submission_repo
 
 ## Compile the start-kit
 
+### Denpendencies
+
+- [cmake >= 3.16](https://cmake.org/)
+- [libboost >= 1.49.0](https://www.boost.org/)
+- Python3 and [pybind11](https://pybind11.readthedocs.io/en/stable/) (for python interface user)
+
+Install dependencies on Ubuntu or Debian Linux:
+```shell
+sudo apt-get update
+sudo apt-get install build-essential libboost-all-dev python3-dev python3-pybind11 
+```
+
+[Homebrew](https://brew.sh/) is recomanded for installing dependencies on Mac OS.
+
+### Compiling
+
 Using `compile.sh`:
 ```shell
 ./compile.sh

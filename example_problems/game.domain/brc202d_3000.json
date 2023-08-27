@@ -1,0 +1,8 @@
+{
+    "mapFile": "maps/brc202d.map",
+    "agentFile": "agents/brc202d_3000.agents",
+    "teamSize": 3000,
+    "taskFile": "tasks/brc202d_3000.tasks",
+    "numTasksReveal": 1,
+    "taskAssignmentStrategy": "roundrobin"
+}

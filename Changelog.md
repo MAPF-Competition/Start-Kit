@@ -1,6 +1,6 @@
 # Changelog
 
-Version 1.1.1 - 2023-08-26
+Version 1.1.1 - 2023-08-27
 ----------------------------
 Added:
 - More example problems for each map
