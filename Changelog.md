@@ -1,5 +1,11 @@
 # Changelog
 
+Version 1.1.2 - 2023-08-29
+----------------------------
+Fixed:
+- Parsing 'T' symbol commit missing in the git history.
+
+
 Version 1.1.1 - 2023-08-27
 ----------------------------
 Added:
