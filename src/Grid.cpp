@@ -57,10 +57,10 @@ Grid::Grid(string fname)
         for (int j = 0; j < cols; j++)
         {
             int id = cols * i + j;
-            if (line[j] != '@') // free space
-                map[id] = 0;
-            else   // obstacle
+            if (line[j] == '@' || line[j] == 'T') // obstacle
                 map[id] = 1;
+            else   // free space
+                map[id] = 0;
         }
     }
 
