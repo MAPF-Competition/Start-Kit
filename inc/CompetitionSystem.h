@@ -43,7 +43,7 @@ public:
 
     void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
     //void saveSimulationIssues(const string &fileName) const;
-    void saveResults(const string &fileName) const;
+    void saveResults(const string &fileName, int screen) const;
 
 
 protected:
