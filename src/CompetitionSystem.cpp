@@ -331,7 +331,7 @@ void BaseSystem::savePaths(const string &fileName, int option) const
 }
 
 
-void BaseSystem::saveResults(const string &fileName) const
+void BaseSystem::saveResults(const string &fileName, int screen) const
 {
     json js;
     // Save action model
@@ -343,29 +343,32 @@ void BaseSystem::saveResults(const string &fileName) const
     js["teamSize"] = num_of_agents;
 
     // Save start locations[x,y,orientation]
-    json start = json::array();
-    for (int i = 0; i < num_of_agents; i++)
+    if (screen <= 2)
     {
-        json s = json::array();
-        s.push_back(starts[i].location/map.cols);
-        s.push_back(starts[i].location%map.cols);
-        switch (starts[i].orientation)
+        json start = json::array();
+        for (int i = 0; i < num_of_agents; i++)
         {
-        case 0:
-            s.push_back("E");
-            break;
-        case 1:
-            s.push_back("S");
-        case 2:
-            s.push_back("W");
-            break;
-        case 3:
-            s.push_back("N");
-            break;
+            json s = json::array();
+            s.push_back(starts[i].location/map.cols);
+            s.push_back(starts[i].location%map.cols);
+            switch (starts[i].orientation)
+            {
+            case 0:
+                s.push_back("E");
+                break;
+            case 1:
+                s.push_back("S");
+            case 2:
+                s.push_back("W");
+                break;
+            case 3:
+                s.push_back("N");
+                break;
+            }
+            start.push_back(s);
         }
-        start.push_back(s);
+        js["start"] = start;
     }
-    js["start"] = start;
 
     js["numTaskFinished"] = num_of_task_finish;
     int sum_of_cost = 0;
@@ -385,147 +388,154 @@ void BaseSystem::saveResults(const string &fileName) const
     }
     js["sumOfCost"] = sum_of_cost;
     js["makespan"] = makespan;
-  
-    // Save actual paths
-    json apaths = json::array();
-    for (int i = 0; i < num_of_agents; i++)
+    
+    if (screen <= 2)
     {
-        std::string path;
-        bool first = true;
-        for (const auto action : actual_movements[i])
+        // Save actual paths
+        json apaths = json::array();
+        for (int i = 0; i < num_of_agents; i++)
         {
-            if (!first)
+            std::string path;
+            bool first = true;
+            for (const auto action : actual_movements[i])
             {
-                path+= ",";
-            }
-            else
-            {
-                first = false;
-            }
+                if (!first)
+                {
+                    path+= ",";
+                }
+                else
+                {
+                    first = false;
+                }
 
-            if (action == Action::FW)
-            {
-                path+="F";
+                if (action == Action::FW)
+                {
+                    path+="F";
+                }
+                else if (action == Action::CR)
+                {
+                    path+="R";
+                } 
+                else if (action == Action::CCR)
+                {
+                    path+="C";
+                }
+                else if (action == Action::NA)
+                {
+                    path+="T";
+                }
+                else
+                {
+                    path+="W";
+                }
             }
-            else if (action == Action::CR)
-            {
-                path+="R";
-            } 
-            else if (action == Action::CCR)
-            {
-                path+="C";
-            }
-            else if (action == Action::NA)
-            {
-                path+="T";
-            }
-            else
-            {
-                path+="W";
-            }
+            apaths.push_back(path);
         }
-        apaths.push_back(path);
-    }
-    js["actualPaths"] = apaths;
+        js["actualPaths"] = apaths;
 
-    //planned paths
-    json ppaths = json::array();
-    for (int i = 0; i < num_of_agents; i++)
-    {
-        std::string path;
-        bool first = true;
-        for (const auto action : planner_movements[i])
+        //planned paths
+        json ppaths = json::array();
+        for (int i = 0; i < num_of_agents; i++)
         {
-            if (!first)
+            std::string path;
+            bool first = true;
+            for (const auto action : planner_movements[i])
             {
-                path+= ",";
-            } 
-            else 
-            {
-                first = false;
-            }
+                if (!first)
+                {
+                    path+= ",";
+                } 
+                else 
+                {
+                    first = false;
+                }
 
-            if (action == Action::FW)
-            {
-                path+="F";
-            }
-            else if (action == Action::CR)
-            {
-                path+="R";
-            } 
-            else if (action == Action::CCR)
-            {
-                path+="C";
-            } 
-            else if (action == Action::NA)
-            {
-                path+="T";
-            }
-            else
-            {
-                path+="W";
-            }
-        }  
-        ppaths.push_back(path);
-    }
-    js["plannerPaths"] = ppaths;
+                if (action == Action::FW)
+                {
+                    path+="F";
+                }
+                else if (action == Action::CR)
+                {
+                    path+="R";
+                } 
+                else if (action == Action::CCR)
+                {
+                    path+="C";
+                } 
+                else if (action == Action::NA)
+                {
+                    path+="T";
+                }
+                else
+                {
+                    path+="W";
+                }
+            }  
+            ppaths.push_back(path);
+        }
+        js["plannerPaths"] = ppaths;
 
-    json planning_times = json::array();
-    for (double time: planner_times)
-        planning_times.push_back(time);
-    js["plannerTimes"] = planning_times;
+        json planning_times = json::array();
+        for (double time: planner_times)
+            planning_times.push_back(time);
+        js["plannerTimes"] = planning_times;
 
-    // Save errors
-    json errors = json::array();
-    for (auto error: model->errors)
-    {
-        std::string error_msg;
-        int agent1;
-        int agent2;
-        int timestep;
-        std::tie(error_msg,agent1,agent2,timestep) = error;
-        json e = json::array();
-        e.push_back(agent1);
-        e.push_back(agent2);
-        e.push_back(timestep);
-        e.push_back(error_msg);
-        errors.push_back(e);
-
-    }
-    js["errors"] = errors;
-  
-    // Save events
-    json events_json = json::array();
-    for (int i = 0; i < num_of_agents; i++)
-    {
-        json event = json::array();
-        for(auto e: events[i])
+        // Save errors
+        json errors = json::array();
+        for (auto error: model->errors)
         {
-            json ev = json::array();
-            std::string event_msg;
-            int task_id;
+            std::string error_msg;
+            int agent1;
+            int agent2;
             int timestep;
-            std::tie(task_id,timestep,event_msg) = e;
-            ev.push_back(task_id);
-            ev.push_back(timestep);
-            ev.push_back(event_msg);
-            event.push_back(ev);
-        }
-        events_json.push_back(event);
-    }
-    js["events"] = events_json;
+            std::tie(error_msg,agent1,agent2,timestep) = error;
+            json e = json::array();
+            e.push_back(agent1);
+            e.push_back(agent2);
+            e.push_back(timestep);
+            e.push_back(error_msg);
+            errors.push_back(e);
 
-    // Save all tasks
-    json tasks = json::array();
-    for (auto t: all_tasks)
-    {
-        json task = json::array();
-        task.push_back(t.task_id);
-        task.push_back(t.location/map.cols);
-        task.push_back(t.location%map.cols);
-        tasks.push_back(task);
+        }
+        js["errors"] = errors;
     }
-    js["tasks"] = tasks;
+
+
+    if (screen <= 1)
+    {
+        // Save events
+        json events_json = json::array();
+        for (int i = 0; i < num_of_agents; i++)
+        {
+            json event = json::array();
+            for(auto e: events[i])
+            {
+                json ev = json::array();
+                std::string event_msg;
+                int task_id;
+                int timestep;
+                std::tie(task_id,timestep,event_msg) = e;
+                ev.push_back(task_id);
+                ev.push_back(timestep);
+                ev.push_back(event_msg);
+                event.push_back(ev);
+            }
+            events_json.push_back(event);
+        }
+        js["events"] = events_json;
+
+        // Save all tasks
+        json tasks = json::array();
+        for (auto t: all_tasks)
+        {
+            json task = json::array();
+            task.push_back(t.task_id);
+            task.push_back(t.location/map.cols);
+            task.push_back(t.location%map.cols);
+            tasks.push_back(task);
+        }
+        js["tasks"] = tasks;
+    }
 
     std::ofstream f(fileName,std::ios_base::trunc |std::ios_base::out);
     f << std::setw(4) << js;
