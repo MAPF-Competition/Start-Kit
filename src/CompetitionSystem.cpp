@@ -432,7 +432,10 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
             apaths.push_back(path);
         }
         js["actualPaths"] = apaths;
+    }
 
+    if (screen <=1)
+    {
         //planned paths
         json ppaths = json::array();
         for (int i = 0; i < num_of_agents; i++)
@@ -498,11 +501,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
 
         }
         js["errors"] = errors;
-    }
 
-
-    if (screen <= 1)
-    {
         // Save events
         json events_json = json::array();
         for (int i = 0; i < num_of_agents; i++)
