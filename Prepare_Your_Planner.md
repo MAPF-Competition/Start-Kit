@@ -29,7 +29,7 @@ To run the program, please refer to [README.md](./README.md) to download the sta
     - Don’t override any operating system-related functions (signal handlers)
     - Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in:
       
-      src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, scr/Evaluation.cpp, src/Grid.cpp, src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
+      src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, src/Evaluation.cpp, src/Grid.cpp, src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
     - Don’t interfere with the running program -- stack manipulation etc
 - Including dependencies in the submission repo,
 - or specify your dependency packages in apt.txt. The packages must be available for installation through apt-get on Ubuntu 22.
