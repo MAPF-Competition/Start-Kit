@@ -20,7 +20,10 @@ You will need to make this file available to your planner, which is accomplished
 ```
 
 Before evaluation, the start-kit environment calls `MAPFPlanner::initialize` function, which you will implement. 
-Locate your auxiliary data by reading the variable `MAPFPlanner::env->file_storage_path`. 
+Locate your auxiliary data by reading the variable `MAPFPlanner::env->file_storage_path`. For example, to load `example.data`, your planner can read 
+`
+path  = env->file_storage_path + "/example.data"
+`.
 You now have 30 minutes to load your auxiliary data file and initialise supporting data structures.
 These will then be used by your planner during online evaluation. 
 
