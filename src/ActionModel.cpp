@@ -35,18 +35,16 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
         if (next[i].location < 0 || next[i].location >= grid.map.size() || 
             (abs(next[i].location / cols - prev[i].location/cols) + abs(next[i].location % cols - prev[i].location %cols) > 1 ))
         {
-            cout << "ERROR: agent " << i << " moves out of map size. " << endl;
             errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
             return false;
         }
         if (grid.map[next[i].location] == 1) {
-            cout << "ERROR: agent " << i << " moves to an obstacle. " << endl;
             errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
             return false;
         }
+        
 
         if (vertex_occupied.find(next[i].location) != vertex_occupied.end()) {
-            cout << "ERROR: agents " << i << " and " << vertex_occupied[next[i].location] << " have a vertex conflict. " << endl;
             errors.push_back(make_tuple("vertex conflict",i,vertex_occupied[next[i].location], next[i].timestep));
             return false;
         }
@@ -54,7 +52,6 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
         int edge_idx = (prev[i].location + 1) * rows * cols +  next[i].location;
 
         if (edge_occupied.find({prev[i].location, next[i].location}) != edge_occupied.end()) {
-            cout << "ERROR: agents " << i << " and " << edge_occupied[{prev[i].location, next[i].location}] << " have an edge conflict. " << endl;
             errors.push_back(make_tuple("edge conflict", i, edge_occupied[{prev[i].location, next[i].location}], next[i].timestep));
             return false;
         }
