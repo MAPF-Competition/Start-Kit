@@ -76,9 +76,7 @@ void BaseSystem::sync_shared_env() {
 
 vector<Action> BaseSystem::plan_wrapper()
 {
-    std::cout<<"wrapper called"<<std::endl;
     vector<Action> actions;
-    std::cout<<"planning"<<std::endl;
     planner->plan(plan_time_limit, actions);
 
     return actions;
@@ -179,9 +177,6 @@ void BaseSystem::simulate(int simulation_time)
 
     for (; timestep < simulation_time; )
     {
-        cout << "----------------------------" << std::endl;
-        cout << "Timestep " << timestep << std::endl;
-
         // find a plan
         sync_shared_env();
         // vector<Action> actions = planner->plan(plan_time_limit);
@@ -212,7 +207,6 @@ void BaseSystem::simulate(int simulation_time)
             auto diff = end-start;
             planner_times.push_back(std::chrono::duration<double>(diff).count());
         }
-        cout << new_finished_tasks.size() << " tasks has been finished in this timestep" << std::endl;
 
         // update tasks
         for (auto task : new_finished_tasks)
@@ -223,7 +217,6 @@ void BaseSystem::simulate(int simulation_time)
             num_of_tasks++;
             num_of_task_finish++;
         }
-        cout << num_of_tasks << " tasks has been finished by far in total" << std::endl;
 
         update_tasks();
 
@@ -242,12 +235,9 @@ void BaseSystem::simulate(int simulation_time)
         }
         if (complete_all)
         {
-            cout << std::endl << "All task finished!" << std::endl;
             break;
         }
     }
-
-    cout << std::endl << "Done!" << std::endl;
 }
 
 
@@ -569,7 +559,6 @@ bool FixedAssignSystem::load_agent_tasks(string fname)
   
     for (int i = 0; i < num_of_agents; i++)
     {
-        cout << "agent " << i << ": ";
 
         getline(myfile, line);
         while (!myfile.eof() && line[0] == '#')
@@ -583,15 +572,12 @@ bool FixedAssignSystem::load_agent_tasks(string fname)
         auto loc = atoi((*beg).c_str());
         // agent_start_locations[i] = {loc, 0};
         starts[i] = State(loc, 0, 0);
-        cout << loc;
         beg++;
         for (int j = 0; j < num_landmarks; j++, beg++)
         {
             auto loc = atoi((*beg).c_str());
             task_queue[i].emplace_back(task_id++, loc, 0, i);
-            cout << " -> " << loc;
         }
-        cout << endl;
     }
     myfile.close();
 
@@ -622,8 +608,6 @@ void TaskAssignSystem::update_tasks()
     {
         while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue.empty())
         {
-            std::cout << "assigned task " << task_queue.front().task_id <<
-                " with loc " << task_queue.front().location << " to agent " << k << std::endl;
             Task task = task_queue.front();
             task.t_assigned = timestep;
             task.agent_assigned = k;
