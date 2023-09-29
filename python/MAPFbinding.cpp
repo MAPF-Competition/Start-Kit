@@ -48,20 +48,24 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("goal_locations",&SharedEnvironment::goal_locations)
         .def_readonly("curr_timestep",&SharedEnvironment::curr_timestep)
         .def_readonly("map",&SharedEnvironment::map)
+        .def_readonly("map_name",&SharedEnvironment::map_name)
+        .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
         .def_readonly("curr_states",&SharedEnvironment::curr_states);
 
 
 
 
-    //in case that users want to use numpy arrays
+    //in case that users want to use numpy arrays, or reimplement a gym-like environment, they can modify the pyEnvironment
     pybind11::class_<pyEnvironment>(m,"pyEnvironment")
         .def(pybind11::init<SharedEnvironment *>())
         .def("get_rows",&pyEnvironment::get_rows)
         .def("get_cols",&pyEnvironment::get_cols)
         .def("get_currtimestep",&pyEnvironment::get_currtimestep)
         .def("get_map",&pyEnvironment::get_map)
+        .def("get_map_name", &pyEnvironment::get_map_name)
         .def("get_goal_locations",&pyEnvironment::get_goal_locations)
         .def("get_num_of_agents",&pyEnvironment::get_num_of_agents)
+        .def("get_file_storage_path", &pyEnvironment::get_file_storage_path)
         .def_readonly("env",&pyEnvironment::env,pybind11::return_value_policy::reference)
         .def("get_curr_states",&pyEnvironment::get_curr_states);
 
