@@ -16,7 +16,7 @@ $ cd your_submission_repo
 
 ## Compile the start-kit
 
-### Denpendencies
+### Dependencies
 
 - [cmake >= 3.16](https://cmake.org/)
 - [libboost >= 1.49.0](https://www.boost.org/)
