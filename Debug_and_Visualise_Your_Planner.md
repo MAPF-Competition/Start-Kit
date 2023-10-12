@@ -10,9 +10,13 @@ To debug your planners, there are some properties that can help you to learn how
 4. Other ways: you can also compare your performance and design a better planner by simply looking at the `numTaskFinished` results and analysing the tasks finished by `events` and `tasks`.
 
 ## Visualise your planner using Output File
-We also provide visualise tools to visualise your plan with the output JSON file. You can visualise those information from the output file:
-1. Actual Paths
-2. Planner Path
-3. Errors
-4. Events
-For how to use the visualiser, please refer to [Visualiser Page](https://github.com/MAPF-Competition/PlanViz).
+We also provide a tool called [PlanViz](https://github.com/MAPF-Competition/PlanViz) for visualising your plan with the output JSON file.
+PlanViz shows the animation of the actualPaths of agents in the JSON file.
+While the actual paths are always valid and conflict-free, the plannerPaths might contain conflicts and invalid moves.
+In such cases, PlanViz can highlight the problematic agents with red color.
+You can also click each item in the error list to jump to the corresponding timestep.
+Note that PlanViz does not do any validation or error checking.
+Therefore, the errors it shows are those recorded in the JSON file.
+If you modify the JSON file manually, the error list and agent highlighting can be inconsistent with the movement.
+
+For more details, please refer to the [Visualiser Page](https://github.com/MAPF-Competition/PlanViz).
