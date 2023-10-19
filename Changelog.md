@@ -1,5 +1,14 @@
 # Changelog
 
+Version 1.1.3 - 
+----------------------------
+
+Changed:
+- Readme, Parepare_Your_Planner, and compile.sh suggests running the start-kit under repo root directory.
+
+Fixed:
+- Fixed issue with running start-kit under repo root directory python cannot find compiled MAPF module for importing.
+
 Version 1.1.2 - 2023-08-29
 ----------------------------
 Fixed:

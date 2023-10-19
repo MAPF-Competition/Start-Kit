@@ -40,26 +40,25 @@ Using `compile.sh`:
 Using cmake: 
 ```shell
 mkdir build
-cd build
-cmake ../ -DCMAKE_BUILD_TYPE=Release
-make -j
+cmake -B build ./ -DCMAKE_BUILD_TYPE=Release
+make -C build -j
 ```
 
 ## Run the start kit
 
 Running the start-kit using commands: 
 ```shell
-./lifelong --inputFile the_input_file_name -o output_file_location
+./build/lifelong --inputFile the_input_file_name -o output_file_location
 ```
 
 for example:
 ```shell
-./lifelong --inputFile ../example_problems/random.domain/random_20.json -o test.json
+./build/lifelong --inputFile ./example_problems/random.domain/random_20.json -o test.json
 ```
 
 more info on help:
 ```shell
-./lifelong --help
+./build/lifelong --help
 ```
 
 ## Windows users
