@@ -7,13 +7,13 @@ pyMAPFPlanner::pyMAPFPlanner():MAPFPlanner(){
     py_env=new pyEnvironment(env);
     std::ifstream configFile("config.json");
     
-    if(!configFile){
-        //default
-        std::cout<<"setting to default python path"<<std::endl;
-        sys.attr("path").attr("append")("./python");
-        sys.attr("path").attr("append")("../python");
-    }
-    else{
+    //default
+    std::cout<<"setting to default python path: ./python, ../python, ./build "<<std::endl;
+    sys.attr("path").attr("append")("./python");
+    sys.attr("path").attr("append")("../python");
+    sys.attr("path").attr("append")("./build");
+    
+    if(configFile){
         nlohmann::json configData;
         try{
             configFile>>configData;
