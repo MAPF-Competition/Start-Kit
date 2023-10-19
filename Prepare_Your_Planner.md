@@ -3,7 +3,7 @@ To run the program, please refer to [README.md](./README.md) to download the sta
 
 ## Planner Integration
 - Before your planning, get familiar with the data structures:
-    - Coordination system of the map: the location of a robot on the map is based on its coordination (x,y), where x refers to the row the robot stays at, and y refers to the column it stays at. For the first row (the topest row), x = 0, and for the first column (the leftmost column), y = 0.
+    - Coordination system of the map: the location of a robot on the map is based on its coordination (x,y), where x refers to the row the robot stays at, and y refers to the column it stays at. For the first row (the topest row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
     - Map: the map is a vector of int, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
     - A State of a robot: a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
     - Tasks of robots: a task of a robot is an int, which represents a single location (linearised) in the map.
