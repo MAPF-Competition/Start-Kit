@@ -10,5 +10,5 @@ make -C build -j
 
 # build exec for python
 
-# cmake -B build ./ -DPYTHON=true
+# cmake -B build ./ -DPYTHON=true -DCMAKE_BUILD_TYPE=Release
 # make -C build -j
