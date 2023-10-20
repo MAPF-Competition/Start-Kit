@@ -15,6 +15,7 @@ Changed:
 
 Fixed:
 - Fixed issue with running start-kit under repo root directory python cannot find compiled MAPF module for importing.
+- Fixed issue with missing fie_storage_path for pybind.
 
 Version 1.1.2 - 2023-08-29
 ----------------------------
