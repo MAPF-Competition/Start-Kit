@@ -2,9 +2,16 @@
 
 Version 1.1.3 - 
 ----------------------------
-
+Added:
+- Add Working_with_Preprocessed_Data.md to explain how you can work with your preprocessed data.
+- Add Debug_and_Visualiser_Your_Planner.md to explain how you can use the JSON output to debug and visualise with PlanViz
+  
 Changed:
+- Additional option `OutputScreen` in the input argument, which allows you to choose the level of details of the output JSON file.
 - Readme, Parepare_Your_Planner, and compile.sh suggests running the start-kit under repo root directory.
+- Simplified duplicated output appears in couts and log files
+- Updated documentation (add more descriptions regarding the coordination system in Prepare_Your_Planner.md)
+- Updated documentation (add corresponding descriptions of `OutputScreen` in Input_Output_Format.md)
 
 Fixed:
 - Fixed issue with running start-kit under repo root directory python cannot find compiled MAPF module for importing.
