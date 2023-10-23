@@ -167,3 +167,4 @@ example_problems/warehouse.domain/warehouse_small_60.json
 example_problems/warehouse.domain/warehouse_small_800.json
 compile.sh
 Working_with_Preprocessed_Data.md
+Changelog.md
