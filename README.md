@@ -79,9 +79,11 @@ If your private start-kit copy repo was created before a start-kit upgrade, you 
 
 You can check `version.txt` to know the current version of your start-kit.
 
-The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit.
+The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit. It will pull and stage the files, but not commit them. This allows you review the changes before commit them. 
 
-The upgrade may overwrite some of your changes to `CMakeLists.txt` and `apt.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications on these files.
+For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Planner.md), you always commit their changes.
+
+The upgrade may overwrite some of your changes to `CMakeLists.txt`, `compile.sh`, and `apt.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on these files.
 
 The upgrade script will not touch any participants' created file, `python/pyMAPFPlanner.py`, `inc/MAPFPlanner.h` and `src/MAPFPlanner.cpp`. So that participants' implementations should not be influenced by the start-kit upgrade.
 

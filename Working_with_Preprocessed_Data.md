@@ -16,7 +16,7 @@ Suppose, your auxiliary data is called `example.data` and is located on your loc
 You will need to make this file available to your planner, which is accomplished with the help of the `--fileStoragePath` argument, for example:
 
 ```
-./lifelong --inputFile ../example_problems/random.domain/random_20.json -o test.json --fileStoragePath /tmp
+./build/lifelong --inputFile ./example_problems/random.domain/random_20.json -o test.json --fileStoragePath /tmp
 ```
 
 Before evaluation, the start-kit environment calls `MAPFPlanner::initialize` function, which you will implement. 

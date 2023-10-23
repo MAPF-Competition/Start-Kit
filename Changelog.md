@@ -1,6 +1,6 @@
 # Changelog
 
-Version 1.1.3 - 
+Version 1.1.3 - 2023-10-24
 ----------------------------
 Added:
 - Add Working_with_Preprocessed_Data.md to explain how you can work with your preprocessed data.
@@ -12,6 +12,7 @@ Changed:
 - Simplified duplicated output appears in couts and log files
 - Updated documentation (add more descriptions regarding the coordination system in Prepare_Your_Planner.md)
 - Updated documentation (add corresponding descriptions of `OutputScreen` in Input_Output_Format.md)
+- Terminate all processes when the main process (the simulation) is terminated.
 
 Fixed:
 - Fixed issue with running start-kit under repo root directory python cannot find compiled MAPF module for importing.
