@@ -15,7 +15,7 @@ To run the program, please refer to [README.md](./README.md) to download the sta
     -  map_name: string, the map file name.
     -  map: vector of int, stores the map.  
     -  file_storage_path: string, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
-    -  goal locations, vector of vector of pair <int,int>: current tasks locations allocated to each robot.
+    -  goal locations, vector of vector of pair <int,int>: current tasks locations allocated to each robot. The first int of a task (pair of int) is the goal location, and the second int indicates the timestep that the task was allocated.
     -  current_timestep: int, the current time step that our system already simulated the robots' actions.
     -  curr_states: vector of State, the current state for each robot at the current time step, 
 - Be aware that time is ticking while planning: at every timestep, we will ask your planner to compute the next valid action for each robot within a given planning time limit. This is given as the input parameter of the function in the planner class (preprocess_time_limit in function 'initialize' and time_limit in function 'plan', both are int). The preprocess_time_limit is the maximum time to preprocess your map. If this process costs more than the time limit, then your planner fails and the system terminates with a failure to preprocess within the time limit. As for the time_limit in the function plan, it is a soft limit, which means if you do not return actions within the time limit, the program will continue, and all robots will wait in place until the next planning episode.
