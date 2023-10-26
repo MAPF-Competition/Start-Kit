@@ -169,5 +169,5 @@ int main(int argc, char **argv)
 
     delete model;
     delete logger;
-    return 0;
+    _exit(0);
 }
