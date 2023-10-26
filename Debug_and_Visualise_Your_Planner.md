@@ -59,10 +59,13 @@ Error List
 
 The error list section shows the errors (planner timeout, collisions in the planned paths, etc.) in the JSON input file. You can interact with a collision error by single or double-clicking it:
 
-![When "Show colliding agents" is turned off, single-clicking a conflict will mark the two colliding agents red.](./image/single_click.gif)
+![](./image/single_click.gif)
 
-![Double-clicking a conflict will make PlanViz jump to the specific timestep and show the collision.](./image/double_click.gif)
+*When "Show colliding agents" is turned off, single-clicking a conflict will mark the two colliding agents red.*
 
+![](./image/double_click.gif)
+
+*Double-clicking a conflict will make PlanViz jump to the specific timestep and show the collision.*
 #### Event List
 
 The event list section shows the events (assignment and completion of tasks) in the JSON input file. Single-clicking an event will make PlanViz jump to the timestep right before the event timestep.
