@@ -79,7 +79,7 @@ If your private start-kit copy repo was created before a start-kit upgrade, you 
 
 You can check `version.txt` to know the current version of your start-kit.
 
-The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit. It will pull and stage the files, but not commit them. This allows you review the changes before commit them. 
+The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit. It will pull and stage the files, but not commit them. This allows you to review the changes before committing them. 
 
 For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Planner.md), you always commit their changes.
 
@@ -95,10 +95,12 @@ Please refer to the [Input_Output_Format.md](./Input_Output_Format.md).
 
 Please refer to the [Prepare_Your_Planner.md](./Prepare_Your_Planner.md).
 
-## Visualisation
-We provide a visualisation tool written in Python: [https://github.com/MAPF-Competition/MAPF_analysis](https://github.com/MAPF-Competition/MAPF_analysis).
+## Debug and Visualise Your Planner
+We provide a visualisation tool written in Python: [https://github.com/MAPF-Competition/PlanViz](https://github.com/MAPF-Competition/PlanViz).
 
-It is able to visualise the output of the start-kit program and help participants to debug the implementations.
+It is able to visualise the output of the start-kit program and help participants debug the implementations. 
+
+Please refer to the website above and [Debug_and_Visualise_Your_Planner](./Debug_and_Visualise_Your_Planner.md).
 
 ## Submission Instruction
 
