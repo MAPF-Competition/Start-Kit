@@ -97,10 +97,9 @@ Please refer to the [Prepare_Your_Planner.md](./Prepare_Your_Planner.md).
 
 ## Debug and Visualise Your Planner
 We provide a visualisation tool written in Python: [https://github.com/MAPF-Competition/PlanViz](https://github.com/MAPF-Competition/PlanViz).
-
 It is able to visualise the output of the start-kit program and help participants debug the implementations. 
 
-Please refer to the website above and [Debug_and_Visualise_Your_Planner](./Debug_and_Visualise_Your_Planner.md).
+Please refer to the project website for more information. Also the document [Debug_and_Visualise_Your_Planner](./Debug_and_Visualise_Your_Planner.md) which provides helpful hints for interpreting and diagnosing planner output.
 
 ## Submission Instruction
 
