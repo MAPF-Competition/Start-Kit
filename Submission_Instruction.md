@@ -14,7 +14,7 @@ $ git push origin
 Once you commit your implementation to your submission repo you can begin the evaluation process. 
 From the competition website, navigate to the My Submission Page. Here you will be able to see details of your entry and submission history (make sure you are logged in!). 
 
-You can evaulate a specific branch under `Evaluate the Branch`, this allows for different algorithms or variant features.
+You can evaluate a specific branch under `Evaluate the Branch`, this allows for different algorithms or variant features.
 
 Then click the `Start Evaluation` button on this page to evaluate your new submission.
 

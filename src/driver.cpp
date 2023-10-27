@@ -28,7 +28,7 @@ void sigint_handler(int a)
     fprintf(stdout, "stop the simulation...\n");
     if (!vm["evaluationMode"].as<bool>())
     {
-        system_ptr->saveResults(vm["output"].as<std::string>());
+        system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
     }
     _exit(0);
 }
@@ -37,7 +37,7 @@ void sigint_handler(int a)
 int main(int argc, char **argv)
 {
 #ifdef PYTHON
-    std::cout<<"Using Python="<<PYTHON<<std::endl;
+    // st::cout<<"Using Python="<<PYTHON<<std::endl;
 #if PYTHON
     pybind11::initialize_interpreter();
 #endif
@@ -48,6 +48,7 @@ int main(int argc, char **argv)
         // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")
+        ("outputScreen", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
         ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
         ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
@@ -69,7 +70,6 @@ int main(int argc, char **argv)
     boost::filesystem::path p(vm["inputFile"].as<std::string>());
     boost::filesystem::path dir = p.parent_path();
     std::string base_folder = dir.string();
-    std::cout << base_folder << std::endl;
     if (base_folder.size() > 0 && base_folder.back() != '/')
     {
         base_folder += "/";
@@ -124,7 +124,6 @@ int main(int argc, char **argv)
 
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
     std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
-    std::cout << agents.size() << " agents and " << tasks.size() << " tasks"<< std::endl;
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
@@ -165,10 +164,10 @@ int main(int argc, char **argv)
 
     if (!vm["evaluationMode"].as<bool>())
     {
-        system_ptr->saveResults(vm["output"].as<std::string>());
+        system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
     }
 
     delete model;
     delete logger;
-    return 0;
+    _exit(0);
 }
