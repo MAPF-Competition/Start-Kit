@@ -30,7 +30,6 @@ struct cmp
 
 void MAPFPlanner::initialize(int preprocess_time_limit)
 {
-    cout << "planner initialize done" << endl;
 }
 
 
