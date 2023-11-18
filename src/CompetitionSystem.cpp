@@ -71,9 +71,9 @@ void BaseSystem::sync_shared_env() {
                 env->goal_locations[i].push_back({task.location, task.t_assigned });
             }
         }
+        env->curr_states = curr_states;
     }
     env->curr_timestep = timestep;
-    env->curr_states = curr_states;
 }
 
 
