@@ -8,7 +8,7 @@ namespace sinks = boost::log::sinks;
 
 void Logger::set_logfile(std::string filename)
 {
-    logging::add_file_log
+    this->sink = logging::add_file_log
         (
          keywords::file_name = filename,
          keywords::format = "[%TimeStamp%]: *%Severity%* %Message%"
