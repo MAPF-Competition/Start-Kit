@@ -69,9 +69,9 @@ We also provide a Python interface for Python users based on pybind11.
 Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
 
 The pybind11 module mainly contains three files:
-+ MAPFBinding.cpp: it binds the C++ classes to the "MAPF" pybind module, allowing users to access  C++ classes such as SharedEnvironment and Action
-+ pyMAPFPlanner.py: users can implement their learning-based algorithms and return solutions as a list of actions or a numpy array.
-+ pyMAPFPlanner.cpp: pyMAPFPlanner.cpp imports the above Python script and calls relevant Python functions to get the solution and return it to the C++ simulation system
++ `MAPFBinding.cpp`: this file binds the C++ classes to the "MAPF" pybind module, allowing users to access  C++ classes such as SharedEnvironment and Action
++ `pyMAPFPlanner.py`: this file is where users implement their learning-based algorithms and return solutions as a list of actions or a numpy array.
++ `pyMAPFPlanner.cpp`: this file imports the above Python script and calls relevant Python functions to get the solution and return it to the C++ simulation system
 
 To use the python interface, one can use the following to compile the program that runs pyMAPFPlanner 
 
