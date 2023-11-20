@@ -1,5 +1,15 @@
 # Changelog
 
+Version 1.1.4 - 2023-11-18
+----------------------------
+Fixed:
+- Fixed a bug causing segmentation fault on preprocess timeout. Preprocess timeout will now terminate the program with exit code 124.
+- Fixed a bug causing segmentation fault on reading env->goal_locations when the plan timelimit exceeded.
+
+Changes:
+- Updated documentation to explain the preprocess timeout behaviour.
+- Updated documentation to better explain online timeout behaviour. In particular, we spell out that env->curr_timestep may increment during the `plan()` call if it exceeds the given plan timelimit.
+
 Version 1.1.3 - 2023-10-24
 ----------------------------
 Added:

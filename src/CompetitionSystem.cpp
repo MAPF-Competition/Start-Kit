@@ -60,17 +60,20 @@ bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
 
 
 void BaseSystem::sync_shared_env() {
-    env->goal_locations.resize(num_of_agents);
-    for (size_t i = 0; i < num_of_agents; i++)
-    {
-        env->goal_locations[i].clear();
-        for (auto& task: assigned_tasks[i])
+
+    if (!started){
+        env->goal_locations.resize(num_of_agents);
+        for (size_t i = 0; i < num_of_agents; i++)
         {
-            env->goal_locations[i].push_back({task.location, task.t_assigned });
+            env->goal_locations[i].clear();
+            for (auto& task: assigned_tasks[i])
+            {
+                env->goal_locations[i].push_back({task.location, task.t_assigned });
+            }
         }
+        env->curr_states = curr_states;
     }
     env->curr_timestep = timestep;
-    env->curr_states = curr_states;
 }
 
 
@@ -153,6 +156,7 @@ void BaseSystem::log_preprocessing(bool succ)
     {
         logger->log_fatal("Preprocessing timeout", timestep);
     }
+    logger->flush();
 }
 
 
@@ -179,9 +183,6 @@ void BaseSystem::simulate(int simulation_time)
     {
         // find a plan
         sync_shared_env();
-        // vector<Action> actions = planner->plan(plan_time_limit);
-        // vector<Action> actions;
-        // planner->plan(plan_time_limit,actions);
 
         auto start = std::chrono::steady_clock::now();
 
@@ -256,11 +257,11 @@ void BaseSystem::initialize()
     assigned_tasks.resize(num_of_agents);
 
     //planner initilise before knowing the first goals
-    auto planner_initialize_success= planner_initialize();
+    bool planner_initialize_success= planner_initialize();
     
     log_preprocessing(planner_initialize_success);
     if (!planner_initialize_success)
-        return;
+        _exit(124);
 
     // initialize_goal_locations();
     update_tasks();
