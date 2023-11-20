@@ -19,7 +19,7 @@ public:
     Logger(){init();};
     ~Logger(){};
 
-    boost::shared_ptr<boost::log::v2_mt_posix::sinks::synchronous_sink<boost::log::v2_mt_posix::sinks::text_file_backend>> sink;
+    boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> sink;
 
     void set_logfile(std::string filename);
     void init();
