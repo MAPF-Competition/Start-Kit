@@ -8,7 +8,7 @@ Fixed:
 
 Changes:
 - Updated documentation to explain the preprocess timeout behaviour.
-- Updated documentation to explain that env->curr_timestep may increment when the `plan()` call is running and exceeds the plan timelimit.
+- Updated documentation to better explain online timeout behaviour. In particular, we spell out that env->curr_timestep may increment during the `plan()` call if it exceeds the given plan timelimit.
 
 Version 1.1.3 - 2023-10-24
 ----------------------------
