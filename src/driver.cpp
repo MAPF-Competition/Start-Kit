@@ -54,7 +54,7 @@ int main(int argc, char **argv)
         ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
         ("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")
         ("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")
-        ("logFile,l", po::value<std::string>(), "issue log file name");
+        ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -75,9 +75,7 @@ int main(int argc, char **argv)
         base_folder += "/";
     }
 
-    Logger *logger = new Logger();
-    if (vm.count("logFile"))
-        logger->set_logfile(vm["logFile"].as<std::string>());
+    Logger *logger = new Logger(vm["logFile"].as<std::string>());
 
     MAPFPlanner *planner = nullptr;
     // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
