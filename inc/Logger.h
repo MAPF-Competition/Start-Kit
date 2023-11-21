@@ -29,8 +29,8 @@ public:
     void log_fatal(std::string input, int timestep);
     void log_warning(std::string input);
     void log_warning(std::string input, int timestep);
-    void flush(){ if (this->sink != nullptr) this->sink->flush();};
+    void flush(){ if (!this->sink) this->sink->flush();};
 private:
-    boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> sink = nullptr;
+    boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> sink;
 
 };
