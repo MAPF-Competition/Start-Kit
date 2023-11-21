@@ -19,7 +19,6 @@ public:
     Logger(){init();};
     ~Logger(){};
 
-    boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> sink;
 
     void set_logfile(std::string filename);
     void init();
@@ -30,7 +29,8 @@ public:
     void log_fatal(std::string input, int timestep);
     void log_warning(std::string input);
     void log_warning(std::string input, int timestep);
-    void flush(){this->sink->flush();};
-    // void log_preprocessing(bool succ);
-    // void log_plan(bool succ,int time);
+    void flush(){ if (this->sink != nullptr) this->sink->flush();};
+private:
+    boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> sink = nullptr;
+
 };
