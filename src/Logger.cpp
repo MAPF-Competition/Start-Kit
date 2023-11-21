@@ -4,37 +4,34 @@ namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
+using namespace logging::trivial;
+src::severity_logger< severity_level > lg;
 
 
-void Logger::set_logfile(std::string filename)
-{
-    this->sink = logging::add_file_log
+Logger::Logger(std::string filename, int severity){
+    this->core = logging::core::get();
+    logging::add_common_attributes();
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= severity
+    );
+
+    if (filename != "")
+        logging::add_file_log
         (
-         keywords::file_name = filename,
-         keywords::format = "[%TimeStamp%]: *%Severity%* %Message%"
-         );
+            keywords::file_name = filename,
+            keywords::format = "[%TimeStamp%]: *%Severity%* %Message%"
+        );
 }
 
-
-void Logger::init()
-{
-    // logging::add_file_log
-    // (
-    //     keywords::format = "[%TimeStamp%]: %Message%"
-    // );
-    logging::core::get()->set_filter
-        (
-         logging::trivial::severity >= logging::trivial::info
-         );
+void Logger::flush(){
+    this->core->flush();
 }
 
 
 void Logger::log_info(std::string input)
 {
-    logging::add_common_attributes();
 
-    using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;
     BOOST_LOG_SEV(lg, info) << input;
 }
 
@@ -53,20 +50,14 @@ void Logger::log_fatal(std::string input, int timestep)
 
 void Logger::log_fatal(std::string input)
 {
-    logging::add_common_attributes();
 
-    using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;
     BOOST_LOG_SEV(lg, fatal) << input;
 }
 
 
 void Logger::log_warning(std::string input)
 {
-    logging::add_common_attributes();
 
-    using namespace logging::trivial;
-    src::severity_logger< severity_level > lg;
     BOOST_LOG_SEV(lg, warning) << input;
 }
 
