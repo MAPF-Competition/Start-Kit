@@ -1,5 +1,10 @@
 # Changelog
 
+Version 1.1.5 - 2023-11-21
+----------------------------
+Fixed:
+- An emergency fix on program crash if a log file is not set with CLI.
+
 Version 1.1.4 - 2023-11-18
 ----------------------------
 Fixed:
