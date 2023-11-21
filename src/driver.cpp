@@ -75,9 +75,12 @@ int main(int argc, char **argv)
         base_folder += "/";
     }
 
-    Logger *logger = new Logger();
+    Logger *logger = nullptr;
     if (vm.count("logFile"))
+    {   
+        logger = new Logger();
         logger->set_logfile(vm["logFile"].as<std::string>());
+    }
 
     MAPFPlanner *planner = nullptr;
     // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
