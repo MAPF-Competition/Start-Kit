@@ -1,5 +1,7 @@
 #pragma once
+#include <boost/asio/basic_socket.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/detail/endpoint.hpp>
 #include <boost/system/error_code.hpp>
 #include <string>
 #include <vector>
@@ -27,7 +29,7 @@ class ActionExecutor
 public:
     // ActionExecutor(Grid & planner_grid, Grid & real_grid): planner_grid(planner_grid), rows(planner_grid.rows), cols(planner_grid.cols), real_grid(real_grid){}
     ActionExecutor(){};
-    virtual void send_plan(const vector<State>& next) {};
+    virtual void send_plan(vector<State>& next) {};
     virtual vector<State> get_agent_locations(int timestep) {};
     void set_logger(Logger* logger){this->logger = logger;}
 
@@ -92,7 +94,7 @@ public:
     {};
 
     
-    void send_plan(const vector<State>& next) override 
+    void send_plan(vector<State>& next) override 
     {
         next_states = next;
     }
@@ -121,11 +123,9 @@ public:
         ActionExecutor(){};
         // Setup http connection as websocket?
     virtual vector<State> get_agent_locations(int timestep) override;
-
+    virtual void send_plan(vector<State>& next) override;
 private:
 
-
-    vector<FreeState> plan_grid_to_map(vector<State>& planned_next_states);
-    
-
+    // Store IP or URL of controller in class variable constant?
+    const ip::tcp::endpoint controller_endpoint = {{}, 8080};
 };
