@@ -1,11 +1,14 @@
 #pragma once
+#include <boost/asio/io_service.hpp>
+#include <boost/system/error_code.hpp>
 #include <string>
 #include <vector>
 #include "Grid.h"
 #include "States.h"
 #include "Logger.h"
 #include "FreeState.h"
-
+#include <boost/asio.hpp>
+#include <boost/asio/ip/address.hpp>
 // You are responsible telling the robot's central controller the plan
 // And getting the position of robots from the central controller
 // The central controller will decide the execution policy to implement the plan
@@ -18,6 +21,7 @@
 
 // The executor of planned and validated actions, takes a vector of states and
 // sends this to the central controller for the agents which runs an execution policy
+using namespace boost::asio;
 class ActionExecutor
 {
 public:
@@ -69,9 +73,11 @@ protected:
 
     
 
-    vector<FreeState> prepare_next_agent_poses(vector<State>& next) {
+    vector<FreeState> prepare_next_agent_poses(vector<State>& next) 
+    {
         vector<FreeState> next_agent_poses(next.size());
-        for (int i = 0; i < next.size(); i++) {
+        for (int i = 0; i < next.size(); i++) 
+        {
             next_agent_poses[i] = place_on_map(next[i]);
         }
         return next_agent_poses;
@@ -86,11 +92,13 @@ public:
     {};
 
     
-    void send_plan(const vector<State>& next) override {
+    void send_plan(const vector<State>& next) override 
+    {
         next_states = next;
     }
 
-    vector<State> get_agent_locations(int timestep) override {
+    vector<State> get_agent_locations(int timestep) override 
+    {
         return next_states;
     }
 
@@ -98,4 +106,26 @@ public:
 
 private:
     vector<State> next_states;
+};
+
+// Do a concrete implementation for turtlebots, with rotate, delay probabilities, wiggly movement
+// Localising independently...
+// It feels like the plan sending and state retrieval should be polymorphic... but is it too much abstraction
+// I think anyone sane should only implement 1-2 ways to send plans and 1-2 ways to get states so no abstraction seems okay
+
+class TurtlebotExecutor : public ActionExecutor
+{
+    
+public:
+    TurtlebotExecutor():
+        ActionExecutor(){};
+        // Setup http connection as websocket?
+    virtual vector<State> get_agent_locations(int timestep) override;
+
+private:
+
+
+    vector<FreeState> plan_grid_to_map(vector<State>& planned_next_states);
+    
+
 };

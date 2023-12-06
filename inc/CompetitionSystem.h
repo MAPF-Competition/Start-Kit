@@ -4,6 +4,7 @@
 #include "Grid.h"
 #include "Tasks.h"
 #include "ActionModel.h"
+#include "ExecutionSimulator.h"
 #include "MAPFPlanner.h"
 #include "Logger.h"
 #include <pthread.h>
@@ -15,8 +16,8 @@ public:
     int num_tasks_reveal = 1;
     Logger* logger = nullptr;
 
-	BaseSystem(Grid &grid, MAPFPlanner* planner, ActionModelWithRotate* model):
-        map(grid), planner(planner), env(planner->env), model(model)
+	BaseSystem(Grid &grid, MAPFPlanner* planner, ActionModelWithRotate* model, ActionExecutor* executor):
+        map(grid), planner(planner), env(planner->env), model(model), executor(executor)
     {}
 
 	virtual ~BaseSystem()
@@ -57,6 +58,7 @@ protected:
     SharedEnvironment* env;
 
     ActionModelWithRotate* model;
+    ActionExecutor* executor;
 
     // #timesteps for simulation
     int timestep;
@@ -108,14 +110,14 @@ protected:
 class FixedAssignSystem : public BaseSystem
 {
 public:
-	FixedAssignSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, ActionModelWithRotate *model):
-        BaseSystem(grid, planner, model)
+	FixedAssignSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, ActionModelWithRotate *model, ActionExecutor* executor):
+        BaseSystem(grid, planner, model, new PerfectExecutor())
     {
         load_agent_tasks(agent_task_filename);
     };
 
 	FixedAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<vector<int>>& tasks, ActionModelWithRotate* model):
-        BaseSystem(grid, planner, model)
+        BaseSystem(grid, planner, model, new PerfectExecutor())
     {
         if (start_locs.size() != tasks.size())
         {
@@ -156,7 +158,7 @@ class TaskAssignSystem : public BaseSystem
 {
 public:
 	TaskAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
-        BaseSystem(grid, planner, model)
+        BaseSystem(grid, planner, model, new PerfectExecutor())
     {
         int task_id = 0;
         for (auto& task_location: tasks)
@@ -187,7 +189,7 @@ class InfAssignSystem : public BaseSystem
 {
 public:
 	InfAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
-        tasks(tasks), BaseSystem(grid, planner, model)
+        tasks(tasks), BaseSystem(grid, planner, model, new PerfectExecutor())
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
