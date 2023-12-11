@@ -43,47 +43,7 @@ public:
 
 protected:
     Logger* logger = nullptr;
-    
-    int rows;
-    int cols;
 
-    
-    float location_to_x(int location) {
-        return static_cast<float>(location % rows);
-    };
-
-    float location_to_y(int location) {
-        return static_cast<float>(location / rows);
-    };
-
-    // TODO: Test this conversion
-    float orientation_to_theta(int orientation) {
-        switch (orientation) {
-            case 0:
-                return 0.0; break;
-            case 1:
-                return 270.0; break;
-            case 2:
-                return 180.0; break;
-            case 3: 
-                return 90.0; break;
-            default:
-                // TODO: Log something for invalid orientation
-                return 42.0; break; // Magic error number or just crash at runtime?
-        }
-    };
-
-    
-
-    vector<FreeState> prepare_next_agent_poses(vector<State>& next) 
-    {
-        vector<FreeState> next_agent_poses(next.size());
-        for (int i = 0; i < next.size(); i++) 
-        {
-            next_agent_poses[i] = place_on_map(next[i]);
-        }
-        return next_agent_poses;
-    };
 };
 
 class PerfectExecutor : public ActionExecutor
@@ -119,13 +79,42 @@ class TurtlebotExecutor : public ActionExecutor
 {
     
 public:
-    TurtlebotExecutor():
-        ActionExecutor(){};
+    TurtlebotExecutor(int rows, int cols):
+        rows(rows), cols(cols), ActionExecutor(){};
         // Setup http connection as websocket?
     virtual vector<State> get_agent_locations(int timestep) override;
     virtual void send_plan(vector<State>& next) override;
 private:
+    int rows;
+    int cols;
 
-    // Store IP or URL of controller in class variable constant?
-    const ip::tcp::endpoint controller_endpoint = {{}, 8080};
+    const ip::tcp::endpoint controller_endpoint = {ip::address::from_string("192.168.0.141"), 8080}; // Address of turtlebot controller server in LAN
+
+    inline float location_to_x(int location) {
+        return static_cast<float>(location % cols);
+    };
+
+    inline float location_to_y(int location) {
+        return static_cast<float>(location / cols);
+    };
+
+    inline int xy_to_location(int x, int y) {
+        return y * cols + x;
+    }
+
+    FreeState transform_state(State& place)
+    {
+        return FreeState{.x = location_to_x(place.location), .y = location_to_y(place.location), .theta= static_cast<float>(place.orientation*90), .timestep= place.timestep};
+    }
+
+    vector<FreeState> prepare_next_agent_poses(vector<State>& next) 
+    {
+        vector<FreeState> next_agent_poses(next.size());
+        for (int i = 0; i < next.size(); i++) 
+        {
+            next_agent_poses[i] = transform_state(next[i]);
+        }
+        return next_agent_poses;
+    };
+
 };

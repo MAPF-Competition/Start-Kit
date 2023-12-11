@@ -12,12 +12,13 @@
 using json = nlohmann::json;
 using namespace boost::asio;
 
-json stateToJSON(State& curr_state) {
+json stateToJSON(FreeState& state) {
     json obj = json::object();
 
-    obj["location"] = curr_state.location;
-    obj["timestep"] = curr_state.timestep;
-    obj["orientation"] = curr_state.orientation;
+    obj["x"] = state.x;
+    obj["y"] = state.y;
+    obj["timestep"] = state.timestep;
+    obj["theta"] = state.theta;
     
     return obj;
 }
@@ -51,17 +52,22 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
     } while (!ec);
     if (response.length() > 0)
     {
-        json json_received = json::parse(response);
+        uint64_t split = response.rfind('\n', response.length());
+        string data = response.substr(split, response.length() - split);
+        std::cout << "Parsing whole\n" << data << std::endl;
+        json json_received = json::parse(data);
+        std::cout << "Parsing locations" << std::endl;
         vector<json> str_vec = json_received["locations"].get<std::vector<json>>();
         vector<State> curr_states(str_vec.size());
         for (int i = 0; i < curr_states.size(); i++) 
         {
             auto state_json = str_vec[i];
-            int location = state_json["location"].get<int>();
-            int orientation = state_json["orientation"].get<int>();
+            int x = state_json["x"].get<int>();
+            int y = state_json["y"].get<int>();
+            int theta = state_json["theta"].get<int>();
             int agent_id = state_json["agent_id"].get<int>();
-            curr_states[agent_id] = State(location, timestep, orientation);
-            std::cout << agent_id << location << orientation << std::endl;
+            curr_states[agent_id] = State(xy_to_location(x, y), timestep, theta / 90); // Bad map from 0-360 to 0-3 (+x,+y,-x,-y)
+            std::cout << agent_id << x << theta << std::endl;
         }
         return curr_states;
     } else {
@@ -74,11 +80,12 @@ void TurtlebotExecutor::send_plan(vector<State>& next_states)
     const std::string PATH = "/extend_path";
     boost::system::error_code ec;
 
-    
+    vector<FreeState> prepared_states = prepare_next_agent_poses(next_states);
+
     json plans = json::array();
-    for (int i = 0; i < next_states.size(); i++ )
+    for (int i = 0; i < prepared_states.size(); i++ )
     {
-        plans.push_back(stateToJSON(next_states[i]));
+        plans.push_back(stateToJSON(prepared_states[i]));
     }
     json payload = json::object();
     payload["plans"] = plans;
