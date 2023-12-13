@@ -29,8 +29,8 @@ class ActionExecutor
 public:
     // ActionExecutor(Grid & planner_grid, Grid & real_grid): planner_grid(planner_grid), rows(planner_grid.rows), cols(planner_grid.cols), real_grid(real_grid){}
     ActionExecutor(){};
-    virtual void send_plan(vector<State>& next) {};
-    virtual vector<State> get_agent_locations(int timestep) {};
+    virtual void send_plan(vector<State>& next){};
+    virtual vector<State> get_agent_locations(int timestep){};
     void set_logger(Logger* logger){this->logger = logger;}
 
     // Transforms between planner's map and execution map
@@ -45,6 +45,7 @@ protected:
     Logger* logger = nullptr;
 
 };
+
 
 class PerfectExecutor : public ActionExecutor
 {
@@ -70,10 +71,6 @@ private:
     vector<State> next_states;
 };
 
-// Do a concrete implementation for turtlebots, with rotate, delay probabilities, wiggly movement
-// Localising independently...
-// It feels like the plan sending and state retrieval should be polymorphic... but is it too much abstraction
-// I think anyone sane should only implement 1-2 ways to send plans and 1-2 ways to get states so no abstraction seems okay
 
 class TurtlebotExecutor : public ActionExecutor
 {
@@ -84,6 +81,9 @@ public:
         // Setup http connection as websocket?
     virtual vector<State> get_agent_locations(int timestep) override;
     virtual void send_plan(vector<State>& next) override;
+
+    ~TurtlebotExecutor(){};
+
 private:
     int rows;
     int cols;
@@ -102,8 +102,7 @@ private:
         return y * cols + x;
     }
 
-    FreeState transform_state(State& place)
-    {
+    FreeState transform_state(State& place) {
         return FreeState{.x = location_to_x(place.location), .y = location_to_y(place.location), .theta= static_cast<float>(place.orientation*90), .timestep= place.timestep};
     }
 

@@ -50,18 +50,20 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
         size_t bytes_transferred = sock.receive(buffer(buf), {}, ec);
         if (!ec) response.append(buf, buf + bytes_transferred);
     } while (!ec);
+    
     if (response.length() > 0)
     {
+        // Parse the data section, ignoring response headers
         uint64_t split = response.rfind('\n', response.length());
         string data = response.substr(split, response.length() - split);
-        std::cout << "Parsing whole\n" << data << std::endl;
+
         json json_received = json::parse(data);
-        std::cout << "Parsing locations" << std::endl;
-        vector<json> str_vec = json_received["locations"].get<std::vector<json>>();
-        vector<State> curr_states(str_vec.size());
+
+        vector<json> locations = json_received["locations"].get<std::vector<json>>();
+        vector<State> curr_states(locations.size());
         for (int i = 0; i < curr_states.size(); i++) 
         {
-            auto state_json = str_vec[i];
+            auto state_json = locations[i];
             int x = state_json["x"].get<int>();
             int y = state_json["y"].get<int>();
             int theta = state_json["theta"].get<int>();
@@ -80,12 +82,11 @@ void TurtlebotExecutor::send_plan(vector<State>& next_states)
     const std::string PATH = "/extend_path";
     boost::system::error_code ec;
 
-    vector<FreeState> prepared_states = prepare_next_agent_poses(next_states);
-
     json plans = json::array();
-    for (int i = 0; i < prepared_states.size(); i++ )
+    for (int i = 0; i < next_states.size(); i++ )
     {
-        plans.push_back(stateToJSON(prepared_states[i]));
+        FreeState prepared_state = transform_state(next_states[i]);
+        plans.push_back(stateToJSON(prepared_state));
     }
     json payload = json::object();
     payload["plans"] = plans;

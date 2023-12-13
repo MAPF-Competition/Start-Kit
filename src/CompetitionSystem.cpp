@@ -4,7 +4,6 @@
 #include "nlohmann/json.hpp"
 #include <functional>
 #include <Logger.h>
-#include <stdlib.h>
 
 using json = nlohmann::ordered_json;
 
@@ -34,7 +33,7 @@ list<Task> BaseSystem::move(vector<Action>& actions)
 
     vector<State> next_agent_poses = model->result_states(curr_states, actions);
     executor->send_plan(next_agent_poses);
-    usleep(100); // Avoid race conditions with the http connection, but it seems to just block
+
     curr_states = executor->get_agent_locations(timestep); // Can I decouple this and what happens after from the move()
     // agents do not move
     for (int k = 0; k < num_of_agents; k++)
