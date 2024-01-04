@@ -16,7 +16,7 @@ json stateToJSON(FreeState& state) {
     json obj = json::object();
 
     obj["x"] = state.x;
-    obj["y"] = state.y;
+    obj["y"] = -state.y;
     obj["timestep"] = state.timestep;
     obj["theta"] = state.theta;
     
@@ -65,7 +65,7 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
         {
             auto state_json = locations[i];
             int x = state_json["x"].get<int>();
-            int y = state_json["y"].get<int>();
+            int y = abs(state_json["y"].get<int>());
             int theta = state_json["theta"].get<int>();
             int agent_id = state_json["agent_id"].get<int>();
             curr_states[agent_id] = State(xy_to_location(x, y), timestep, theta / 90); // Bad map from 0-360 to 0-3 (+x,+y,-x,-y)
@@ -73,6 +73,7 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
         }
         return curr_states;
     } else {
+        std::cout << "Empty response?" << std::endl;
         return vector<State>(0);
     }
 }   

@@ -1,0 +1,8 @@
+{
+    "mapFile": "office.map",
+    "agentFile": "office.agents",
+    "teamSize": 2,
+    "taskFile": "office.tasks",
+    "numTasksReveal": 1,
+    "taskAssignmentStrategy": "roundrobin_fixed"
+}

@@ -48,6 +48,8 @@ list<Task> BaseSystem::move(vector<Action>& actions)
             // log_event_finished(k, task.task_id, timestep);
         }
         paths[k].push_back(curr_states[k]);
+        // Use this paths[] to verify for 1-robustness in MAPF-DP, generate a warning for now? Feels like I should add a MAPF-DP flag?
+
         actual_movements[k].push_back(actions[k]);
     }
 
@@ -307,6 +309,22 @@ void BaseSystem::savePaths(const string &fileName, int option) const
         {
             bool first = true;
             for (const auto t : planner_movements[i])
+            {
+                if (!first)
+                {
+                    output << ",";
+                } 
+                else 
+                {
+                    first = false;
+                }
+                output << t;
+            }
+        }
+        else if (option == 3)
+        {
+             bool first = true;
+            for (const auto t : paths[i])
             {
                 if (!first)
                 {
