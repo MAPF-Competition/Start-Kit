@@ -111,13 +111,13 @@ class FixedAssignSystem : public BaseSystem
 {
 public:
 	FixedAssignSystem(Grid &grid, string agent_task_filename, MAPFPlanner* planner, ActionModelWithRotate *model, ActionExecutor* executor):
-        BaseSystem(grid, planner, model, new TurtlebotExecutor(5, 5))
+        BaseSystem(grid, planner, model, new TurtlebotExecutor(grid.rows, grid.cols))
     {
         load_agent_tasks(agent_task_filename);
     };
 
 	FixedAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<vector<int>>& tasks, ActionModelWithRotate* model):
-        BaseSystem(grid, planner, model, new TurtlebotExecutor(5, 5))
+        BaseSystem(grid, planner, model, new TurtlebotExecutor(grid.rows, grid.cols))
     {
         if (start_locs.size() != tasks.size())
         {
@@ -158,7 +158,7 @@ class TaskAssignSystem : public BaseSystem
 {
 public:
 	TaskAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
-        BaseSystem(grid, planner, model, new TurtlebotExecutor(5, 5))
+        BaseSystem(grid, planner, model, new TurtlebotExecutor(grid.rows, grid.cols))
     {
         int task_id = 0;
         for (auto& task_location: tasks)
@@ -189,7 +189,7 @@ class InfAssignSystem : public BaseSystem
 {
 public:
 	InfAssignSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
-        tasks(tasks), BaseSystem(grid, planner, model, new TurtlebotExecutor(5, 5))
+        tasks(tasks), BaseSystem(grid, planner, model, new TurtlebotExecutor(grid.rows, grid.cols))
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);

@@ -103,6 +103,7 @@ private:
     }
 
     FreeState transform_state(State& place) {
+        std::cout << place.location << " " << location_to_x(place.location) << " " << location_to_y(place.location) << " " << cols << std::endl;
         return FreeState{.x = location_to_x(place.location), .y = location_to_y(place.location), .theta= static_cast<float>(place.orientation*90), .timestep= place.timestep};
     }
 

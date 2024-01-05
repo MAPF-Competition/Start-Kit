@@ -5,10 +5,10 @@ bool validMove(int curr, int next, int map_size, int num_col)
 {
 	if (next < 0 || next >= map_size)
 		return false;
-	int curr_x = curr / num_col;
-	int curr_y = curr % num_col;
-	int next_x = next / num_col;
-	int next_y = next % num_col;
+	int curr_x = curr % num_col;
+	int curr_y = curr / num_col;
+	int next_x = next % num_col;
+	int next_y = next / num_col;
 	return abs(next_x - curr_x) + abs(next_y - curr_y) < 2;
 }
 
