@@ -1,9 +1,9 @@
-#include <cmath>
 #include "CompetitionSystem.h"
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
 #include <functional>
 #include <Logger.h>
+#include <unistd.h>
 
 using json = nlohmann::ordered_json;
 
@@ -187,6 +187,8 @@ void BaseSystem::simulate(int simulation_time)
     for (; timestep < simulation_time; )
     {
         // find a plan
+        // Start by getting agent locations from central controller
+        curr_states = executor->get_agent_locations(timestep);
         sync_shared_env();
 
         auto start = std::chrono::steady_clock::now();
