@@ -42,7 +42,7 @@ public:
   // planner_grid(planner_grid), rows(planner_grid.rows),
   // cols(planner_grid.cols), real_grid(real_grid){}
   ActionExecutor(){};
-  virtual void send_plan(vector<State> &next){};
+  virtual void send_plan(vector<State> &curr, vector<State> &next){};
   virtual vector<State> get_agent_locations(int timestep){};
   void set_logger(Logger *logger) { this->logger = logger; }
 
@@ -61,7 +61,7 @@ class PerfectExecutor : public ActionExecutor {
 public:
   PerfectExecutor() : ActionExecutor(){};
 
-  void send_plan(vector<State> &next) override { next_states = next; }
+  void send_plan(vector<State> &curr, vector<State> &next) override { next_states = next; }
 
   vector<State> get_agent_locations(int timestep) override {
     return next_states;
@@ -81,7 +81,7 @@ public:
         ActionExecutor(){};
   // Setup http connection as websocket?
   virtual vector<State> get_agent_locations(int timestep) override;
-  virtual void send_plan(vector<State> &next) override;
+  virtual void send_plan(vector<State> &curr,vector<State> &next) override;
 
   ~TurtlebotExecutor(){};
 

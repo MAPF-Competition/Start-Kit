@@ -3,3 +3,4 @@ build
 Dockerfile
 local
 src/unused
+.cache

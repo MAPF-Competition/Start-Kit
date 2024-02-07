@@ -31,8 +31,8 @@ list<Task> BaseSystem::move(vector<Action>& actions)
         actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
-    vector<State> next_agent_poses = model->result_states(curr_states, actions);
-    executor->send_plan(next_agent_poses);
+    vector<State> next_states = model->result_states(curr_states, actions);
+    executor->send_plan(curr_states, next_states);
 
     curr_states = executor->get_agent_locations(timestep); // Can I decouple this and what happens after from the move()
     // agents do not move

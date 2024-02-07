@@ -1,10 +1,9 @@
 #!/bin/bash
-
 mkdir build
 
 # build exec for cpp
 
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release
+cmake -B build ./ -DCMAKE_CXX_FLAGS=-fsanitize=address --trace-expand -DCMAKE_BUILD_TYPE=Debug
 make -C build -j
 
 

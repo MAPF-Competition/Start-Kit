@@ -1,0 +1,8 @@
+{
+    "mapFile": "office.map",
+    "agentFile": "triple.agents",
+    "teamSize": 3,
+    "taskFile": "triple.tasks",
+    "numTasksReveal": 1,
+    "taskAssignmentStrategy": "roundrobin_fixed"
+}

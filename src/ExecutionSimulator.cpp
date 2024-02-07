@@ -129,7 +129,7 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
   beast::error_code ec;
   (void)stream.socket().wait(boost::asio::ip::tcp::socket::wait_write, ec);
   // stream.close();
-  // not_connected happens sometimes
+  // not_connected happens sometime
   // so don't bother reporting it.
   //
   if (ec && ec != beast::errc::not_connected)
@@ -137,7 +137,12 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
   return curr_states;
 }
 
-void TurtlebotExecutor::send_plan(vector<State> &next_states) {
+void TurtlebotExecutor::send_plan(vector<State> &curr_states, vector<State> &next_states) {
+  if (!validateStep(curr_states, next_states)) {
+    return;
+  }
+
+
   const std::string PATH = "/extend_path";
   beast::tcp_stream stream(ioc_);
   tcp::resolver resolver(ioc_);

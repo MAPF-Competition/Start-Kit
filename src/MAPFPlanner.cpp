@@ -1,9 +1,16 @@
 #include <MAPFPlanner.h>
+#include <algorithm>
+#include <iostream>
 #include <random>
+#include <sstream>
+#include <string>
+#include <utility>
+#include "pibt.hpp"
+#include "flow.hpp"
+#include "heuristics.hpp"
 
 
-struct AstarNode
-{
+struct AstarNode {
     int location;
     int direction;
     int f,g,h;
@@ -17,10 +24,8 @@ struct AstarNode
 };
 
 
-struct cmp
-{
-    bool operator()(AstarNode* a, AstarNode* b)
-    {
+struct cmp {
+    bool operator()(AstarNode* a, AstarNode* b) {
         if(a->f == b->f) return a->g <= b->g;
         else return a->f > b->f;
     }
@@ -28,116 +33,164 @@ struct cmp
 
 
 
-void MAPFPlanner::initialize(int preprocess_time_limit)
-{
+void MAPFPlanner::initialize(int preprocess_time_limit) {
+    heuristics.resize(env->map.size());
+    assert(env->num_of_agents != 0);
+    p.resize(env->num_of_agents);
+    decision.resize(env->map.size(), -1);
+    prev_states.resize(env->num_of_agents);
+    next_states.resize(env->num_of_agents);
+    tasks.resize(env->num_of_agents);
+    decided.resize(env->num_of_agents,DCR({-1,DONE::DONE}));
+    occupied.resize(env->map.size(),false);
+    checked.resize(env->num_of_agents,false);
+    ids.resize(env->num_of_agents);
+    for (int i = 0; i < ids.size();i++){
+        ids.at(i) = i;
+    }
+
+    std::shuffle(ids.begin(), ids.end(), std::mt19937(std::random_device()()));
+    for (int i = 0; i < ids.size();i++){
+        p[ids.at(i)] = ((double)(ids.size() - i))/((double)(ids.size()+1));
+    }
+    p_copy = p;
+
+    //if map name inlucde warehouse or sortation, then we need to build traffic
+    if (env->map_name.find("warehouse") != std::string::npos || env->map_name.find("sortation") != std::string::npos)
+        traffic_control = true;
+
+    if (traffic_control){
+        build_traffic(env, traffic);
+        build_traffic_endpoint_warehouse(env, traffic);
+    }
+    else
+        traffic.resize(env->map.size(),-1);
+
 }
 
 
-// plan using simple A* that ignores the time dimension
+// return next states for all agents
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
-    actions = std::vector<Action>(env->curr_states.size(), Action::W);
-    for (int i = 0; i < env->num_of_agents; i++) 
+
+    prev_decision.clear();
+    prev_decision.resize(env->map.size(), -1);
+    occupied.clear();
+    occupied.resize(env->map.size(),false);
+
+
+    int ch_count = 0;
+    
+    for(int i=0; i<env->num_of_agents; i++)
     {
-        list<pair<int,int>> path;
-        if (env->goal_locations[i].empty()) 
-        {
-            path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
-        } 
-        else 
-        {
-            path = single_agent_plan(env->curr_states[i].location,
-                                    env->curr_states[i].orientation,
-                                    env->goal_locations[i].front().first);
-        }
-        if (path.front().first != env->curr_states[i].location)
-        {
-            actions[i] = Action::FW; //forward action
-        } 
-        else if (path.front().second!= env->curr_states[i].orientation)
-        {
-            int incr = path.front().second - env->curr_states[i].orientation;
-            if (incr == 1 || incr == -3)
-            {
-                actions[i] = Action::CR; //C--counter clockwise rotate
-            } 
-            else if (incr == -1 || incr == 3)
-            {
-                actions[i] = Action::CCR; //CCR--clockwise rotate
-            } 
-        }
 
-    }
-  return;
-}
-
-
-list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end)
-{
-    list<pair<int,int>> path;
-    priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
-    unordered_map<int,AstarNode*> all_nodes;
-    unordered_set<int> close_list;
-    AstarNode* s = new AstarNode(start, start_direct, 0, getManhattanDistance(start,end), nullptr);
-    open_list.push(s);
-    all_nodes[start*4 + start_direct] = s;
-
-    while (!open_list.empty())
-    {
-        AstarNode* curr = open_list.top();
-        open_list.pop();
-        close_list.emplace(curr->location*4 + curr->direction);
-        if (curr->location == end)
-        {
-            while(curr->parent!=NULL) 
+        if (ch_count < 100)
+            for(int j=0; j<env->goal_locations.at(i).size(); j++)
             {
-                path.emplace_front(make_pair(curr->location, curr->direction));
-                curr = curr->parent;
-            }
-            break;
-        }
-        list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
-        for (const pair<int,int>& neighbor: neighbors)
-        {
-            if (close_list.find(neighbor.first*4 + neighbor.second) != close_list.end())
-                continue;
-            if (all_nodes.find(neighbor.first*4 + neighbor.second) != all_nodes.end())
-            {
-                AstarNode* old = all_nodes[neighbor.first*4 + neighbor.second];
-                if (curr->g + 1 < old->g)
-                {
-                    old->g = curr->g+1;
-                    old->f = old->h+old->g;
-                    old->parent = curr;
+                int goal_loc = env->goal_locations.at(i).at(j).first;
+                if (heuristics.at(goal_loc).empty()){
+                    if (traffic_control)
+                        compute_heuristics(env, heuristics[goal_loc],traffic,goal_loc);
+                    else
+                       compute_heuristics(env, heuristics[goal_loc],goal_loc);
+                    ch_count++;
                 }
             }
-            else
-            {
-                AstarNode* next_node = new AstarNode(neighbor.first, neighbor.second,
-                    curr->g+1,getManhattanDistance(neighbor.first,end), curr);
-                open_list.push(next_node);
-                all_nodes[neighbor.first*4+neighbor.second] = next_node;
-            }
+        assert(env->goal_locations.at(i).size()>0);
+        tasks.at(i) = env->goal_locations.at(i).front().first;
+        assert(env->curr_states.at(i).location >=0);
+        prev_states.at(i) = env->curr_states.at(i);
+        next_states.at(i) = State();
+        prev_decision[env->curr_states.at(i).location] = i; 
+        if (decided.at(i).loc == -1){
+            decided.at(i).loc = env->curr_states.at(i).location;
+            assert(decided.at(i).state == DONE::DONE);
+        }
+        if (prev_states.at(i).location == decided.at(i).loc){
+            decided.at(i).state = DONE::DONE;
+        }
+        if (decided.at(i).state == DONE::NOT_DONE){
+            occupied.at(decided.at(i).loc) = true;
+            occupied.at(prev_states.at(i).location) = true;
+        }
+
+        if(prev_states.at(i).location == tasks.at(i))
+            p.at(i) = p_copy.at(i);
+        else
+            p.at(i) = p.at(i)+1;
+        
+    }
+
+    std::sort(ids.begin(), ids.end(), [&](int a, int b) {
+        return p.at(a) > p.at(b);
+    }
+    );
+
+    for (int i : ids){
+        if (decided.at(i).state == DONE::NOT_DONE){
+            continue;
+        }
+        if (next_states.at(i).location==-1){
+            assert(prev_states.at(i).location >=0 && prev_states.at(i).location < env->map.size());
+            constraintPIBT(i,-1,prev_states,next_states,
+                env,prev_decision,decision,tasks,heuristics, occupied, traffic);
         }
     }
-    for (auto n: all_nodes)
-    {
-        delete n.second;
+    
+    actions.resize(env->num_of_agents);
+    for (int id : ids){
+
+        if (next_states.at(id).location!= -1)
+            decision.at(next_states.at(id).location) = -1;
+        
+        assert(
+            (next_states.at(id).location >=0 && decided.at(id).state == DONE::DONE)||
+            (next_states.at(id).location == -1 && decided.at(id).state == DONE::NOT_DONE)
+        );
+
+        if (next_states.at(id).location >=0){
+            decided.at(id) = DCR({next_states.at(id).location,DONE::NOT_DONE});
+        }
+
+        
+
+        actions.at(id) = getAction(prev_states.at(id),decided.at(id).loc, env);
+        checked.at(id) = false;
+        #ifndef NDEBUG
+            std::cout<<id <<":"<<actions.at(id)<<";"<<std::endl;
+        #endif
+
     }
-    all_nodes.clear();
-    return path;
+
+    for (int id=0;id < env->num_of_agents ; id++){
+        if (!checked.at(id) && actions.at(id) == Action::FW){
+            moveCheck(id,checked,decided,actions,prev_decision);
+        }
+    }
+
+
+
+    #ifndef NDEBUG
+        for (auto d : decision){
+            assert(d == -1);
+        }
+    #endif
+
+    prev_states = next_states;
+    return;
 }
 
 
-int MAPFPlanner::getManhattanDistance(int loc1, int loc2)
-{
+
+
+
+int MAPFPlanner::getManhattanDistance(int loc1, int loc2) {
     int loc1_x = loc1/env->cols;
     int loc1_y = loc1%env->cols;
     int loc2_x = loc2/env->cols;
     int loc2_y = loc2%env->cols;
     return abs(loc1_x - loc2_x) + abs(loc1_y - loc2_y);
 }
-
 
 bool MAPFPlanner::validateMove(int loc, int loc2)
 {
@@ -156,8 +209,7 @@ bool MAPFPlanner::validateMove(int loc, int loc2)
 }
 
 
-list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction)
-{
+list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
     list<pair<int,int>> neighbors;
     //forward
     int candidates[4] = { location + 1,location + env->cols, location - 1, location - env->cols};
