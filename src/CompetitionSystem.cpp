@@ -32,6 +32,13 @@ list<Task> BaseSystem::move(vector<Action>& actions)
     }
 
     vector<State> next_states = model->result_states(curr_states, actions);
+    std::cout << "Next states: ";
+    for (int i = 0; i < next_states.size(); i++) {
+        std::cout << std::to_string(next_states.at(i)) << " ";
+    }
+    std::cout << std::endl;
+
+
     executor->send_plan(curr_states, next_states);
 
     curr_states = executor->get_agent_locations(timestep); // Can I decouple this and what happens after from the move()

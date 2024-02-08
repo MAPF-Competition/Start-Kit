@@ -39,6 +39,7 @@ bool validateStep(vector<State> &curr_states, vector<State> &next_states) {
   int length = next_states.size();
   for (int i = 0; i < length; i++) {
     for (int j = i + 1; j < length; j++) {
+      std::cout << "Checking agents" << std::to_string(i) << " and " std::to_string(j) << " at " << std::to_string(next_states.at(i)) << " and " << std::to_string(next_states.at(j)) << std::endl;
       if (next_states.at(i).location == next_states.at(j).location) {
         return false;
       }
@@ -139,6 +140,7 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
 
 void TurtlebotExecutor::send_plan(vector<State> &curr_states, vector<State> &next_states) {
   if (!validateStep(curr_states, next_states)) {
+    std::cout << "Edge or vertex conflict detected, replanning" << std::endl;
     return;
   }
 
