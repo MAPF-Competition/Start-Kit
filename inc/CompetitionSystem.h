@@ -84,6 +84,9 @@ protected:
     vector<list<std::tuple<int,int,std::string>>> events;
     list<Task> all_tasks;
 
+    // For execution simulation
+    bool simulate_complete = true;
+    bool simulate_each_step = false;
     //for evaluation
     vector<int> solution_costs;
     int num_of_task_finish = 0;

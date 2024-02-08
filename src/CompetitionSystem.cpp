@@ -38,11 +38,16 @@ list<Task> BaseSystem::move(vector<Action>& actions)
     }
     std::cout << std::endl;
 
-
+    if (simulate_each_step) 
+    {
     executor->send_plan(curr_states, next_states);
 
-    curr_states = executor->get_agent_locations(timestep); // Can I decouple this and what happens after from the move()
-    // agents do not move
+    curr_states = executor->get_agent_locations(timestep); 
+    } else {
+    curr_states = next_states
+    }
+
+
     for (int k = 0; k < num_of_agents; k++)
     {
         if (!assigned_tasks[k].empty() && curr_states[k].location == assigned_tasks[k].front().location)
@@ -252,6 +257,29 @@ void BaseSystem::simulate(int simulation_time)
         {
             break;
         }
+    }
+    // Collecting all simulations
+     if (simulate_complete) {
+        simulate_complete(actual_movements, timestep);
+    }
+         // send each timestep to the execution simulator, measure the total simulation timesteps required
+        
+    }
+}
+// Expects the actual_movements are prepared such that all agents have an action for all timesteps stored
+int simulate_complete(vector<list<Action>> movements, int max_timesteps) {
+    vector<State> curr_states = executor->get_agent_locations(timestep);
+    
+    for (int timestep = 0; timestep < max_timesteps; timestep++) {
+        vector<Action> next_actions(movements.size());
+        for (int j = 0; j < movements.size(); j++) {
+            next_actions.at(timestep) = movements.at(j).at(timestep);
+        }
+
+        vector<State> next_states = model->result_states(next_actions);
+        executor->send_plan(curr_states, next_states);
+
+        curr_states = executor->get_agent_locations(timestep);
     }
 }
 
