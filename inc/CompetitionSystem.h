@@ -75,8 +75,8 @@ protected:
 
     vector<State> curr_states;
 
-    vector<list<Action>> actual_movements;
-    vector<list<Action>> planner_movements;
+    vector<vector<Action>> actual_movements;
+    vector<vector<Action>> planner_movements;
 
     // tasks that haven't been finished but have been revealed to agents;
     vector< deque<Task > > assigned_tasks;
