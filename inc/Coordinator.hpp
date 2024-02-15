@@ -3,7 +3,6 @@
 #include "ExecutionSimulator.h"
 #include "ScheduleTable.hpp"
 #include <deque>
-#include <vector>
 
 class BaseCoordinator {
 public:
@@ -39,45 +38,9 @@ class SimpleCoordinator : BaseCoordinator {
 public:
   SimpleCoordinator(int batch_length, int num_agents, ActionExecutor &executor,
                     ActionModelWithRotate &model)
-      : action_queues_(vector<deque<Action>>(num_agents)),
-        BaseCoordinator(batch_length, num_agents, executor, model){};
-
-  void send_actions(vector<vector<Action>> &next_actions,
-                    const vector<State> &start_states) override {
-    // RESET
-    for (vector<Action> nth_action : next_actions) {
-      for (int i = 0; i < num_agents_; i++) {
-        action_queues_.at(i).push_back(nth_action.at(i));
-      }
-    }
-    return;
-  }
-
-  const vector<Action> get_next_actions() override {
-    vector<Action> next_actions(num_agents_);
-    for (int i = 0; i < num_agents_; i++) {
-      next_actions.at(i) = action_queues_.at(i).front();
-    }
-    return next_actions;
-  }
-
-  // Returns true if the plan fails any action and forces a replan
-  bool update_needs_replan(const vector<bool> &succeeded) override {
-    for (int i = 0; i < num_agents_; i++) {
-      if (succeeded.at(i)) {
-        action_queues_.at(i).pop_front();
-      } else {
-        return true;
-      }
-    }
-    return false;
-  }
-
-private:
-  vector<deque<Action>> action_queues_;
+      : BaseCoordinator(batch_length, num_agents, executor, model){};
+  
 };
-
-// Uses MCP to complete all actions provided before calling planner again
 class MCPCoordinator : BaseCoordinator {
 public:
   MCPCoordinator(int batch_length, int num_agents, ActionExecutor &executor,
@@ -147,7 +110,6 @@ private:
   void schedule(vector<State> curr_states,
                 vector<std::deque<Action>> &next_actions) {
     schedule_.insert_step(curr_states);
-
     vector<Action> next_action(next_actions.size());
 
     for (int i = 0; i < next_actions.size(); i++) {

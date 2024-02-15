@@ -46,7 +46,7 @@ public:
     }
 
     if (search->second.front() != agent_id) {
-      assert(false); // Agent id is not first in line when popping
+      assert(false); // Agent id is not first in line
       return;
     }
 
