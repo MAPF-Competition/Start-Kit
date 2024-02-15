@@ -8,7 +8,7 @@ public:
   ActionSimulator(ActionModelWithRotate &model, SharedEnvironment *env)
       : model(model), env(env){};
   virtual vector<Status> simulate_action(vector<Action> &next_actions);
-  virtual bool validate_safe();
+  virtual bool validate_safe(const vector<Action> &next_actions);
 
 protected:
   ActionModelWithRotate &model;
@@ -21,11 +21,33 @@ public:
   PerfectSimulator(ActionModelWithRotate &model, SharedEnvironment *env)
       : ActionSimulator(model, env){};
 
-  vector<Status> simulate_action(SharedEnvironment *env,
-                                 vector<Action> &next_actions) {
+  vector<Status> simulate_action(vector<Action> &next_actions) override {
     env->curr_states = model.result_states(env->curr_states, next_actions);
     return vector<Status>(env->num_of_agents, Status::SUCCESS);
   }
+
+  bool validate_safe(const vector<Action> &next_actions) override {
+    vector<State> next_states = model.result_states(env->curr_states, next_actions);
+    // Check vertex conflicts
+    for (int i = 0; i < env->num_of_agents; i++) {
+      for (int j = i + 1; j < env->num_of_agents; j++) {
+        if (next_states.at(i).location == next_states.at(j).location) {
+          return false;
+        }
+      }
+    }
+    // Check for edge conflicts
+    // If current and next state coincide in direction
+    for (int i = 0; i < env->num_of_agents; i++) {
+      for (int j = 0; j < env->num_of_agents; i++) {
+        if (next_states.at(i).location == env->curr_states.at(j).location && next_states.at(j).location == env->curr_states.at(i).location){
+          return false;
+        } 
+      }
+    }
+    return true;
+  }
+
 };
 
 // Implements delay probability for MAPF-DP
