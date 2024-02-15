@@ -10,19 +10,23 @@ public:
   BaseCoordinator(int batch_length, int num_agents, ActionExecutor &executor,
                   ActionModelWithRotate &model)
       : batch_length_(batch_length), num_agents_(num_agents),
-        executor_(executor),
-        model_(model) {}
+        executor_(executor), model_(model) {}
 
-  // Send an action for all agents to the Coordinator
-  virtual void send_action(vector<Action> &next_action);
+  // Send an *n* actions for all agents to the Coordinator
+  // Laid out as first index is nth action, then second index is agent_id
+  // As we want to access a single timestep for every agent
+  virtual void send_actions(vector<vector<Action>> &next_action,
+                            const vector<State> &start_states);
 
-  // Simulates all queued actions
-  virtual vector<State> do_action(const vector<State> &curr_states);
+  // Get next action after processing
+  virtual const vector<Action> get_next_actions();
 
-  // Returns true if after updating the Coordinator wants to replan instead of repair 
-  virtual bool update_needs_replan(const vector<bool> &successed);
+  // Returns true if after updating the Coordinator wants to replan instead of
+  // repair
+  virtual bool update_needs_replan(const vector<bool> &succeeded);
 
   inline int get_batch_size() { return batch_length_; }
+
 
 protected:
   int batch_length_;
@@ -35,28 +39,32 @@ class SimpleCoordinator : BaseCoordinator {
 public:
   SimpleCoordinator(int batch_length, int num_agents, ActionExecutor &executor,
                     ActionModelWithRotate &model)
-      : action_queues_(vector<deque<Action>>(num_agents)), BaseCoordinator(batch_length, num_agents, executor, model){};
+      : action_queues_(vector<deque<Action>>(num_agents)),
+        BaseCoordinator(batch_length, num_agents, executor, model){};
 
-  void send_action(vector<Action> &next_action) override {
-    for (int i = 0; i < num_agents_; i++) {
-      action_queues_.at(i).push_back(next_action.at(i));
+  void send_actions(vector<vector<Action>> &next_actions,
+                    const vector<State> &start_states) override {
+    // RESET
+    for (vector<Action> nth_action : next_actions) {
+      for (int i = 0; i < num_agents_; i++) {
+        action_queues_.at(i).push_back(nth_action.at(i));
+      }
     }
     return;
   }
 
-  
-  vector<State> do_action(const vector<State> &curr_states) override {
-    vector<State> next_states(num_agents_);
+  const vector<Action> get_next_actions() override {
+    vector<Action> next_actions(num_agents_);
     for (int i = 0; i < num_agents_; i++) {
-      next_states.at(i) = model_.result_state(curr_states.at(i), action_queues_.at(i).front());
+      next_actions.at(i) = action_queues_.at(i).front();
     }
-    return next_states;
+    return next_actions;
   }
 
-// Returns true if the plan fails any action and forces a replan 
-  bool update_needs_replan(const vector<bool> &successed) override {
+  // Returns true if the plan fails any action and forces a replan
+  bool update_needs_replan(const vector<bool> &succeeded) override {
     for (int i = 0; i < num_agents_; i++) {
-      if (successed.at(i)) {
+      if (succeeded.at(i)) {
         action_queues_.at(i).pop_front();
       } else {
         return true;
@@ -65,12 +73,11 @@ public:
     return false;
   }
 
-
 private:
-vector<deque<Action>> action_queues_;
+  vector<deque<Action>> action_queues_;
 };
 
-
+// Uses MCP to complete all actions provided before calling planner again
 class MCPCoordinator : BaseCoordinator {
 public:
   MCPCoordinator(int batch_length, int num_agents, ActionExecutor &executor,
@@ -78,47 +85,69 @@ public:
       : schedule_(),
         BaseCoordinator(batch_length, num_agents, executor, model){};
 
-  vector<State> do_actions(vector<State> &curr_states,
-                           vector<std::deque<Action>> &next_actions) {
-    agent_states_.resize(curr_states.size());
-    // Schedule beginning location
-    schedule(curr_states, next_actions);
-
-    for (int agents_done = 0; agents_done < curr_states.size();) {
-      vector<State> next_states(curr_states.size());
-      for (int i = 0; i < curr_states.size(); i++) {
-        State next_state = model_.result_state(agent_states_.at(i),
-                                               next_actions.at(i).front());
-
-        // If scheduled: Move Else: Wait
-        if (schedule_.is_scheduled(i, next_state.location)) {
-          next_states.at(i) = next_state;
-        } else {
-          next_states.at(i) = agent_states_.at(i);
-        }
-      }
-
-      executor_.send_plan(agent_states_, next_states);
-
-      vector<bool> successes = executor_.get_agent_success(0);
-      agent_states_ = executor_.get_agent_locations(0);
-      for (int i = 0; i < successes.size(); i++) {
-        if (successes[i]) {
-        }
+  void send_actions(vector<vector<Action>> &next_action,
+                    const vector<State> &start_states) override {
+    curr_states_ = start_states;
+    for (vector<Action> nth_action : next_action) {
+      for (int i = 0; i < num_agents_; i++) {
+        action_queues_.at(i).push_back(nth_action.at(i));
       }
     }
+    return;
+  }
 
-    return agent_states_;
+  const vector<Action> get_next_actions() override {
+    // Schedule beginning location
+
+    vector<Action> next_actions(num_agents_);
+
+    for (int i = 0; i < num_agents_; i++) {
+      State next_state = get_next_state(i, curr_states_.at(i));
+
+      // If scheduled: Move Else: Wait
+      if (schedule_.is_scheduled(i, next_state.location)) {
+        next_actions.at(i) = get_next_action(i);
+      } else {
+        next_actions.at(i) = Action::W; 
+      }
+    }
+    curr_actions_ = next_actions;
+    return next_actions;
+  }
+
+  bool update_needs_replan(const vector<bool> &succeeded ) override {
+    bool all_complete = true;
+    for (int i = 0; i < num_agents_; i++) {
+      deque<Action> agent_actions = action_queues_.at(i);
+
+      // No update if agent's actions are completed
+      if (agent_actions.empty()) {
+        continue;
+      } 
+      all_complete = false;
+      // If the next action was not delayed with a WAIT, (Wait is never delayed by wait)
+      if (curr_actions_.at(i) == Action::W && agent_actions.front() != Action::W) {
+        continue;
+      }
+
+      // Agent was not delayed abd completed action, clear schedule and advance location
+      schedule_.pop_entry(i, curr_states_.at(i).location);
+      curr_states_.at(i) = model_.result_state(curr_states_.at(i), agent_actions.front());
+
+    }
+    return all_complete;
   }
 
 private:
   ScheduleTable schedule_;
-  vector<State> agent_states_;
+  vector<State> curr_states_;
+  vector<deque<Action>> action_queues_;
+  vector<Action> curr_actions_;
 
   void schedule(vector<State> curr_states,
                 vector<std::deque<Action>> &next_actions) {
     schedule_.insert_step(curr_states);
-    agent_states_ = curr_states;
+
     vector<Action> next_action(next_actions.size());
 
     for (int i = 0; i < next_actions.size(); i++) {
@@ -132,5 +161,24 @@ private:
       }
     }
     return;
+  }
+
+  vector<State> get_next_states(const vector<State> &curr_state) {
+    vector<State> next_state(num_agents_);
+    for (int i = 0; i < num_agents_; i++) {
+      next_state[i] =
+          model_.result_state(curr_state.at(i), action_queues_.at(i).front());
+    }
+    return next_state;
+  }
+
+  // Returns next queued action, or Wait if no actions queued
+  inline Action get_next_action(int agent_id) {
+    deque<Action> next_actions = action_queues_.at(agent_id);
+    return next_actions.empty() ? Action::W : next_actions.front();
+  }
+
+  inline State get_next_state(int agent_id, const State curr_state) {
+    return model_.result_state(curr_state, get_next_action(agent_id));
   }
 };
