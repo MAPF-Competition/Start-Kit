@@ -39,7 +39,7 @@ bool validateStep(vector<State> &curr_states, vector<State> &next_states) {
   int length = next_states.size();
   for (int i = 0; i < length; i++) {
     for (int j = i + 1; j < length; j++) {
-      std::cout << "Checking agents" << std::to_string(i) << " and " std::to_string(j) << " at " << std::to_string(next_states.at(i)) << " and " << std::to_string(next_states.at(j)) << std::endl;
+      std::cout << "Checking agents " << std::to_string(i) << " and " << std::to_string(j) << " at " << std::to_string(next_states.at(i).location) << " and " << std::to_string(next_states.at(j).location) << std::endl;
       if (next_states.at(i).location == next_states.at(j).location) {
         return false;
       }
@@ -124,7 +124,6 @@ vector<State> TurtlebotExecutor::get_agent_locations(int timestep) {
     curr_states[agent_id] =
         State(xy_to_location(x, y), timestep,
               theta / 90); // Bad map from 0-360 to 0-3 (+x,+y,-x,-y)
-    std::cout << agent_id << x << theta << std::endl;
   }
   // Gracefully close the socket
   beast::error_code ec;
@@ -162,6 +161,7 @@ void TurtlebotExecutor::send_plan(vector<State> &curr_states, vector<State> &nex
   json payload = json::object();
   payload["plans"] = plans;
 
+  std::cout << "Sending plan" << std::endl;
   std::cout << payload << std::endl; // Debugging serialisation
 
   http::request<http::string_body> req;
@@ -193,6 +193,6 @@ void TurtlebotExecutor::send_plan(vector<State> &curr_states, vector<State> &nex
   //
   if (ec && ec != beast::errc::not_connected)
     throw beast::system_error{ec};
-
+  std::cout << "Successful POST" << std::endl;
   return;
 }

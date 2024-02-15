@@ -34,7 +34,7 @@ list<Task> BaseSystem::move(vector<Action>& actions)
     vector<State> next_states = model->result_states(curr_states, actions);
     std::cout << "Next states: ";
     for (int i = 0; i < next_states.size(); i++) {
-        std::cout << std::to_string(next_states.at(i)) << " ";
+        std::cout << std::to_string(next_states.at(i).location) << " ";
     }
     std::cout << std::endl;
 
@@ -44,7 +44,7 @@ list<Task> BaseSystem::move(vector<Action>& actions)
 
     curr_states = executor->get_agent_locations(timestep); 
     } else {
-    curr_states = next_states
+    curr_states = next_states;
     }
 
 
@@ -196,11 +196,14 @@ void BaseSystem::simulate(int simulation_time)
     initialize();
     int num_of_tasks = 0;
 
+    // Start by getting agent locations from central controller
+    // TODO: This looks weird, I only need this when I want dynamic start.
+    curr_states = executor->get_agent_locations(timestep);
+    
     for (; timestep < simulation_time; )
     {
         // find a plan
-        // Start by getting agent locations from central controller
-        curr_states = executor->get_agent_locations(timestep);
+
         sync_shared_env();
 
         auto start = std::chrono::steady_clock::now();
@@ -260,26 +263,8 @@ void BaseSystem::simulate(int simulation_time)
     }
     // Collecting all simulations
      if (simulate_complete) {
-        simulate_complete(actual_movements, timestep);
-    }
-         // send each timestep to the execution simulator, measure the total simulation timesteps required
-        
-    }
-}
-// Expects the actual_movements are prepared such that all agents have an action for all timesteps stored
-int simulate_complete(vector<list<Action>> movements, int max_timesteps) {
-    vector<State> curr_states = executor->get_agent_locations(timestep);
-    
-    for (int timestep = 0; timestep < max_timesteps; timestep++) {
-        vector<Action> next_actions(movements.size());
-        for (int j = 0; j < movements.size(); j++) {
-            next_actions.at(timestep) = movements.at(j).at(timestep);
-        }
-
-        vector<State> next_states = model->result_states(next_actions);
-        executor->send_plan(curr_states, next_states);
-
-        curr_states = executor->get_agent_locations(timestep);
+        std::cout << "Simulate all please" << std::endl;
+        executor->simulate_batch(actual_movements, model, timestep);
     }
 }
 
