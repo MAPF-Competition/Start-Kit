@@ -76,13 +76,13 @@ void BaseSystem::move(vector<Action> &actions) {
   }
   std::cout << std::endl;
 
-  if (simulate_each_step) {
-    executor->send_plan(curr_states, next_states);
-
-    curr_states = executor->get_agent_locations(timestep);
-  } else {
-    curr_states = next_states;
-  }
+  curr_states = next_states;
+  //if (simulate_each_step) {
+  //executor->send_plan(curr_states, next_states);
+  //curr_states = executor->get_agent_locations(timestep);
+  //} else {
+  //curr_states = next_states;
+  //}
 }
 
 // This function might not work correctly with small map (w or h <=2)
@@ -213,7 +213,7 @@ void BaseSystem::simulate(int simulation_time) {
 
   // Start by getting agent locations from central controller
   // TODO: This looks weird, I only need this when I want dynamic start.
-  curr_states = executor->get_agent_locations(timestep);
+  //curr_states = executor->get_agent_locations(timestep);
 
   for (; timestep < simulation_time;) {
 
@@ -223,13 +223,13 @@ void BaseSystem::simulate(int simulation_time) {
     vector<Action> actions = plan();
     auto end = std::chrono::steady_clock::now();
 
-
     if (!planner_movements[0].empty() &&
         planner_movements[0].back() == Action::NA) {
       planner_times.back() +=
           plan_time_limit; // add planning time to last record
     } else {
-      planner_times.emplace_back(end - start);
+      auto diff = end - start;
+      planner_times.push_back(std::chrono::duration<double>(diff).count());
     }
 
     // Increment agent plan costs
@@ -262,7 +262,7 @@ void BaseSystem::initialize() {
   curr_states = starts;
   assigned_tasks.resize(num_of_agents);
 
-  // planner initilise before knowing the first goals
+  // planner initialise before knowing the first goals
   bool planner_initialize_success = planner_initialize();
 
   log_preprocessing(planner_initialize_success);
