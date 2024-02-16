@@ -107,7 +107,7 @@ bool constraintPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
             if (!constraintPIBT(lower_id,curr_id,prev_states,next_states,env, prev_decision,decision,tasks,heuristics, occupied, traffic)){
 				continue;
             }
-			// next_states.at(curr_id) = prev_states.at(curr_id); // Wait after pushing
+					// next_states.at(curr_id) = prev_states.at(curr_id); // Wait after pushing
         }
 
 		#ifndef NDEBUG
@@ -116,7 +116,7 @@ bool constraintPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
         return true;
     }
 
-    // next_states.at(curr_id) = State(prev_loc,-1 ,-1);;
+    next_states.at(curr_id) = State(prev_loc,-1 ,-1);
     decision.at(prev_loc) = curr_id;     
 
 	#ifndef NDEBUG
