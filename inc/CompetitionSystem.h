@@ -133,7 +133,7 @@ public:
             for (auto& task_location: tasks[i])
             {
                 all_tasks.emplace_back(task_id++, task_location, 0, (int)i);
-                task_queue[i].emplace_back(all_tasks.back().task_id, all_tasks.back().location, 
+                task_queue[i].emplace_back(all_tasks.back().task_id, all_tasks.back().locations.front(), 
                     all_tasks.back().t_assigned, all_tasks.back().agent_assigned);
             }
             // task_queue[i] = deque<int>(tasks[i].begin(), tasks[i].end());
@@ -162,7 +162,7 @@ public:
         for (auto& task_location: tasks)
         {
             all_tasks.emplace_back(task_id++, task_location);
-            task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().location);
+            task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().locations.front());
             //task_queue.emplace_back(task_id++, task_location);
         }
         num_of_agents = start_locs.size();
