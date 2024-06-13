@@ -35,14 +35,20 @@ list<Task> BaseSystem::move(vector<Action>& actions)
     // agents do not move
     for (int k = 0; k < num_of_agents; k++)
     {
-        if (!assigned_tasks[k].empty() && curr_states[k].location == assigned_tasks[k].front().location)
+        if (!assigned_tasks[k].empty() && curr_states[k].location == assigned_tasks[k].front().get_next_loc())
         {
             Task task = assigned_tasks[k].front();
-            assigned_tasks[k].pop_front();
-            task.t_completed = timestep;
-            finished_tasks_this_timestep.push_back(task);
-            events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
-            // log_event_finished(k, task.task_id, timestep);
+            task.idx_next_loc += 1;
+
+            if (task.is_finished()){
+              assigned_tasks[k].pop_front();
+              task.t_completed = timestep;
+              finished_tasks_this_timestep.push_back(task);
+              events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
+              // log_event_finished(k, task.task_id, timestep);
+            } else {
+              
+            }
         }
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
@@ -61,14 +67,16 @@ bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
 
 void BaseSystem::sync_shared_env() {
 
-    if (!started){
-        env->goal_locations.resize(num_of_agents);
-        for (size_t i = 0; i < num_of_agents; i++)
-        {
-            env->goal_locations[i].clear();
-            for (auto& task: assigned_tasks[i])
-            {
-                env->goal_locations[i].push_back({task.location, task.t_assigned });
+  if (!started){
+    env->goal_locations.resize(num_of_agents);
+    for (size_t i = 0; i < num_of_agents; i++)
+      {
+        env->goal_locations[i].clear();
+        for (auto& task: assigned_tasks[i])
+          {
+            for (int i_task = task.idx_next_loc; i_task < task.locations.size(); i_task ++ ){
+              env->goal_locations[i].push_back({task.locations.at(i_task), task.t_assigned });
+              }
             }
         }
         env->curr_states = curr_states;
@@ -88,6 +96,12 @@ vector<Action> BaseSystem::plan_wrapper()
 
 vector<Action> BaseSystem::plan()
 {
+
+    vector<Action> actions;
+    planner->plan(plan_time_limit, actions);
+
+    return actions;
+
     using namespace std::placeholders;
     if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -520,8 +534,9 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         {
             json task = json::array();
             task.push_back(t.task_id);
-            task.push_back(t.location/map.cols);
-            task.push_back(t.location%map.cols);
+            // TODO rewrite the task output part
+            task.push_back(t.locations.front()/map.cols);
+            task.push_back(t.locations.front()%map.cols);
             tasks.push_back(task);
         }
         js["tasks"] = tasks;
