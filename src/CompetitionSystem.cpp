@@ -1,6 +1,7 @@
 #include <cmath>
 #include "CompetitionSystem.h"
 #include <boost/tokenizer.hpp>
+#include "SharedEnv.h"
 #include "nlohmann/json.hpp"
 #include <functional>
 #include <Logger.h>
@@ -37,35 +38,9 @@ list<Task> BaseSystem::move(vector<Action>& actions)
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
-    return check_finished_tasks(curr_states);
+    return task_manager.check_finished_tasks(curr_states, timestep);
 }
 
-
-
-list<Task> BaseSystem::check_finished_tasks(vector<State> states){
-    
-    list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
-    for (int k = 0; k < num_of_agents; k++)
-        {
-            if (!assigned_tasks[k].empty() && states[k].location == assigned_tasks[k].front().get_next_loc())
-                {
-                    Task task = assigned_tasks[k].front();
-                    task.idx_next_loc += 1;
-
-                    if (task.is_finished()){
-                        assigned_tasks[k].pop_front();
-                        task.t_completed = timestep;
-                        finished_tasks_this_timestep.push_back(task);
-                        events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
-                        // log_event_finished(k, task.task_id, timestep);
-                    } else {
-              
-                    }
-                }
-        }
-
-    return finished_tasks_this_timestep;
-}
 
 
 // This function might not work correctly with small map (w or h <=2)
@@ -78,20 +53,11 @@ bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
 void BaseSystem::sync_shared_env() {
 
   if (!started){
-    env->goal_locations.resize(num_of_agents);
-    for (size_t i = 0; i < num_of_agents; i++)
-      {
-        env->goal_locations[i].clear();
-        for (auto& task: assigned_tasks[i])
-          {
-            for (int i_task = task.idx_next_loc; i_task < task.locations.size(); i_task ++ ){
-              env->goal_locations[i].push_back({task.locations.at(i_task), task.t_assigned });
-              }
-            }
-        }
-        env->curr_states = curr_states;
-    }
-    env->curr_timestep = timestep;
+      env->goal_locations.resize(num_of_agents);
+      task_manager.sync_shared_env(env);
+      env->curr_states = curr_states;
+  }
+  env->curr_timestep = timestep;
 }
 
 
@@ -201,7 +167,6 @@ void BaseSystem::simulate(int simulation_time)
     //init logger
     //Logger* log = new Logger();
     initialize();
-    int num_of_tasks = 0;
 
     for (; timestep < simulation_time; )
     {
@@ -234,30 +199,9 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         // update tasks
-        for (auto task : new_finished_tasks)
-        {
-            // int id, loc, t;
-            // std::tie(id, loc, t) = task;
-            finished_tasks[task.agent_assigned].emplace_back(task);
-            num_of_tasks++;
-            num_of_task_finish++;
-        }
 
-        update_tasks();
+        bool complete_all = task_manager.update_tasks(timestep);
 
-        bool complete_all = false;
-        for (auto & t: assigned_tasks)
-        {
-            if(t.empty()) 
-            {
-                complete_all = true;
-            }
-            else
-            {
-                complete_all = false;
-                break;
-            }
-        }
         if (complete_all)
         {
             break;
@@ -274,11 +218,9 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
-    finished_tasks.resize(num_of_agents);
     // bool succ = load_records(); // continue simulating from the records
     timestep = 0;
     curr_states = starts;
-    assigned_tasks.resize(num_of_agents);
 
     //planner initilise before knowing the first goals
     bool planner_initialize_success= planner_initialize();
@@ -288,7 +230,7 @@ void BaseSystem::initialize()
         _exit(124);
 
     // initialize_goal_locations();
-    update_tasks();
+    task_manager.update_tasks(timestep);
 
     sync_shared_env();
 
@@ -385,7 +327,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         js["start"] = start;
     }
 
-    js["numTaskFinished"] = num_of_task_finish;
+    js["numTaskFinished"] = task_manager.num_of_task_finish;
     int sum_of_cost = 0;
     int makespan = 0;
     if (num_of_agents > 0)
@@ -539,16 +481,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         js["events"] = events_json;
 
         // Save all tasks
-        json tasks = json::array();
-        for (auto t: all_tasks)
-        {
-            json task = json::array();
-            task.push_back(t.task_id);
-            // TODO rewrite the task output part
-            task.push_back(t.locations.front()/map.cols);
-            task.push_back(t.locations.front()%map.cols);
-            tasks.push_back(task);
-        }
+        json tasks = task_manager.to_json(map.cols);
         js["tasks"] = tasks;
     }
 
@@ -557,35 +490,4 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
 
 }
 
-
-void BaseSystem::update_tasks(){
-    for (int k = 0; k < num_of_agents; k++)
-        {
-            while (assigned_tasks[k].size() < num_tasks_reveal) 
-                {
-                    int i = task_counter[k] * num_of_agents + k;
-                    int loc = tasks[i%tasks_size];
-                    Task task(task_id,loc,timestep,k);
-                    assigned_tasks[k].push_back(task);
-                    events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
-                    // log_event_assigned(k, task.task_id, timestep);
-                    all_tasks.push_back(task);
-                    task_id++;
-                    task_counter[k]++;
-                }
-    }
-
-    // for (int k = 0; k < num_of_agents; k++) {
-    //     while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue.empty()){
-    //         Task task = task_queue.front();
-    //         task.t_assigned = timestep;
-    //         task.agent_assigned = k;
-    //         task_queue.pop_front();
-    //         assigned_tasks[k].push_back(task);
-    //         events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
-    //         all_tasks.push_back(task);
-    //         // log_event_assigned(k, task.task_id, timestep);
-    //     }
-    // }
-}
 
