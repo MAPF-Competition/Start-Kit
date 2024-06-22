@@ -128,20 +128,21 @@ int main(int argc, char **argv)
     std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
     if (task_assignment_strategy == "greedy")
     {
-        system_ptr = std::make_unique<TaskAssignSystem>(grid, planner, agents, tasks, model);
+        // system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
     }
     else if (task_assignment_strategy == "roundrobin")
     {
-        system_ptr = std::make_unique<InfAssignSystem>(grid, planner, agents, tasks, model);
+        // system_ptr = std::make_unique<InfAssignSystem>(grid, planner, agents, tasks, model);
+        system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
     }
     else if (task_assignment_strategy == "roundrobin_fixed")
-    {
-        std::vector<vector<int>> assigned_tasks(agents.size());
-        for (int i = 0; i < tasks.size(); i++)
         {
-            assigned_tasks[i % agents.size()].push_back(tasks[i]);
-        }
-        system_ptr = std::make_unique<FixedAssignSystem>(grid, planner, agents, assigned_tasks, model);
+        // std::vector<vector<int>> assigned_tasks(agents.size());
+        // for (int i = 0; i < tasks.size(); i++)
+        // {
+        //     assigned_tasks[i % agents.size()].push_back(tasks[i]);
+        // }
+        // system_ptr = std::make_unique<FixedAssignSystem>(grid, planner, agents, assigned_tasks, model);
     }
     else
     {
