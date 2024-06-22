@@ -2,6 +2,7 @@
 #include "States.h"
 #include "Grid.h"
 #include "nlohmann/json.hpp"
+#include "Tasks.h"
 
 
 class SharedEnvironment

@@ -6,23 +6,21 @@
 #include "ActionModel.h"
 #include "MAPFPlanner.h"
 #include "Logger.h"
+#include "TaskManager.h"
 #include <pthread.h>
 #include <future>
 
 class BaseSystem
 {
 public:
-    int num_tasks_reveal = 1;
     Logger* logger = nullptr;
 
 	BaseSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
       map(grid), planner(planner), env(planner->env), model(model),
-      tasks(tasks)
+      task_manager(tasks, start_locs.size(), events)
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
-        task_counter.resize(num_of_agents,0);
-        tasks_size = tasks.size();
 
         for (size_t i = 0; i < start_locs.size(); i++)
             {
@@ -62,13 +60,12 @@ public:
         }
     };
 
-    list<Task> check_finished_tasks(vector<State> states);
-    void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
+    void set_num_tasks_reveal(int num){task_manager.set_num_tasks_reveal(num);};
     void set_plan_time_limit(int limit){plan_time_limit = limit;};
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
     void set_logger(Logger* logger){this->logger = logger;}
 
-	void simulate(int simulation_time);
+    void simulate(int simulation_time);
     vector<Action> plan();
     vector<Action> plan_wrapper();
 
@@ -97,7 +94,6 @@ protected:
     int plan_time_limit = 3;
 
     std::vector<Path> paths;
-    std::vector<std::list<Task > > finished_tasks; // location + finish time
 
     vector<State> starts;
     int num_of_agents;
@@ -108,14 +104,11 @@ protected:
     vector<list<Action>> planner_movements;
 
     // tasks that haven't been finished but have been revealed to agents;
-    vector< deque<Task > > assigned_tasks;
 
     vector<list<std::tuple<int,int,std::string>>> events;
-    list<Task> all_tasks;
 
     //for evaluation
     vector<int> solution_costs;
-    int num_of_task_finish = 0;
     list<double> planner_times; 
     bool fast_mover_feasible = true;
 
@@ -124,12 +117,8 @@ protected:
     bool planner_initialize();
 
 
+    TaskManager task_manager;
     // deque<Task> task_queue;
-    std::vector<int>& tasks;
-    std::vector<int> task_counter;
-    int tasks_size;
-    int task_id = 0;
-    virtual void update_tasks();
     virtual void sync_shared_env();
 
     list<Task> move(vector<Action>& actions);
