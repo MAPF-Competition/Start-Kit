@@ -24,7 +24,6 @@ list<Task> BaseSystem::move(vector<Action>& actions)
         }
     }
 
-    list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
     if (!valid_moves(curr_states, actions))
     {
         fast_mover_feasible = false;
@@ -33,26 +32,37 @@ list<Task> BaseSystem::move(vector<Action>& actions)
 
     curr_states = model->result_states(curr_states, actions);
     // agents do not move
-    for (int k = 0; k < num_of_agents; k++)
-    {
-        if (!assigned_tasks[k].empty() && curr_states[k].location == assigned_tasks[k].front().get_next_loc())
-        {
-            Task task = assigned_tasks[k].front();
-            task.idx_next_loc += 1;
 
-            if (task.is_finished()){
-              assigned_tasks[k].pop_front();
-              task.t_completed = timestep;
-              finished_tasks_this_timestep.push_back(task);
-              events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
-              // log_event_finished(k, task.task_id, timestep);
-            } else {
-              
-            }
-        }
+    for (int k = 0; k < num_of_agents; k++){
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
+    return check_finished_tasks(curr_states);
+}
+
+
+
+list<Task> BaseSystem::check_finished_tasks(vector<State> states){
+    
+    list<Task> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
+    for (int k = 0; k < num_of_agents; k++)
+        {
+            if (!assigned_tasks[k].empty() && states[k].location == assigned_tasks[k].front().get_next_loc())
+                {
+                    Task task = assigned_tasks[k].front();
+                    task.idx_next_loc += 1;
+
+                    if (task.is_finished()){
+                        assigned_tasks[k].pop_front();
+                        task.t_completed = timestep;
+                        finished_tasks_this_timestep.push_back(task);
+                        events[k].push_back(make_tuple(task.task_id, timestep,"finished"));
+                        // log_event_finished(k, task.task_id, timestep);
+                    } else {
+              
+                    }
+                }
+        }
 
     return finished_tasks_this_timestep;
 }
@@ -61,7 +71,7 @@ list<Task> BaseSystem::move(vector<Action>& actions)
 // This function might not work correctly with small map (w or h <=2)
 bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
 {
-    return model->is_valid(prev, action);
+  return model->is_valid(prev, action);
 }
 
 
@@ -547,111 +557,35 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
 
 }
 
-bool FixedAssignSystem::load_agent_tasks(string fname)
-{
-    string line;
-    std::ifstream myfile(fname.c_str());
-    if (!myfile.is_open()) return false;
 
-    getline(myfile, line);
-    while (!myfile.eof() && line[0] == '#') {
-        getline(myfile, line);
-    }
-
-    boost::char_separator<char> sep(",");
-    boost::tokenizer<boost::char_separator<char>> tok(line, sep);
-    boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
-
-    num_of_agents = atoi((*beg).c_str());
-    int task_id = 0;
-    // My benchmark
-    if (num_of_agents == 0) {
-        //issue_logs.push_back("Load file failed");
-        std::cerr << "The number of agents should be larger than 0" << endl;
-        exit(-1);
-    }
-    starts.resize(num_of_agents);
-    task_queue.resize(num_of_agents);
-  
-    for (int i = 0; i < num_of_agents; i++)
-    {
-
-        getline(myfile, line);
-        while (!myfile.eof() && line[0] == '#')
-            getline(myfile, line);
-
-        boost::tokenizer<boost::char_separator<char>> tok(line, sep);
-        boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
-        // read start [row,col] for agent i
-        int num_landmarks = atoi((*beg).c_str());
-        beg++;
-        auto loc = atoi((*beg).c_str());
-        // agent_start_locations[i] = {loc, 0};
-        starts[i] = State(loc, 0, 0);
-        beg++;
-        for (int j = 0; j < num_landmarks; j++, beg++)
-        {
-            auto loc = atoi((*beg).c_str());
-            task_queue[i].emplace_back(task_id++, loc, 0, i);
-        }
-    }
-    myfile.close();
-
-    return true;
-}
-
-
-void FixedAssignSystem::update_tasks()
-{
+void BaseSystem::update_tasks(){
     for (int k = 0; k < num_of_agents; k++)
-    {
-        while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue[k].empty())
         {
-            Task task = task_queue[k].front();
-            task_queue[k].pop_front();
-            assigned_tasks[k].push_back(task);
-            events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
-            all_tasks.push_back(task);
-            // log_event_assigned(k, task.task_id, timestep);
-        }
+            while (assigned_tasks[k].size() < num_tasks_reveal) 
+                {
+                    int i = task_counter[k] * num_of_agents + k;
+                    int loc = tasks[i%tasks_size];
+                    Task task(task_id,loc,timestep,k);
+                    assigned_tasks[k].push_back(task);
+                    events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+                    // log_event_assigned(k, task.task_id, timestep);
+                    all_tasks.push_back(task);
+                    task_id++;
+                    task_counter[k]++;
+                }
     }
-}
 
-
-void TaskAssignSystem::update_tasks()
-{
-    for (int k = 0; k < num_of_agents; k++)
-    {
-        while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue.empty())
-        {
-            Task task = task_queue.front();
-            task.t_assigned = timestep;
-            task.agent_assigned = k;
-            task_queue.pop_front();
-            assigned_tasks[k].push_back(task);
-            events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
-            all_tasks.push_back(task);
-            // log_event_assigned(k, task.task_id, timestep);
-        }
-    }
-}
-
-
-void InfAssignSystem::update_tasks(){
-    for (int k = 0; k < num_of_agents; k++)
-    {
-        while (assigned_tasks[k].size() < num_tasks_reveal) 
-        {
-            int i = task_counter[k] * num_of_agents + k;
-            int loc = tasks[i%tasks_size];
-            Task task(task_id,loc,timestep,k);
-            assigned_tasks[k].push_back(task);
-            events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
-            // log_event_assigned(k, task.task_id, timestep);
-            all_tasks.push_back(task);
-            task_id++;
-            task_counter[k]++;
-        }
-    }
+    // for (int k = 0; k < num_of_agents; k++) {
+    //     while (assigned_tasks[k].size() < num_tasks_reveal && !task_queue.empty()){
+    //         Task task = task_queue.front();
+    //         task.t_assigned = timestep;
+    //         task.agent_assigned = k;
+    //         task_queue.pop_front();
+    //         assigned_tasks[k].push_back(task);
+    //         events[k].push_back(make_tuple(task.task_id,timestep,"assigned"));
+    //         all_tasks.push_back(task);
+    //         // log_event_assigned(k, task.task_id, timestep);
+    //     }
+    // }
 }
 
