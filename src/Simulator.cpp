@@ -36,7 +36,8 @@ vector<State> Simulator::move(vector<Action>& actions)
     return curr_states;
 }
 
-void Simulator::sync_shared_env(SharedEnvironment* env) {
+void Simulator::sync_shared_env(SharedEnvironment* env) 
+{
     env->curr_states = curr_states;
     env->curr_timestep = timestep;
 }
@@ -83,6 +84,8 @@ json Simulator::actual_path_to_json() const
         }
         apaths.push_back(path);
     }
+
+    return apaths;
 }
 
 json Simulator::planned_path_to_json() const
@@ -127,4 +130,56 @@ json Simulator::planned_path_to_json() const
         }  
         ppaths.push_back(path);
     }
+
+    return ppaths;
+}
+
+json Simulator::starts_to_json() const
+{
+    json start = json::array();
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        json s = json::array();
+        s.push_back(starts[i].location/map.cols);
+        s.push_back(starts[i].location%map.cols);
+        switch (starts[i].orientation)
+        {
+        case 0:
+            s.push_back("E");
+            break;
+        case 1:
+            s.push_back("S");
+        case 2:
+            s.push_back("W");
+            break;
+        case 3:
+            s.push_back("N");
+            break;
+        }
+        start.push_back(s);
+    }
+
+    return start;
+}
+
+json Simulator::action_errors_to_json() const
+{
+    // Save errors
+    json errors = json::array();
+    for (auto error: model->errors)
+    {
+        std::string error_msg;
+        int agent1;
+        int agent2;
+        int timestep;
+        std::tie(error_msg,agent1,agent2,timestep) = error;
+        json e = json::array();
+        e.push_back(agent1);
+        e.push_back(agent2);
+        e.push_back(timestep);
+        e.push_back(error_msg);
+        errors.push_back(e);
+    }
+
+    return errors;
 }

@@ -43,9 +43,15 @@ public:
 
     bool get_all_valid(){ return all_valid;}
 
+    void sync_shared_env(SharedEnvironment* env);
+
     nlohmann::ordered_json actual_path_to_json() const;
 
     nlohmann::ordered_json planned_path_to_json() const;
+
+    nlohmann::ordered_json starts_to_json() const;
+
+    nlohmann::ordered_json action_errors_to_json() const;
 
 private:
     Grid map;
