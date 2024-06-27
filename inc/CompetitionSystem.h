@@ -9,6 +9,7 @@
 #include "TaskManager.h"
 #include <pthread.h>
 #include <future>
+#include "Simulator.h"
 
 class BaseSystem
 {
@@ -16,21 +17,21 @@ public:
     Logger* logger = nullptr;
 
 	BaseSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
-      map(grid), planner(planner), env(planner->env), model(model),
-      task_manager(tasks, start_locs.size(), events)
+      map(grid), planner(planner), env(planner->env),
+      task_manager(tasks, start_locs.size(), events), simulator(grid,start_locs,model)
     {
-        num_of_agents = start_locs.size();
-        starts.resize(num_of_agents);
+        // num_of_agents = start_locs.size();
+        // starts.resize(num_of_agents);
 
-        for (size_t i = 0; i < start_locs.size(); i++)
-            {
-                if (grid.map[start_locs[i]] == 1)
-                    {
-                        cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
-                        exit(0);
-                    }
-                starts[i] = State(start_locs[i], 0, 0);
-        }
+        // for (size_t i = 0; i < start_locs.size(); i++)
+        //     {
+        //         if (grid.map[start_locs[i]] == 1)
+        //             {
+        //                 cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
+        //                 exit(0);
+        //             }
+        //         starts[i] = State(start_locs[i], 0, 0);
+        // }
 
  //        int task_id = 0;
  // for (auto& task_location: tasks)
@@ -69,7 +70,6 @@ public:
     vector<Action> plan();
     vector<Action> plan_wrapper();
 
-    void savePaths(const string &fileName, int option) const; //option = 0: save actual movement, option = 1: save planner movement
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen) const;
 
@@ -84,10 +84,10 @@ protected:
     MAPFPlanner* planner;
     SharedEnvironment* env;
 
-    ActionModelWithRotate* model;
+    //ActionModelWithRotate* model;
 
     // #timesteps for simulation
-    int timestep;
+    //int timestep;
 
     int preprocess_time_limit=10;
 
@@ -98,7 +98,7 @@ protected:
     vector<State> starts;
     int num_of_agents;
 
-    vector<State> curr_states;
+    //vector<State> curr_states;
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;
@@ -118,6 +118,7 @@ protected:
 
 
     TaskManager task_manager;
+    Simulator simulator;
     // deque<Task> task_queue;
     virtual void sync_shared_env();
 

@@ -11,27 +11,9 @@ using json = nlohmann::ordered_json;
 
 list<Task> BaseSystem::move(vector<Action>& actions)
 {
-    // actions.resize(num_of_agents, Action::NA);
-    for (int k = 0; k < num_of_agents; k++)
-    {
-        //log->log_plan(false,k);
-        if (k >= actions.size()){
-            fast_mover_feasible = false;
-            planner_movements[k].push_back(Action::NA);
-        }
-        else
-        {
-            planner_movements[k].push_back(actions[k]);
-        }
-    }
 
-    if (!valid_moves(curr_states, actions))
-    {
-        fast_mover_feasible = false;
-        actions = std::vector<Action>(num_of_agents, Action::W);
-    }
-
-    curr_states = model->result_states(curr_states, actions);
+    vector<State> curr_states = simulator.move(actions);
+    int timestep = simulator.get_curr_timestep();
     // agents do not move
 
     for (int k = 0; k < num_of_agents; k++){
@@ -43,11 +25,11 @@ list<Task> BaseSystem::move(vector<Action>& actions)
 
 
 
-// This function might not work correctly with small map (w or h <=2)
-bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
-{
-  return model->is_valid(prev, action);
-}
+// // This function might not work correctly with small map (w or h <=2)
+// bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
+// {
+//   return model->is_valid(prev, action);
+// }
 
 
 void BaseSystem::sync_shared_env() {
@@ -55,9 +37,12 @@ void BaseSystem::sync_shared_env() {
   if (!started){
       env->goal_locations.resize(num_of_agents);
       task_manager.sync_shared_env(env);
-      env->curr_states = curr_states;
+      simulator.sync_shared_env(env);
   }
-  env->curr_timestep = timestep;
+  else
+  {
+    env->curr_timestep = simulator.get_curr_timestep();
+  }
 }
 
 
@@ -72,6 +57,8 @@ vector<Action> BaseSystem::plan_wrapper()
 
 vector<Action> BaseSystem::plan()
 {
+
+    int timestep = simulator.get_curr_timestep();
 
     vector<Action> actions;
     planner->plan(plan_time_limit, actions);
@@ -140,11 +127,11 @@ void BaseSystem::log_preprocessing(bool succ)
         return;
     if (succ)
     {
-        logger->log_info("Preprocessing success", timestep);
+        logger->log_info("Preprocessing success", simulator.get_curr_timestep());
     } 
     else
     {
-        logger->log_fatal("Preprocessing timeout", timestep);
+        logger->log_fatal("Preprocessing timeout", simulator.get_curr_timestep());
     }
     logger->flush();
 }
@@ -168,7 +155,7 @@ void BaseSystem::simulate(int simulation_time)
     //Logger* log = new Logger();
     initialize();
 
-    for (; timestep < simulation_time; )
+    for (; simulator.get_curr_timestep() < simulation_time; )
     {
         // find a plan
         sync_shared_env();
@@ -179,7 +166,6 @@ void BaseSystem::simulate(int simulation_time)
 
         auto end = std::chrono::steady_clock::now();
 
-        timestep += 1;
         for (int a = 0; a < num_of_agents; a++)
         {
             if (!env->goal_locations[a].empty())
@@ -200,7 +186,7 @@ void BaseSystem::simulate(int simulation_time)
 
         // update tasks
 
-        bool complete_all = task_manager.update_tasks(timestep);
+        bool complete_all = task_manager.update_tasks(simulator.get_curr_timestep());
 
         if (complete_all)
         {
@@ -218,9 +204,12 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
-    // bool succ = load_records(); // continue simulating from the records
-    timestep = 0;
-    curr_states = starts;
+    
+    // // bool succ = load_records(); // continue simulating from the records
+    // timestep = 0;
+    // curr_states = starts;
+
+    int timestep = simulator.get_curr_timestep();
 
     //planner initilise before knowing the first goals
     bool planner_initialize_success= planner_initialize();
@@ -234,57 +223,13 @@ void BaseSystem::initialize()
 
     sync_shared_env();
 
-    actual_movements.resize(num_of_agents);
-    planner_movements.resize(num_of_agents);
+    // actual_movements.resize(num_of_agents);
+    // planner_movements.resize(num_of_agents);
     solution_costs.resize(num_of_agents);
     for (int a = 0; a < num_of_agents; a++)
     {
         solution_costs[a] = 0;
     }
-}
-
-void BaseSystem::savePaths(const string &fileName, int option) const
-{
-    std::ofstream output;
-    output.open(fileName, std::ios::out);
-    for (int i = 0; i < num_of_agents; i++)
-    {
-        output << "Agent " << i << ": ";
-        if (option == 0)
-        {
-            bool first = true;
-            for (const auto t : actual_movements[i])
-            {
-                if (!first)
-                {
-                    output << ",";
-                }
-                else
-                {
-                    first = false;
-                }
-                output << t;
-            }
-        }
-        else if (option == 1)
-        {
-            bool first = true;
-            for (const auto t : planner_movements[i])
-            {
-                if (!first)
-                {
-                    output << ",";
-                } 
-                else 
-                {
-                    first = false;
-                }
-                output << t;
-            }
-        }
-        output << endl;
-    }
-    output.close();
 }
 
 
@@ -302,29 +247,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     // Save start locations[x,y,orientation]
     if (screen <= 2)
     {
-        json start = json::array();
-        for (int i = 0; i < num_of_agents; i++)
-        {
-            json s = json::array();
-            s.push_back(starts[i].location/map.cols);
-            s.push_back(starts[i].location%map.cols);
-            switch (starts[i].orientation)
-            {
-            case 0:
-                s.push_back("E");
-                break;
-            case 1:
-                s.push_back("S");
-            case 2:
-                s.push_back("W");
-                break;
-            case 3:
-                s.push_back("N");
-                break;
-            }
-            start.push_back(s);
-        }
-        js["start"] = start;
+        js["start"] = simulator.starts_to_json();
     }
 
     js["numTaskFinished"] = task_manager.num_of_task_finish;
@@ -348,92 +271,12 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     
     if (screen <= 2)
     {
-        // Save actual paths
-        json apaths = json::array();
-        for (int i = 0; i < num_of_agents; i++)
-        {
-            std::string path;
-            bool first = true;
-            for (const auto action : actual_movements[i])
-            {
-                if (!first)
-                {
-                    path+= ",";
-                }
-                else
-                {
-                    first = false;
-                }
-
-                if (action == Action::FW)
-                {
-                    path+="F";
-                }
-                else if (action == Action::CR)
-                {
-                    path+="R";
-                } 
-                else if (action == Action::CCR)
-                {
-                    path+="C";
-                }
-                else if (action == Action::NA)
-                {
-                    path+="T";
-                }
-                else
-                {
-                    path+="W";
-                }
-            }
-            apaths.push_back(path);
-        }
-        js["actualPaths"] = apaths;
+        js["actualPaths"] = simulator.actual_path_to_json();
     }
 
     if (screen <=1)
     {
-        //planned paths
-        json ppaths = json::array();
-        for (int i = 0; i < num_of_agents; i++)
-        {
-            std::string path;
-            bool first = true;
-            for (const auto action : planner_movements[i])
-            {
-                if (!first)
-                {
-                    path+= ",";
-                } 
-                else 
-                {
-                    first = false;
-                }
-
-                if (action == Action::FW)
-                {
-                    path+="F";
-                }
-                else if (action == Action::CR)
-                {
-                    path+="R";
-                } 
-                else if (action == Action::CCR)
-                {
-                    path+="C";
-                } 
-                else if (action == Action::NA)
-                {
-                    path+="T";
-                }
-                else
-                {
-                    path+="W";
-                }
-            }  
-            ppaths.push_back(path);
-        }
-        js["plannerPaths"] = ppaths;
+        js["plannerPaths"] = simulator.planned_path_to_json();
 
         json planning_times = json::array();
         for (double time: planner_times)
@@ -441,23 +284,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         js["plannerTimes"] = planning_times;
 
         // Save errors
-        json errors = json::array();
-        for (auto error: model->errors)
-        {
-            std::string error_msg;
-            int agent1;
-            int agent2;
-            int timestep;
-            std::tie(error_msg,agent1,agent2,timestep) = error;
-            json e = json::array();
-            e.push_back(agent1);
-            e.push_back(agent2);
-            e.push_back(timestep);
-            e.push_back(error_msg);
-            errors.push_back(e);
-
-        }
-        js["errors"] = errors;
+        js["errors"] = simulator.action_errors_to_json();
 
         // Save events
         json events_json = json::array();
