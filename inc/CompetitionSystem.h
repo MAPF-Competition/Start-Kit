@@ -66,7 +66,10 @@ public:
     void set_num_tasks_reveal(int num){task_manager.set_num_tasks_reveal(num);};
     void set_plan_time_limit(int limit){plan_time_limit = limit;};
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
-    void set_logger(Logger* logger){this->logger = logger;}
+    void set_logger(Logger* logger){
+        this->logger = logger;
+        task_manager.set_logger(logger);
+    }
 
     void simulate(int simulation_time);
     vector<Action> plan();
@@ -124,7 +127,7 @@ protected:
     // deque<Task> task_queue;
     virtual void sync_shared_env();
 
-    list<Task> move(vector<Action>& actions);
+    void move(vector<Action>& actions);
     bool valid_moves(vector<State>& prev, vector<Action>& next);
 
     void log_preprocessing(bool succ);

@@ -9,7 +9,7 @@
 using json = nlohmann::ordered_json;
 
 
-list<Task> BaseSystem::move(vector<Action>& actions)
+void BaseSystem::move(vector<Action>& actions)
 {
 
     vector<State> curr_states = simulator.move(actions);
@@ -20,7 +20,7 @@ list<Task> BaseSystem::move(vector<Action>& actions)
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
-    return task_manager.check_finished_tasks(curr_states, timestep);
+    task_manager.check_finished_tasks(curr_states, timestep);
 }
 
 
@@ -173,7 +173,7 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         // move drives
-        list<Task> new_finished_tasks = move(actions);
+        move(actions);
         if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA)
         {
             planner_times.back()+=plan_time_limit;  //add planning time to last record
