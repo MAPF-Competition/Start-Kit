@@ -20,18 +20,20 @@ public:
       map(grid), planner(planner), env(planner->env),
       task_manager(tasks, start_locs.size(), events), simulator(grid,start_locs,model)
     {
-        // num_of_agents = start_locs.size();
-        // starts.resize(num_of_agents);
+        num_of_agents = start_locs.size();
+        starts.resize(num_of_agents);
+        paths.resize(num_of_agents);
+        events.resize(num_of_agents);
 
-        // for (size_t i = 0; i < start_locs.size(); i++)
-        //     {
-        //         if (grid.map[start_locs[i]] == 1)
-        //             {
-        //                 cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
-        //                 exit(0);
-        //             }
-        //         starts[i] = State(start_locs[i], 0, 0);
-        // }
+        for (size_t i = 0; i < start_locs.size(); i++)
+            {
+                if (grid.map[start_locs[i]] == 1)
+                    {
+                        cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
+                        exit(0);
+                    }
+                starts[i] = State(start_locs[i], 0, 0);
+            }
 
  //        int task_id = 0;
  // for (auto& task_location: tasks)

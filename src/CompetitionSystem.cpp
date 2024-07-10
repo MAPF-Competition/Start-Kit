@@ -198,8 +198,6 @@ void BaseSystem::simulate(int simulation_time)
 
 void BaseSystem::initialize()
 {
-    paths.resize(num_of_agents);
-    events.resize(num_of_agents);
     env->num_of_agents = num_of_agents;
     env->rows = map.rows;
     env->cols = map.cols;
@@ -223,8 +221,8 @@ void BaseSystem::initialize()
 
     sync_shared_env();
 
-    // actual_movements.resize(num_of_agents);
-    // planner_movements.resize(num_of_agents);
+    actual_movements.resize(num_of_agents);
+    planner_movements.resize(num_of_agents);
     solution_costs.resize(num_of_agents);
     for (int a = 0; a < num_of_agents; a++)
     {
