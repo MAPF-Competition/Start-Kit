@@ -16,6 +16,7 @@ public:
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
+        paths.resize(num_of_agents);
 
         for (size_t i = 0; i < start_locs.size(); i++)
             {
