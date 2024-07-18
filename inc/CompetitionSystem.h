@@ -4,7 +4,7 @@
 #include "Grid.h"
 #include "Tasks.h"
 #include "ActionModel.h"
-#include "MAPFPlanner.h"
+#include "Entry.h"
 #include "Logger.h"
 #include "TaskManager.h"
 #include <pthread.h>
@@ -16,7 +16,7 @@ class BaseSystem
 public:
     Logger* logger = nullptr;
 
-	BaseSystem(Grid &grid, MAPFPlanner* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
+	BaseSystem(Grid &grid, Entry* planner, std::vector<int>& start_locs, std::vector<int>& tasks, ActionModelWithRotate* model):
       map(grid), planner(planner), env(planner->env),
       task_manager(tasks, start_locs.size(), events), simulator(grid,start_locs,model)
     {
@@ -72,8 +72,8 @@ public:
     }
 
     void simulate(int simulation_time);
-    vector<Action> plan();
-    vector<Action> plan_wrapper();
+    void plan(vector<Action> & actions,vector<vector<int>> & proposed_schedule);
+    void plan_wrapper(vector<Action> & actions,vector<vector<int>> & proposed_schedule);
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen) const;
@@ -86,7 +86,7 @@ protected:
     std::thread task_td;
     bool started = false;
 
-    MAPFPlanner* planner;
+    Entry* planner;
     SharedEnvironment* env;
 
     //ActionModelWithRotate* model;

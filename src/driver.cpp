@@ -77,23 +77,23 @@ int main(int argc, char **argv)
 
     Logger *logger = new Logger(vm["logFile"].as<std::string>());
 
-    MAPFPlanner *planner = nullptr;
+    Entry *planner = nullptr;
     // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
-    if (vm["evaluationMode"].as<bool>())
-    {
-        logger->log_info("running the evaluation mode");
-        planner = new DummyPlanner(vm["output"].as<std::string>());
-    }
-    else
-    {
+    // if (vm["evaluationMode"].as<bool>())
+    // {
+    //     logger->log_info("running the evaluation mode");
+    //     planner = new DummyPlanner(vm["output"].as<std::string>());
+    // }
+    // else
+    // {
 #ifdef PYTHON
 #if PYTHON
         planner = new pyMAPFPlanner();
 #else
-        planner = new MAPFPlanner();
+        planner = new Entry();
 #endif
 #endif
-    }
+    //}
 
     auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
