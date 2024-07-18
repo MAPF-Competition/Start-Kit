@@ -46,24 +46,16 @@ void BaseSystem::sync_shared_env() {
 }
 
 
-vector<Action> BaseSystem::plan_wrapper()
+void BaseSystem::plan_wrapper(vector<Action> & actions,vector<vector<int>> & proposed_schedule)
 {
-    vector<Action> actions;
-    planner->plan(plan_time_limit, actions);
-
-    return actions;
+    planner->compute(plan_time_limit, actions,proposed_schedule);
 }
 
 
-vector<Action> BaseSystem::plan()
+void BaseSystem::plan(vector<Action> & actions,vector<vector<int>> & proposed_schedule)
 {
 
     int timestep = simulator.get_curr_timestep();
-
-    vector<Action> actions;
-    planner->plan(plan_time_limit, actions);
-
-    return actions;
 
     using namespace std::placeholders;
     if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
@@ -78,10 +70,10 @@ vector<Action> BaseSystem::plan()
         {
             task_td.join();
             started = false;
-            return future.get();
+            return;
         }
         logger->log_info("planner timeout", timestep);
-        return {};
+        return;
     }
 
     std::packaged_task<std::vector<Action>()> task(std::bind(&BaseSystem::plan_wrapper, this));
@@ -96,17 +88,17 @@ vector<Action> BaseSystem::plan()
     {
         task_td.join();
         started = false;
-        return future.get();
+        return;
     }
     logger->log_info("planner timeout", timestep);
-    return {};
+    return;
 }
 
 
 bool BaseSystem::planner_initialize()
 {
     using namespace std::placeholders;
-    std::packaged_task<void(int)> init_task(std::bind(&MAPFPlanner::initialize, planner, _1));
+    std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, _1));
     auto init_future = init_task.get_future();
     
     auto init_td = std::thread(std::move(init_task), preprocess_time_limit);
@@ -162,7 +154,9 @@ void BaseSystem::simulate(int simulation_time)
 
         auto start = std::chrono::steady_clock::now();
 
-        vector<Action> actions = plan();
+        vector<Action> actions;
+        vector<vector<int>> proposed_schedule;
+        plan(actions,proposed_schedule);
 
         auto end = std::chrono::steady_clock::now();
 
