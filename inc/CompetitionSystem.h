@@ -73,7 +73,7 @@ public:
 
     void simulate(int simulation_time);
     void plan(vector<Action> & actions,vector<vector<int>> & proposed_schedule);
-    void plan_wrapper(vector<Action> & actions,vector<vector<int>> & proposed_schedule);
+    std::pair<vector<Action> ,vector<vector<int>> > plan_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen) const;
@@ -82,7 +82,7 @@ public:
 protected:
     Grid map;
 
-    std::future<std::vector<Action>> future;
+    std::future<std::pair<vector<Action> ,vector<vector<int>> >> future;
     std::thread task_td;
     bool started = false;
 

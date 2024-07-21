@@ -46,9 +46,12 @@ void BaseSystem::sync_shared_env() {
 }
 
 
-void BaseSystem::plan_wrapper(vector<Action> & actions,vector<vector<int>> & proposed_schedule)
+std::pair<vector<Action> ,vector<vector<int>> > BaseSystem::plan_wrapper()
 {
+    vector<Action> actions;
+    vector<vector<int>> proposed_schedule;
     planner->compute(plan_time_limit, actions,proposed_schedule);
+    return {actions, proposed_schedule};
 }
 
 
@@ -76,7 +79,7 @@ void BaseSystem::plan(vector<Action> & actions,vector<vector<int>> & proposed_sc
         return;
     }
 
-    std::packaged_task<std::vector<Action>()> task(std::bind(&BaseSystem::plan_wrapper, this));
+    std::packaged_task<std::pair<vector<Action> ,vector<vector<int>> >()> task(std::bind(&BaseSystem::plan_wrapper, this));
     future = task.get_future();
     if (task_td.joinable())
     {
@@ -88,6 +91,10 @@ void BaseSystem::plan(vector<Action> & actions,vector<vector<int>> & proposed_sc
     {
         task_td.join();
         started = false;
+        auto res = future.get();
+        actions = res.first;
+        proposed_schedule = res.second;
+
         return;
     }
     logger->log_info("planner timeout", timestep);
