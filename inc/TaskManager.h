@@ -13,16 +13,16 @@ public:
 
 
     // reveal new task
-    // TODO currently also does the assign. Need to change this.
-    virtual bool update_tasks(int timestep);
+    void reveal_tasks(int timestep);
+    void update_tasks(vector<State> states, vector< vector<int> > assignment, int timestep);
 
     void sync_shared_env(SharedEnvironment* env);
 
     void set_num_tasks_reveal(int num){num_tasks_reveal = num*num_of_agents;};
     void set_logger(Logger* logger){this->logger = logger;}
 
-    bool validate_task_assgnment(vector< vector<int> > & assignment); // validate the task assignment
-    bool set_task_assignment(vector< vector<int> > & assignment); // set the task assignment; return true if task is valid
+    bool validate_task_assgnment(vector< vector<int> > assignment); // validate the task assignment
+    bool set_task_assignment(vector< vector<int> > assignment); // set the task assignment; return true if task is valid
 
 
 

@@ -16,12 +16,13 @@ void BaseSystem::move(vector<Action>& actions)
     int timestep = simulator.get_curr_timestep();
     // agents do not move
 
-    for (int k = 0; k < num_of_agents; k++){
+    for (int k = 0; k < num_of_agents; k++)
+    {
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
-    task_manager.check_finished_tasks(curr_states, timestep);
 }
+
 
 
 
@@ -174,7 +175,16 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         // move drives
-        move(actions);
+        //move(actions);
+        vector<State> curr_states = simulator.move(actions);
+        int timestep = simulator.get_curr_timestep();
+        // agents do not move
+
+        for (int k = 0; k < num_of_agents; k++)
+        {
+            paths[k].push_back(curr_states[k]);
+            actual_movements[k].push_back(actions[k]);
+        }
         if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA)
         {
             planner_times.back()+=plan_time_limit;  //add planning time to last record
@@ -186,13 +196,7 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         // update tasks
-
-        bool complete_all = task_manager.update_tasks(simulator.get_curr_timestep());
-
-        if (complete_all)
-        {
-            break;
-        }
+        task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
     }
 }
 
@@ -218,7 +222,7 @@ void BaseSystem::initialize()
         _exit(124);
 
     // initialize_goal_locations();
-    task_manager.update_tasks(timestep);
+    task_manager.reveal_tasks(timestep);
 
     sync_shared_env();
 
