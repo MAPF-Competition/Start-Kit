@@ -121,35 +121,12 @@ int main(int argc, char **argv)
     int team_size = read_param_json<int>(data, "teamSize");
 
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
-    std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
+    std::vector<list<int>> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
     std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
-    if (task_assignment_strategy == "greedy")
-    {
-        // system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
-    }
-    else if (task_assignment_strategy == "roundrobin")
-    {
-        // system_ptr = std::make_unique<InfAssignSystem>(grid, planner, agents, tasks, model);
-        system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
-    }
-    else if (task_assignment_strategy == "roundrobin_fixed")
-        {
-        // std::vector<vector<int>> assigned_tasks(agents.size());
-        // for (int i = 0; i < tasks.size(); i++)
-        // {
-        //     assigned_tasks[i % agents.size()].push_back(tasks[i]);
-        // }
-        // system_ptr = std::make_unique<FixedAssignSystem>(grid, planner, agents, assigned_tasks, model);
-    }
-    else
-    {
-        std::cerr << "unkown task assignment strategy " << data["taskAssignmentStrategy"].get<std::string>() << std::endl;
-        logger->log_fatal("unkown task assignment strategy " + data["taskAssignmentStrategy"].get<std::string>());
-        exit(1);
-    }
+    system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
 
     system_ptr->set_logger(logger);
     system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
