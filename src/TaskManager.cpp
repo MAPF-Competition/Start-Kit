@@ -6,7 +6,7 @@
 using json = nlohmann::ordered_json;
 
 
-bool TaskManager::validate_task_assgnment(vector< vector<int> > & assignment)
+bool TaskManager::validate_task_assgnment(vector< vector<int> > assignment)
 {
     if (assignment.size() != num_of_agents)
     {
@@ -42,7 +42,7 @@ bool TaskManager::validate_task_assgnment(vector< vector<int> > & assignment)
     return true;
 }
 
-bool TaskManager::set_task_assignment(vector< vector<int> > & assignment)
+bool TaskManager::set_task_assignment(vector< vector<int> > assignment)
 {
     if (! validate_task_assgnment(assignment))
     {
@@ -75,7 +75,7 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep)
 
             if (task->is_finished())
             {
-                current_assignment[k].pop_front();
+                current_assignment[k].erase(current_assignment[k].begin());
                 ongoing_tasks.erase(task->task_id);
                 task->t_completed = timestep;
 
@@ -116,7 +116,7 @@ void TaskManager::sync_shared_env(SharedEnvironment* env)
     }
 }
 
-void TaskManager::update_tasks(int timestep)
+void TaskManager::reveal_tasks(int timestep)
 {
     while (ongoing_tasks.size() < num_tasks_reveal)
     {
@@ -129,18 +129,25 @@ void TaskManager::update_tasks(int timestep)
     }
 }
 
+void TaskManager::update_tasks(vector<State> states, vector< vector<int> > assignment, int timestep)
+{
+    set_task_assignment(assignment);
+    check_finished_tasks(states,timestep);
+    reveal_tasks(timestep);
+}
+
 
 json TaskManager::to_json(int map_cols) const{
     
     json tasks = json::array();
     for (auto t: all_tasks)
-        {
-            json task = json::array();
-            task.push_back(t->task_id);
-            // TODO rewrite the task output part
-            task.push_back(t->locations.front()/map_cols);
-            task.push_back(t->locations.front()%map_cols);
-            tasks.push_back(task);
-        }
+    {
+        json task = json::array();
+        task.push_back(t->task_id);
+        // TODO rewrite the task output part
+        task.push_back(t->locations.front()/map_cols);
+        task.push_back(t->locations.front()%map_cols);
+        tasks.push_back(task);
+    }
     return tasks;
 }
