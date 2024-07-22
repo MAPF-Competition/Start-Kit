@@ -18,7 +18,7 @@ public:
 
     void sync_shared_env(SharedEnvironment* env);
 
-    void set_num_tasks_reveal(int num){num_tasks_reveal = num;};
+    void set_num_tasks_reveal(int num){num_tasks_reveal = num*num_of_agents;};
     void set_logger(Logger* logger){this->logger = logger;}
 
     bool validate_task_assgnment(vector< vector<int> > & assignment); // validate the task assignment
@@ -26,14 +26,13 @@ public:
 
 
 
-    TaskManager(std::vector<int>& tasks, int num_of_agents,
+    TaskManager(std::vector<list<int>>& tasks,
                 vector<list<std::tuple<int,int,std::string>>>& events ):
-        tasks(tasks), tasks_size(tasks.size()), num_of_agents(num_of_agents),
+        tasks(tasks), num_of_agents(num_of_agents),
         events(events)
     {
-        task_counter.resize(num_of_agents,0);
         finished_tasks.resize(num_of_agents);
-        assigned_tasks.resize(num_of_agents);
+        current_assignment.resize(num_of_agents);
     }
 
     nlohmann::ordered_json to_json(int map_cols) const;
@@ -42,7 +41,8 @@ public:
 
     int num_of_task_finish = 0;
 
-    ~ TaskManager(){
+    ~ TaskManager()
+    {
         for (Task* task: all_tasks){
             delete task;
         }
@@ -52,7 +52,7 @@ private:
     Logger* logger = nullptr;
 
     unordered_map<int, Task*> ongoing_tasks;
-    vector< deque<Task* > > assigned_tasks;
+    vector<vector<int>> current_assignment;
 
     int num_tasks_reveal = 1;
     int num_of_agents;
@@ -65,9 +65,7 @@ private:
     list<Task*> all_tasks;
 
 
-    std::vector<int>& tasks;
-    std::vector<int> task_counter;
-    int tasks_size;
+    std::vector<list<int>>& tasks;
     int task_id = 0;
 
 };
