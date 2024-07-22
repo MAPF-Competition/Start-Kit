@@ -15,27 +15,28 @@ bool TaskManager::validate_task_assgnment(vector< vector<int> > & assignment)
 
     unordered_set<int> idx_set;
 
+    //here we only check the first assignment to each agent
     for (int i_agent = 0; i_agent < assignment.size(); i_agent ++)
     {
-        // if agent is already executing some task, it should be assigned the same task.
-        if (assigned_tasks[i_agent].front()->idx_next_loc > 0 &&
-            (assignment[i_agent].empty()  || assignment[i_agent].front() != assigned_tasks[i_agent].front()->task_id)
-            ){
+        // task should be a ongoing task
+        if (ongoing_tasks.find(assignment[i_agent].front()) == ongoing_tasks.end())
+        {
             return false;
         }
 
-        for (int i_task = 0; i_task < assignment[i_agent].size(); i_task++){
-            // task should be a ongoing task
-            if (ongoing_tasks.find(assignment[i_agent][i_task]) == ongoing_tasks.end()){
-                return false;
-            }
-
-            // one task should not appear in the assignment twice
-            if (idx_set.find(assignment[i_agent][i_task]) != idx_set.end()){
-                return false;
-            }
-
+        // one task should not appear in the assignment twice
+        if (idx_set.find(assignment[i_agent].front()) != idx_set.end())
+        {
+            return false;
         }
+
+        // if agent is already executing some task, it should be assigned the same task.
+        if (ongoing_tasks[current_assignment[i_agent].front()]->idx_next_loc > 0 && (current_assignment[i_agent].empty()  || assignment[i_agent].front() != current_assignment[i_agent].front()))
+        {
+            return false;
+        }
+
+        idx_set.insert(assignment[i_agent].front());
     }
 
     return true;
@@ -49,30 +50,32 @@ bool TaskManager::set_task_assignment(vector< vector<int> > & assignment)
         return false;
     }
 
-    for (int i = 0; i < num_of_agents; i++)
+    for (int a = 0; a < assignment.size(); a++)
     {
-        assigned_tasks[i].clear();
-        for (int i_task; i_task< assignment[i].size(); i ++)
+        current_assignment[a].clear();
+        for (int t_id: assignment[a])
         {
-            assigned_tasks[i].push_back(ongoing_tasks.at(assignment[i][i_task]));
+            current_assignment[a].push_back(t_id);
+            ongoing_tasks[t_id]->agent_assigned = a;
         }
     }
 
     return true;
 }
 
-list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep){
-    
+list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep)
+{ 
     list<int> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
     for (int k = 0; k < num_of_agents; k++)
     {
-        if (!assigned_tasks[k].empty() && states[k].location == assigned_tasks[k].front()->get_next_loc())
+        if (!current_assignment[k].empty() && states[k].location == ongoing_tasks[current_assignment[k].front()]->get_next_loc())
         {
-            Task * task = assigned_tasks[k].front();
+            Task * task = ongoing_tasks[current_assignment[k].front()];
             task->idx_next_loc += 1;
 
-            if (task->is_finished()){
-                assigned_tasks[k].pop_front();
+            if (task->is_finished())
+            {
+                current_assignment[k].pop_front();
                 ongoing_tasks.erase(task->task_id);
                 task->t_completed = timestep;
 
@@ -80,9 +83,6 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep){
                 events[k].push_back(make_tuple(task->task_id, timestep,"finished"));
                 finished_tasks[task->agent_assigned].emplace_back(task);
                 num_of_task_finish++;
-                // log_event_finished(k, task.task_id, timestep);
-            } else {
-        
             }
         }
     }
@@ -92,26 +92,26 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep){
 
 void TaskManager::sync_shared_env(SharedEnvironment* env) 
 {
-    for (size_t i = 0; i < num_of_agents; i++)
-    {
-        env->goal_locations[i].clear();
-        for (auto& task: assigned_tasks[i])
-            {
-                for (int i_task = task->idx_next_loc; i_task < task->locations.size(); i_task ++ ){
-                    env->goal_locations[i].push_back({task->locations.at(i_task), task->t_assigned });
-                }
-            }
-    }
+    env->task_pool.clear();
     for (auto it: ongoing_tasks)
     {
         Task* task_ptr = it.second;
-        env->task_pool.push_back(*task_ptr);
+        Task temp = new Task(task_ptr);
+        env->task_pool.push_back(temp);
     }
 
-    env->curr_task_assignment = vector<vector<int>>(num_of_agents);
-    for (int i = 0 ; i < num_of_agents; i++){
-        for (Task* task_ptr:assigned_tasks[i]){
-            env->curr_task_assignment[i].push_back(task_ptr->task_id);
+    env->curr_task_assignment = current_assignment;
+
+    for (size_t i = 0; i < num_of_agents; i++)
+    {
+        env->goal_locations[i].clear();
+        for (int t_id: current_assignment[i])
+        {
+            auto& task = ongoing_tasks[t_id];
+            for (int i_task = task->idx_next_loc; i_task < task->locations.size(); i_task++ )
+            {
+                env->goal_locations[i].push_back({task->locations.at(i_task), task->t_revealed});
+            }
         }
     }
 }

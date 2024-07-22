@@ -5,7 +5,6 @@ struct Task
 {
     int task_id;
     // int location;
-    int t_assigned = -1;
     int t_completed = -1;
     int t_revealed = -1;
     int agent_assigned = -1;
@@ -35,5 +34,14 @@ struct Task
     {
         for (auto loc: location)
             locations.push_back(loc);
+    };
+
+    Task(Task* other)
+    {
+        task_id = other->task_id;
+        locations = other->locations;
+        t_revealed = other->t_revealed;
+        idx_next_loc = other->idx_next_loc;
+        agent_assigned = other->agent_assigned;
     };
 };
