@@ -148,8 +148,13 @@ json TaskManager::to_json(int map_cols) const{
         json task = json::array();
         task.push_back(t->task_id);
         // TODO rewrite the task output part
-        task.push_back(t->locations.front()/map_cols);
-        task.push_back(t->locations.front()%map_cols);
+        // task.push_back(t->locations.front()/map_cols);
+        // task.push_back(t->locations.front()%map_cols);
+        for (auto loc: t->locations)
+        {
+            task.push_back(loc/map_cols);
+            task.push_back(loc%map_cols);
+        }
         tasks.push_back(task);
     }
     return tasks;
