@@ -16,6 +16,7 @@ void TaskScheduler::plan(int time_limit, std::vector<vector<int>> & proposed_sch
                 if (env->task_pool[i_task].agent_assigned == -1){
                     proposed_schedule[i].push_back(env->task_pool[i_task].task_id);
                     env->task_pool[i_task].agent_assigned = i;
+                    break;
                 }
             }
         }
