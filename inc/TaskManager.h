@@ -9,7 +9,14 @@
 class TaskManager{
 public:
 
+    vector<list<std::tuple<int,int,std::string>>> events;
+    vector<list<pair<int,vector<int>>>> actual_schedule;
+    vector<list<pair<int,vector<int>>>> planner_schedule;
+    list<std::tuple<std::string,int,int,int,int>> schedule_errors;
+
     list<int> check_finished_tasks(vector<State> states, int timestep);
+
+    int curr_timestep;
 
 
     // reveal new task
@@ -26,16 +33,19 @@ public:
 
 
 
-    TaskManager(std::vector<list<int>>& tasks, int num_of_agents,
-                vector<list<std::tuple<int,int,std::string>>>& events ):
-        tasks(tasks), num_of_agents(num_of_agents),
-        events(events)
+    TaskManager(std::vector<list<int>>& tasks, int num_of_agents):
+        tasks(tasks), num_of_agents(num_of_agents)
     {
         finished_tasks.resize(num_of_agents);
         current_assignment.resize(num_of_agents);
+        events.resize(num_of_agents);
+        actual_schedule.resize(num_of_agents);
+        planner_schedule.resize(num_of_agents);
     }
 
     nlohmann::ordered_json to_json(int map_cols) const;
+
+    nlohmann::ordered_json release_to_json() const;
 
 
 
@@ -58,9 +68,6 @@ private:
     int num_of_agents;
 
     std::vector<std::list<Task* > > finished_tasks; // location + finish time
-
-
-    vector<list<std::tuple<int,int,std::string>>>& events;
 
     list<Task*> all_tasks;
 

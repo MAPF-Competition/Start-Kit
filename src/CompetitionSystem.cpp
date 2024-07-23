@@ -289,12 +289,111 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         // Save errors
         js["errors"] = simulator.action_errors_to_json();
 
+        //actual schedules
+        json aschedules = json::array();
+        for (int i = 0; i < num_of_agents; i++)
+        {
+            std::string schedules;
+            bool first = true;
+            for (const auto schedule : task_manager.actual_schedule[i])
+            {
+                if (!first)
+                {
+                    schedules+= ";";
+                } 
+                else 
+                {
+                    first = false;
+                }
+
+                schedules+=std::to_string(schedule.first);
+                schedules+=":";
+                bool t_first = true;
+                for (auto tid: schedule.second)
+                {
+                    schedules+=std::to_string(tid);
+                    if (!t_first)
+                    {
+                        schedules+=",";
+                    }
+                    else 
+                    {
+                        t_first = false;
+                    }
+                }
+                
+            }  
+            aschedules.push_back(schedules);
+        }
+
+        js["actualSchedule"] = aschedules;
+
+        //planned schedules
+        json pschedules = json::array();
+        for (int i = 0; i < num_of_agents; i++)
+        {
+            std::string schedules;
+            bool first = true;
+            for (const auto schedule : task_manager.planner_schedule[i])
+            {
+                if (!first)
+                {
+                    schedules+= ";";
+                } 
+                else 
+                {
+                    first = false;
+                }
+
+                schedules+=std::to_string(schedule.first);
+                schedules+=":";
+                bool t_first = true;
+                for (auto tid: schedule.second)
+                {
+                    schedules+=std::to_string(tid);
+                    if (!t_first)
+                    {
+                        schedules+=",";
+                    }
+                    else 
+                    {
+                        t_first = false;
+                    }
+                }
+                
+            }  
+            pschedules.push_back(schedules);
+        }
+
+        js["plannerSchedule"] = pschedules;
+
+        // Save errors
+        json schedule_errors = json::array();
+        for (auto error: task_manager.schedule_errors)
+        {
+            std::string error_msg;
+            int t_id;
+            int agent1;
+            int agent2;
+            int timestep;
+            std::tie(error_msg,t_id,agent1,agent2,timestep) = error;
+            json e = json::array();
+            e.push_back(t_id);
+            e.push_back(agent1);
+            e.push_back(agent2);
+            e.push_back(timestep);
+            e.push_back(error_msg);
+            schedule_errors.push_back(e);
+        }
+
+        js["scheduleErrors"] = schedule_errors;
+
         // Save events
         json events_json = json::array();
         for (int i = 0; i < num_of_agents; i++)
         {
             json event = json::array();
-            for(auto e: events[i])
+            for(auto e: task_manager.events[i])
             {
                 json ev = json::array();
                 std::string event_msg;
@@ -309,6 +408,9 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
             events_json.push_back(event);
         }
         js["events"] = events_json;
+
+        json task_release = task_manager.release_to_json();
+        js["taskRelease"] = task_release;
 
         // Save all tasks
         json tasks = task_manager.to_json(map.cols);
