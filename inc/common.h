@@ -128,7 +128,7 @@ inline std::vector<list<int>> read_int_vec(string fname)
         boost::tokenizer<boost::char_separator<char>> tok(line, sep);
         boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
         list<int> locs;
-        for(;beg!=tok.end();beg++)
+        for(;beg!=tok.end();++beg)
         {
             locs.push_back(atoi((*beg).c_str()));
         }
