@@ -19,24 +19,27 @@ bool TaskManager::validate_task_assgnment(vector< vector<int> > assignment)
     for (int i_agent = 0; i_agent < assignment.size(); i_agent ++)
     {
         // task should be a ongoing task
-        if (ongoing_tasks.find(assignment[i_agent].front()) == ongoing_tasks.end())
+        if (!assignment[i_agent].empty() && ongoing_tasks.find(assignment[i_agent].front()) == ongoing_tasks.end())
         {
             return false;
         }
 
         // one task should not appear in the assignment twice
-        if (idx_set.find(assignment[i_agent].front()) != idx_set.end())
+        if (!assignment[i_agent].empty() && idx_set.find(assignment[i_agent].front()) != idx_set.end())
         {
             return false;
         }
 
         // if agent is already executing some task, it should be assigned the same task.
-        if (ongoing_tasks[current_assignment[i_agent].front()]->idx_next_loc > 0 && (current_assignment[i_agent].empty()  || assignment[i_agent].front() != current_assignment[i_agent].front()))
-        {
-            return false;
+        if (!current_assignment[i_agent].empty()){
+            if (ongoing_tasks[current_assignment[i_agent].front()]->idx_next_loc > 0 && (current_assignment[i_agent].empty()  || assignment[i_agent].front() != current_assignment[i_agent].front()))
+                {
+                    return false;
+                }
         }
-
-        idx_set.insert(assignment[i_agent].front());
+        if (!assignment[i_agent].empty()){
+            idx_set.insert(assignment[i_agent].front());
+        }
     }
 
     return true;
