@@ -26,7 +26,7 @@ public:
 
 
 
-    TaskManager(std::vector<list<int>>& tasks,
+    TaskManager(std::vector<list<int>>& tasks, int num_of_agents,
                 vector<list<std::tuple<int,int,std::string>>>& events ):
         tasks(tasks), num_of_agents(num_of_agents),
         events(events)
