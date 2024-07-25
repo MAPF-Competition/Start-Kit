@@ -3,13 +3,13 @@ import MAPF
 from typing import Dict, List, Tuple,Set
 from queue import PriorityQueue
 import numpy as np
-
+import time
 # 0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 
 class pyMAPFPlanner:
     def __init__(self, pyenv=None) -> None:
         if pyenv is not None:
-            self.env = pyenv.env
+            self.env = pyenv
 
         print("pyMAPFPlanner created!  python debug")
 
@@ -34,34 +34,66 @@ class pyMAPFPlanner:
         Args:
             time_limit (_type_): _description_
         """
+        # t0=time.time()
+        # goals=self.env.goal_locations
+        # for i in range(len(goals)):
+        #     A=goals[i]
+        # t2=time.time()
+        # print("time:",t2-t0)
+        
+        # t0=time.time()
+        # for i in range(len(self.env.goal_locations)):
+        #     A=self.env.goal_locations
+        # t2=time.time()
+        # print("time:", t2-t0)
 
+        # t0=time.time()
+        # for obj in self.env.goal_locations:
+        #     A=obj
+        # t2=time.time()
+        # print("time:",t2-t0)
+
+        # t0=time.time()
+        # for i in range(self.env.get_num_of_agents()):
+        #     A=self.env.get_agent_goal_locationss(i)
+        # t2=time.time()
+        # print("time:",t2-t0)
+
+
+        # t0=time.time()
+        # for i in range(self.env.get_num_of_agents()):
+        #     A=self.env.get_goal_locations()
+        # t2=time.time()
+        # print("time:",t2-t0)
+
+        # exit(0)
         # example of only using single-agent search
         return self.sample_priority_planner(time_limit)
         # print("python binding debug")
-        # print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
+        # print("env.rows=",self.env.get_rows(),"env.cols=",self.env.get_cols(),"env.map=",self.env.map)
         # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
 
     def naive_a_star(self,time_limit):
         print("I am planning")
-        actions = [MAPF.Action.W for i in range(len(self.env.curr_states))]
-        for i in range(0, self.env.num_of_agents):
+        actions = [MAPF.Action.W for i in range(self.env.get_num_of_agents())]
+        for i in range(0, self.env.get_num_of_agents()):
             print("python start plan for agent ", i, end=" ")
             path = []
-            if len(self.env.goal_locations[i]) == 0:
+            if len(self.env.get_agent_goal_locations(i)) == 0:
                 print(i, " does not have any goal left", end=" ")
                 path.append(
-                    (self.env.curr_states[i].location, self.env.curr_states[i].orientation))
+                    (self.env.get_agent_curr_state(i).location, self.env.get_agent_curr_state(i).orientation))
             else:
                 print(" with start and goal: ", end=" ")
                 path = self.single_agent_plan(
-                    self.env.curr_states[i].location, self.env.curr_states[i].orientation, self.env.goal_locations[i][0][0])
+                    self.env.get_agent_curr_state(i).location, self.env.get_agent_curr_state(i).orientation, self.env.get_agent_goal_locations(i)[0][0])
 
             print("current location:", path[0][0],
                   "current direction: ", path[0][1])
-            if path[0][0] != self.env.curr_states[i].location:
+            if path[0][0] != self.env.get_agent_curr_state(i).location:
                 actions[i] = MAPF.Action.FW
-            elif path[0][1] != self.env.curr_states[i].orientation:
-                incr = path[0][1]-self.env.curr_states[i].orientation
+            elif path[0][1] != self.env.get_agent_curr_state(i).orientation:
+                incr = path[0][1]-self.env.get_agent_curr_state(i).orientation
                 if incr == 1 or incr == -3:
                     actions[i] = MAPF.Action.CR
                 elif incr == -1 or incr == 3:
@@ -107,31 +139,33 @@ class pyMAPFPlanner:
         return path
 
     def getManhattanDistance(self, loc1: int, loc2: int) -> int:
-        loc1_x = loc1//self.env.cols
-        loc1_y = loc1 % self.env.cols
-        loc2_x = loc2//self.env.cols
-        loc2_y = loc2 % self.env.cols
+        loc1_x = loc1//self.env.get_cols()
+        loc1_y = loc1 % self.env.get_cols()
+        loc2_x = loc2//self.env.get_cols()
+        loc2_y = loc2 % self.env.get_cols()
         return abs(loc1_x-loc2_x)+abs(loc1_y-loc2_y)
 
     def validateMove(self, loc: int, loc2: int) -> bool:
-        loc_x = loc//self.env.cols
-        loc_y = loc % self.env.cols
-        if(loc_x >= self.env.rows or loc_y >= self.env.cols or self.env.map[loc] == 1):
+        mapGrid=self.env.get_map()
+        loc_x = loc//self.env.get_cols()
+        loc_y = loc % self.env.get_cols()
+        if(loc_x >= self.env.get_rows() or loc_y >= self.env.get_cols() or mapGrid[loc] == 1):
             return False
-        loc2_x = loc2//self.env.cols
-        loc2_y = loc2 % self.env.cols
+        loc2_x = loc2//self.env.get_cols()
+        loc2_y = loc2 % self.env.get_cols()
         if(abs(loc_x-loc2_x)+abs(loc_y-loc2_y) > 1):
             return False
         return True
 
     def getNeighbors(self, location: int, direction: int):
         neighbors = []
+        mapGrid= self.env.get_map()
         # forward
-        candidates = [location+1, location+self.env.cols,
-                      location-1, location-self.env.cols]
+        candidates = [location+1, location+self.env.get_cols(),
+                      location-1, location-self.env.get_cols()]
         forward = candidates[direction]
         new_direction = direction
-        if (forward >= 0 and forward < len(self.env.map) and self.validateMove(forward, location)):
+        if (forward >= 0 and forward < len(mapGrid) and self.validateMove(forward, location)):
             neighbors.append((forward, new_direction))
         # turn left
         new_direction = direction-1
@@ -212,35 +246,35 @@ class pyMAPFPlanner:
         return path
 
     def sample_priority_planner(self,time_limit:int):
-        actions = [MAPF.Action.W] * len(self.env.curr_states)
+        actions = [MAPF.Action.W] * self.env.get_num_of_agents()
         reservation = set()  # loc1, loc2, t
 
-        for i in range(self.env.num_of_agents):
+        for i in range(self.env.get_num_of_agents()):
             print("start plan for agent", i)
             path = []
-            if not self.env.goal_locations[i]:
+            if not self.env.get_agent_goal_locations(i):
                 print(", which does not have any goal left.")
-                path.append((self.env.curr_states[i].location, self.env.curr_states[i].orientation))
-                reservation.add((self.env.curr_states[i].location, -1, 1))
+                path.append((self.env.get_agent_curr_state(i).location, self.env.get_agent_curr_state(i).orientation))
+                reservation.add((self.env.get_agent_curr_state(i).location, -1, 1))
 
-        for i in range(self.env.num_of_agents):
+        for i in range(self.env.get_num_of_agents()):
             print("start plan for agent", i)
             path = []
-            if self.env.goal_locations[i]:
+            if self.env.get_agent_goal_locations(i):
                 print("with start and goal:")
                 path = self.space_time_plan(
-                    self.env.curr_states[i].location,
-                    self.env.curr_states[i].orientation,
-                    self.env.goal_locations[i][0][0],
+                    self.env.get_agent_curr_state(i).location,
+                    self.env.get_agent_curr_state(i).orientation,
+                    self.env.get_agent_goal_locations(i)[0][0],
                     reservation
                 )
             
             if path:
                 print("current location:", path[0][0], "current direction:", path[0][1])
-                if path[0][0] != self.env.curr_states[i].location:
+                if path[0][0] != self.env.get_agent_curr_state(i).location:
                     actions[i] = MAPF.Action.FW
-                elif path[0][1] != self.env.curr_states[i].orientation:
-                    incr = path[0][1] - self.env.curr_states[i].orientation
+                elif path[0][1] != self.env.get_agent_curr_state(i).orientation:
+                    incr = path[0][1] - self.env.get_agent_curr_state(i).orientation
                     if incr == 1 or incr == -3:
                         actions[i] = MAPF.Action.CR
                     elif incr == -1 or incr == 3:
