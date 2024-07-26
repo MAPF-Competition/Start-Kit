@@ -85,8 +85,8 @@ void MAPFPlanner::initialize(int preprocess_time_limit)
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
     TimePoint start_time = std::chrono::steady_clock::now();
-    TimePoint init_heuristic_budget = start_time + std::chrono::milliseconds(time_limit*1000/2);
-    TimePoint end_time = start_time + std::chrono::milliseconds(time_limit*1000-100);
+    TimePoint init_heuristic_budget = start_time + std::chrono::milliseconds(time_limit*50/2);
+    TimePoint end_time = start_time + std::chrono::milliseconds(time_limit*100);
 
     cout<<"---timestep,"<< env->curr_timestep<<endl;
     prev_decision.clear();
