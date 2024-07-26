@@ -9,7 +9,7 @@ import time
 class pyMAPFPlanner:
     def __init__(self, pyenv=None) -> None:
         if pyenv is not None:
-            self.env = pyenv
+            self.env = pyenv.env
 
         print("pyMAPFPlanner created!  python debug")
 
@@ -34,24 +34,24 @@ class pyMAPFPlanner:
         Args:
             time_limit (_type_): _description_
         """
-        # t0=time.time()
-        # goals=self.env.goal_locations
-        # for i in range(len(goals)):
-        #     A=goals[i]
-        # t2=time.time()
-        # print("time:",t2-t0)
+        t0=time.time()
+        goals=self.env.goal_locations
+        for i in range(len(goals)):
+            A=goals[i]
+        t2=time.time()
+        print("time:",t2-t0)
         
-        # t0=time.time()
-        # for i in range(len(self.env.goal_locations)):
-        #     A=self.env.goal_locations
-        # t2=time.time()
-        # print("time:", t2-t0)
+        t0=time.time()
+        for i in range(len(self.env.goal_locations)):
+            A=self.env.goal_locations
+        t2=time.time()
+        print("time:", t2-t0)
 
-        # t0=time.time()
-        # for obj in self.env.goal_locations:
-        #     A=obj
-        # t2=time.time()
-        # print("time:",t2-t0)
+        t0=time.time()
+        for obj in self.env.goal_locations:
+            A=obj
+        t2=time.time()
+        print("time:",t2-t0)
 
         # t0=time.time()
         # for i in range(self.env.get_num_of_agents()):
@@ -68,7 +68,7 @@ class pyMAPFPlanner:
 
         # exit(0)
         # example of only using single-agent search
-        return self.sample_priority_planner(time_limit)
+        # return self.sample_priority_planner(time_limit)
         # print("python binding debug")
         # print("env.rows=",self.env.get_rows(),"env.cols=",self.env.get_cols(),"env.map=",self.env.map)
         # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")

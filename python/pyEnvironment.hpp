@@ -21,18 +21,6 @@ public:
     pyEnvironment(SharedEnvironment *env):env(env){}
 
 
-    // pybind11::array_t<int> get_curr_states(){
-    //     int num_agents=env->curr_states.size();
-    //     pybind11::array_t<int,pybind11::array::c_style> states_array({num_agents,3});
-    //     int * states_data=states_array.mutable_data();
-    //     int* ptr = states_data;
-    //     for (auto i = 0; i < env->map.size(); i++) {
-    //         ptr[3 * i] = env->curr_states[i].location;
-    //         ptr[3 * i + 1] = env->curr_states[i].orientation;
-    //         ptr[3 * i + 2] = env->curr_states[i].timestep;
-    //     }  
-    //     return states_array;
-    // }
 
     std::vector<State> get_curr_states(){
         return env->curr_states;

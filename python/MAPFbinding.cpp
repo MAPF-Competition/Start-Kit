@@ -9,6 +9,13 @@
 #include "States.h"
 #include "pyEnvironment.hpp"
 
+// Don't forget this
+#include <pybind11/stl_bind.h>
+
+PYBIND11_MAKE_OPAQUE(std::vector<int>);
+PYBIND11_MAKE_OPAQUE(std::vector<vector<std::pair<int,int>>>);
+PYBIND11_MAKE_OPAQUE(std::vector<State>);
+
 
 namespace py = pybind11;
 
@@ -40,17 +47,18 @@ PYBIND11_MODULE(MAPF, m ){
         .value("CCR",Action::CCR)
         .value("W",Action::W);
 
-    // pybind11::class_<SharedEnvironment>(m,"SharedEnvironment")
-    //     .def(pybind11::init<>())
-    //     .def_readonly("rows",&SharedEnvironment::rows)
-    //     .def_readonly("cols",&SharedEnvironment::cols)
-    //     .def_readonly("num_of_agents",&SharedEnvironment::num_of_agents)
-    //     .def_readonly("goal_locations",&SharedEnvironment::goal_locations)
-    //     .def_readonly("curr_timestep",&SharedEnvironment::curr_timestep)
-    //     .def_readonly("map",&SharedEnvironment::map)
-    //     .def_readonly("map_name",&SharedEnvironment::map_name)
-    //     .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
-    //     .def_readonly("curr_states",&SharedEnvironment::curr_states);
+    pybind11::class_<SharedEnvironment>(m,"SharedEnvironment")
+        .def(pybind11::init<>())
+        .def_readonly("rows",&SharedEnvironment::rows)
+        .def_readonly("cols",&SharedEnvironment::cols)
+        
+        .def_readonly("num_of_agents",&SharedEnvironment::num_of_agents)
+        .def_readonly("goal_locations",&SharedEnvironment::goal_locations)
+        .def_readonly("curr_timestep",&SharedEnvironment::curr_timestep)
+        .def_readonly("map",&SharedEnvironment::map)
+        .def_readonly("map_name",&SharedEnvironment::map_name)
+        .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
+        .def_readonly("curr_states",&SharedEnvironment::curr_states);
 
 
 
@@ -67,10 +75,16 @@ PYBIND11_MODULE(MAPF, m ){
         .def("get_num_of_agents",&pyEnvironment::get_num_of_agents)
         .def("get_file_storage_path", &pyEnvironment::get_file_storage_path)
         .def("get_agent_goal_locations",&pyEnvironment::get_agent_goal_locations)
-
-        // .def_readonly("env",&pyEnvironment::env,pybind11::return_value_policy::reference)
+        .def_readonly("env",&pyEnvironment::env,pybind11::return_value_policy::reference)
         .def("get_agent_curr_state", &pyEnvironment::get_agent_curr_state)
         .def("get_curr_states",&pyEnvironment::get_curr_states);
+
+
+    pybind11::bind_vector<std::vector<int>>(m, "VectorInt");
+    pybind11::bind_vector<std::vector<vector<std::pair<int,int>>>>(m, "VectorGoals");
+
+
+    pybind11::bind_vector<std::vector<State>>(m, "VectorState");
 
 
 
