@@ -2,7 +2,7 @@
     "mapFile": "maps/Paris_1_256.map",
     "agentFile": "agents/paris_400.agents",
     "teamSize": 400,
-    "taskFile": "tasks/paris_400.tasks",
+    "taskFile": "tasks/paris.tasks",
     "numTasksReveal": 1,
-    "taskAssignmentStrategy": "roundrobin"
+    "version": "2024 LoRR"
 }
