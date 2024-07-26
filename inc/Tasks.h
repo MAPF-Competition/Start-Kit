@@ -21,6 +21,7 @@ struct Task
         else 
         {
             assert(false);
+            return -1;
         }
     }
 

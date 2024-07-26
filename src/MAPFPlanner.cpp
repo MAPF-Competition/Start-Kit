@@ -1,6 +1,30 @@
 #include <random>
 #include <Entry.h>
 
+//default planner includes
+#include "pibt.h"
+#include "flow.h"
+#include "heuristics.h"
+#include "Types.h"
+using namespace TrafficMAPF;
+
+
+//default planner data
+std::vector<int> decision; 
+std::vector<int> prev_decision;
+std::vector<double> p;
+std::vector<State> prev_states;
+std::vector<State> next_states;
+std::vector<int> ids;
+std::vector<double> p_copy;
+std::vector<bool> occupied;
+std::vector<DCR> decided;
+std::vector<bool> checked;
+std::vector<bool> task_change;
+int RELAX = 200;
+TrajLNS trajLNS;
+
+
 
 struct AstarNode
 {
@@ -30,151 +54,154 @@ struct cmp
 
 void MAPFPlanner::initialize(int preprocess_time_limit)
 {
+    assert(env->num_of_agents != 0);
+    p.resize(env->num_of_agents);
+    decision.resize(env->map.size(), -1);
+    prev_states.resize(env->num_of_agents);
+    next_states.resize(env->num_of_agents);
+    decided.resize(env->num_of_agents,DCR({-1,DONE::DONE}));
+    occupied.resize(env->map.size(),false);
+    checked.resize(env->num_of_agents,false);
+    ids.resize(env->num_of_agents);
+    task_change.resize(env->num_of_agents,false);
+    for (int i = 0; i < ids.size();i++){
+        ids[i] = i;
+    }
+
+    trajLNS = TrajLNS(env);
+    trajLNS.init_mem();
+
+    std::shuffle(ids.begin(), ids.end(), std::mt19937(std::random_device()()));
+    for (int i = 0; i < ids.size();i++){
+        p[ids[i]] = ((double)(ids.size() - i))/((double)(ids.size()+1));
+    }
+    p_copy = p;
+
+
 }
 
 
 // plan using simple A* that ignores the time dimension
 void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
 {
-    actions = std::vector<Action>(env->curr_states.size(), Action::W);
-    for (int i = 0; i < env->num_of_agents; i++) 
+    TimePoint start_time = std::chrono::steady_clock::now();
+    TimePoint init_heuristic_budget = start_time + std::chrono::milliseconds(time_limit*1000/2);
+    TimePoint end_time = start_time + std::chrono::milliseconds(time_limit*1000-100);
+
+    cout<<"---timestep,"<< env->curr_timestep<<endl;
+    prev_decision.clear();
+    prev_decision.resize(env->map.size(), -1);
+    occupied.clear();
+    occupied.resize(env->map.size(),false);
+
+    int count = 0;
+    
+    for(int i=0; i<env->num_of_agents; i++)
     {
-        list<pair<int,int>> path;
-        if (env->goal_locations[i].empty()) 
-        {
-            path.push_back({env->curr_states[i].location, env->curr_states[i].orientation});
-        } 
-        else 
-        {
-            path = single_agent_plan(env->curr_states[i].location,
-                                    env->curr_states[i].orientation,
-                                    env->goal_locations[i].front().first);
-        }
-        if (path.front().first != env->curr_states[i].location)
-        {
-            actions[i] = Action::FW; //forward action
-        } 
-        else if (path.front().second!= env->curr_states[i].orientation)
-        {
-            int incr = path.front().second - env->curr_states[i].orientation;
-            if (incr == 1 || incr == -3)
+        if ( (trajLNS.traj_inited < env->num_of_agents && std::chrono::steady_clock::now() < init_heuristic_budget) || (trajLNS.traj_inited >= env->num_of_agents)){
+            for(int j=0; j<env->goal_locations[i].size(); j++)
             {
-                actions[i] = Action::CR; //C--counter clockwise rotate
-            } 
-            else if (incr == -1 || incr == 3)
-            {
-                actions[i] = Action::CCR; //CCR--clockwise rotate
-            } 
-        }
-
-    }
-  return;
-}
-
-
-list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end)
-{
-    list<pair<int,int>> path;
-    priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
-    unordered_map<int,AstarNode*> all_nodes;
-    unordered_set<int> close_list;
-    AstarNode* s = new AstarNode(start, start_direct, 0, getManhattanDistance(start,end), nullptr);
-    open_list.push(s);
-    all_nodes[start*4 + start_direct] = s;
-
-    while (!open_list.empty())
-    {
-        AstarNode* curr = open_list.top();
-        open_list.pop();
-        close_list.emplace(curr->location*4 + curr->direction);
-        if (curr->location == end)
-        {
-            while(curr->parent!=NULL) 
-            {
-                path.emplace_front(make_pair(curr->location, curr->direction));
-                curr = curr->parent;
-            }
-            break;
-        }
-        list<pair<int,int>> neighbors = getNeighbors(curr->location, curr->direction);
-        for (const pair<int,int>& neighbor: neighbors)
-        {
-            if (close_list.find(neighbor.first*4 + neighbor.second) != close_list.end())
-                continue;
-            if (all_nodes.find(neighbor.first*4 + neighbor.second) != all_nodes.end())
-            {
-                AstarNode* old = all_nodes[neighbor.first*4 + neighbor.second];
-                if (curr->g + 1 < old->g)
-                {
-                    old->g = curr->g+1;
-                    old->f = old->h+old->g;
-                    old->parent = curr;
-                }
-            }
-            else
-            {
-                AstarNode* next_node = new AstarNode(neighbor.first, neighbor.second,
-                    curr->g+1,getManhattanDistance(neighbor.first,end), curr);
-                open_list.push(next_node);
-                all_nodes[neighbor.first*4+neighbor.second] = next_node;
+                int goal_loc = env->goal_locations[i][j].first;
+                    if (trajLNS.heuristics.at(goal_loc).empty()){
+                        init_heuristic(trajLNS.heuristics[goal_loc],env,goal_loc);
+                        count++;
+                    }
             }
         }
+
+        assert(env->goal_locations[i].size()>0);
+        task_change[i] =  env->goal_locations[i].front().first != trajLNS.tasks[i];
+        trajLNS.tasks[i] = env->goal_locations[i].front().first;
+
+        assert(env->curr_states[i].location >=0);
+        prev_states[i] = env->curr_states[i];
+        next_states[i] = State();
+        prev_decision[env->curr_states[i].location] = i; 
+        if (decided[i].loc == -1){
+            decided[i].loc = env->curr_states[i].location;
+            assert(decided[i].state == DONE::DONE);
+        }
+        if (prev_states[i].location == decided[i].loc){
+            decided[i].state = DONE::DONE;
+        }
+        if (decided[i].state == DONE::NOT_DONE){
+            occupied.at(decided[i].loc) = true;
+            occupied.at(prev_states[i].location) = true;
+        }
+
+        if(task_change[i])
+            p[i] = p_copy[i];
+        else
+            p[i] = p[i]+1;
+        
     }
-    for (auto n: all_nodes)
-    {
-        delete n.second;
+
+    bool init_done = trajLNS.traj_inited == env->num_of_agents;
+
+    //task change
+    for (int i = 0; i < env->num_of_agents;i++){
+        if (task_change[i] && !trajLNS.trajs[i].empty()){
+            remove_traj(trajLNS, i);
+            update_traj(trajLNS, i);
+        }
     }
-    all_nodes.clear();
-    return path;
-}
+
+    if (trajLNS.traj_inited < env->num_of_agents){
+        init_traj(trajLNS, end_time);
+    }
+
+    std::unordered_set<int> updated;
+
+    //endtime is start time + 0.5 second
+    if (init_done)
+        frank_wolfe(trajLNS, updated,end_time);
 
 
-int MAPFPlanner::getManhattanDistance(int loc1, int loc2)
-{
-    int loc1_x = loc1/env->cols;
-    int loc1_y = loc1%env->cols;
-    int loc2_x = loc2/env->cols;
-    int loc2_y = loc2%env->cols;
-    return abs(loc1_x - loc2_x) + abs(loc1_y - loc2_y);
-}
+    std::sort(ids.begin(), ids.end(), [&](int a, int b) {
+            return p.at(a) > p.at(b);
+        }
+    );
+
+    //pibt
+    for (int i : ids){
+        if (decided[i].state == DONE::NOT_DONE){
+            continue;
+        }
+        if (next_states[i].location==-1){
+            assert(prev_states[i].location >=0 && prev_states[i].location < env->map.size());
+            causalPIBT(i,-1,prev_states,next_states,
+                prev_decision,decision,
+                occupied, trajLNS);
+        }
+    }
+    
+    actions.resize(env->num_of_agents);
+    for (int id : ids){
+
+        if (next_states.at(id).location!= -1)
+            decision.at(next_states.at(id).location) = -1;
+        
+        assert(
+            (next_states.at(id).location >=0 && decided.at(id).state == DONE::DONE)||
+            (next_states.at(id).location == -1 && decided.at(id).state == DONE::NOT_DONE)
+        );
+
+        if (next_states.at(id).location >=0){
+            decided.at(id) = DCR({next_states.at(id).location,DONE::NOT_DONE});
+        }
+        actions.at(id) = getAction(prev_states.at(id),decided.at(id).loc, env);
+        checked.at(id) = false;
+
+    }
+
+    for (int id=0;id < env->num_of_agents ; id++){
+        if (!checked.at(id) && actions.at(id) == Action::FW){
+            moveCheck(id,checked,decided,actions,prev_decision);
+        }
+    }
 
 
-bool MAPFPlanner::validateMove(int loc, int loc2)
-{
-    int loc_x = loc/env->cols;
-    int loc_y = loc%env->cols;
 
-    if (loc_x >= env->rows || loc_y >= env->cols || env->map[loc] == 1)
-        return false;
-
-    int loc2_x = loc2/env->cols;
-    int loc2_y = loc2%env->cols;
-    if (abs(loc_x-loc2_x) + abs(loc_y-loc2_y) > 1)
-        return false;
-    return true;
-
-}
-
-
-list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction)
-{
-    list<pair<int,int>> neighbors;
-    //forward
-    int candidates[4] = { location + 1,location + env->cols, location - 1, location - env->cols};
-    int forward = candidates[direction];
-    int new_direction = direction;
-    if (forward>=0 && forward < env->map.size() && validateMove(forward,location))
-        neighbors.emplace_back(make_pair(forward,new_direction));
-    //turn left
-    new_direction = direction-1;
-    if (new_direction == -1)
-        new_direction = 3;
-    neighbors.emplace_back(make_pair(location,new_direction));
-    //turn right
-    new_direction = direction+1;
-    if (new_direction == 4)
-        new_direction = 0;
-    neighbors.emplace_back(make_pair(location,new_direction));
-    neighbors.emplace_back(make_pair(location,direction)); //wait
-    return neighbors;
+    prev_states = next_states;
+    return;
 }
