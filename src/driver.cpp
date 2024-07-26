@@ -48,12 +48,12 @@ int main(int argc, char **argv)
         // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")
-        ("outputScreen", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
-        ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
-        ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
-        ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
-        ("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")
-        ("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")
+        ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
+        ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
+        ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
+        ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")
+        ("planTimeLimit,t", po::value<int>()->default_value(1), "the time limit for planner in seconds")
+        ("preprocessTimeLimit,p", po::value<int>()->default_value(30), "the time limit for preprocessing in seconds")
         ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-    std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
+    // std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
     system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
 
     system_ptr->set_logger(logger);
