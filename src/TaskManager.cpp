@@ -100,13 +100,13 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep)
                 task->t_completed = timestep;
 
                 finished_tasks_this_timestep.push_back(task->task_id);
-                events[k].push_back(make_tuple(task->task_id, timestep,"closed"));
+                events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
                 finished_tasks[task->agent_assigned].emplace_back(task);
                 num_of_task_finish++;
             }
             else if (task->idx_next_loc == 1)
             {
-                events[k].push_back(make_tuple(task->task_id, timestep,"opened"));
+                events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
             }
         }
     }
@@ -174,27 +174,14 @@ json TaskManager::to_json(int map_cols) const
         // TODO rewrite the task output part
         // task.push_back(t->locations.front()/map_cols);
         // task.push_back(t->locations.front()%map_cols);
+        task.push_back(t->t_revealed);
+        json locs = json::array();
         for (auto loc: t->locations)
         {
-            task.push_back(loc/map_cols);
-            task.push_back(loc%map_cols);
+            locs.push_back(loc/map_cols);
+            locs.push_back(loc%map_cols);
         }
-        tasks.push_back(task);
-    }
-    return tasks;
-}
-
-json TaskManager::release_to_json() const
-{
-    json tasks = json::array();
-    for (auto t: all_tasks)
-    {
-        json task = json::array();
-        task.push_back(t->task_id);
-        // TODO rewrite the task output part
-        // task.push_back(t->locations.front()/map_cols);
-        // task.push_back(t->locations.front()%map_cols);
-        task.push_back(t->t_revealed);
+        task.push_back(locs);
         tasks.push_back(task);
     }
     return tasks;

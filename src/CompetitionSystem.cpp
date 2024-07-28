@@ -366,28 +366,22 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         js["scheduleErrors"] = schedule_errors;
 
         // Save events
-        json events_json = json::array();
-        for (int i = 0; i < num_of_agents; i++)
+        json event = json::array();
+        for(auto e: task_manager.events)
         {
-            json event = json::array();
-            for(auto e: task_manager.events[i])
-            {
-                json ev = json::array();
-                std::string event_msg;
-                int task_id;
-                int timestep;
-                std::tie(task_id,timestep,event_msg) = e;
-                ev.push_back(task_id);
-                ev.push_back(timestep);
-                ev.push_back(event_msg);
-                event.push_back(ev);
-            }
-            events_json.push_back(event);
+            json ev = json::array();
+            int timestep;
+            int agent_id;
+            int task_id;
+            int seq_id;
+            std::tie(timestep,agent_id,task_id,seq_id) = e;
+            ev.push_back(timestep);
+            ev.push_back(agent_id);
+            ev.push_back(task_id);
+            ev.push_back(seq_id);
+            event.push_back(ev);
         }
-        js["events"] = events_json;
-
-        json task_release = task_manager.release_to_json();
-        js["taskRelease"] = task_release;
+        js["events"] = event;
 
         // Save all tasks
         json tasks = task_manager.to_json(map.cols);
