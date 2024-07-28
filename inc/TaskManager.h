@@ -38,7 +38,7 @@ public:
     {
         finished_tasks.resize(num_of_agents);
         current_assignment.resize(num_of_agents);
-        for (auto t: current_assignment)
+        for (auto & t: current_assignment)
             t = -1;
         events.resize(num_of_agents);
         actual_schedule.resize(num_of_agents);
