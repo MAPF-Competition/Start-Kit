@@ -9,7 +9,7 @@
 class TaskManager{
 public:
 
-    vector<list<std::tuple<int,int,std::string>>> events;
+    list<std::tuple<int,int,int,int>> events;
     vector<list<pair<int,int>>> actual_schedule;
     vector<list<pair<int,int>>> planner_schedule;
     list<std::tuple<std::string,int,int,int,int>> schedule_errors;
@@ -46,8 +46,6 @@ public:
     }
 
     nlohmann::ordered_json to_json(int map_cols) const;
-
-    nlohmann::ordered_json release_to_json() const;
 
 
 
