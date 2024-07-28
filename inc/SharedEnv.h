@@ -23,7 +23,7 @@ public:
     vector<State> curr_states;
 
     vector<Task> task_pool;
-    vector<vector<int>> curr_task_assignment;
+    vector<int> curr_task_schedule;
 
     SharedEnvironment(){}
 };

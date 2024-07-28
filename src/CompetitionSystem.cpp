@@ -47,16 +47,16 @@ void BaseSystem::sync_shared_env() {
 }
 
 
-std::pair<vector<Action> ,vector<vector<int>> > BaseSystem::plan_wrapper()
+std::pair<vector<Action> ,vector<int> > BaseSystem::plan_wrapper()
 {
     vector<Action> actions;
-    vector<vector<int>> proposed_schedule;
+    vector<int> proposed_schedule;
     planner->compute(plan_time_limit, actions,proposed_schedule);
     return {actions, proposed_schedule};
 }
 
 
-void BaseSystem::plan(vector<Action> & actions,vector<vector<int>> & proposed_schedule)
+void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
 {
 
     int timestep = simulator.get_curr_timestep();
@@ -80,7 +80,7 @@ void BaseSystem::plan(vector<Action> & actions,vector<vector<int>> & proposed_sc
         return;
     }
 
-    std::packaged_task<std::pair<vector<Action> ,vector<vector<int>> >()> task(std::bind(&BaseSystem::plan_wrapper, this));
+    std::packaged_task<std::pair<vector<Action> ,vector<int> >()> task(std::bind(&BaseSystem::plan_wrapper, this));
     future = task.get_future();
     if (task_td.joinable())
     {
@@ -163,7 +163,7 @@ void BaseSystem::simulate(int simulation_time)
         auto start = std::chrono::steady_clock::now();
 
         vector<Action> actions;
-        vector<vector<int>> proposed_schedule;
+        vector<int> proposed_schedule;
         plan(actions,proposed_schedule);
 
         auto end = std::chrono::steady_clock::now();
@@ -299,7 +299,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
             {
                 if (!first)
                 {
-                    schedules+= ";";
+                    schedules+= ",";
                 } 
                 else 
                 {
@@ -308,20 +308,8 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
 
                 schedules+=std::to_string(schedule.first);
                 schedules+=":";
-                bool t_first = true;
-                for (auto tid: schedule.second)
-                {
-                    schedules+=std::to_string(tid);
-                    if (!t_first)
-                    {
-                        schedules+=",";
-                    }
-                    else 
-                    {
-                        t_first = false;
-                    }
-                }
-                
+                int tid = schedule.second;
+                schedules+=std::to_string(tid);
             }  
             aschedules.push_back(schedules);
         }
@@ -338,7 +326,7 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
             {
                 if (!first)
                 {
-                    schedules+= ";";
+                    schedules+= ",";
                 } 
                 else 
                 {
@@ -347,19 +335,8 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
 
                 schedules+=std::to_string(schedule.first);
                 schedules+=":";
-                bool t_first = true;
-                for (auto tid: schedule.second)
-                {
-                    schedules+=std::to_string(tid);
-                    if (!t_first)
-                    {
-                        schedules+=",";
-                    }
-                    else 
-                    {
-                        t_first = false;
-                    }
-                }
+                int tid = schedule.second;
+                schedules+=std::to_string(tid);
                 
             }  
             pschedules.push_back(schedules);

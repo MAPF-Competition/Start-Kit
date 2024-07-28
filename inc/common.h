@@ -64,7 +64,8 @@ inline std::vector<int> read_int_vec(string fname, int team_size)
 	if (!myfile.is_open()) return {};
 
 	getline(myfile, line);
-    while (!myfile.eof() && line[0] == '#') {
+    while (!myfile.eof() && line[0] == '#') 
+    {
         getline(myfile, line);
     }
 
