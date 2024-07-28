@@ -53,7 +53,7 @@ Running the start-kit using commands:
 
 for example:
 ```shell
-./build/lifelong --inputFile ./example_problems/random.domain/random_20.json -o test.json
+./lifelong --inputFile ../example_problems/random.domain/random_20.json -o test.json
 ```
 
 more info on help:

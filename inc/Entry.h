@@ -30,5 +30,5 @@ public:
     virtual void initialize(int preprocess_time_limit);
 
     // return next actions and the proposed task schedule for all agents
-    virtual void compute(int time_limit, std::vector<Action> & plan, std::vector<vector<int>> & proposed_schedule);
+    virtual void compute(int time_limit, std::vector<Action> & plan, std::vector<int> & proposed_schedule);
 };
