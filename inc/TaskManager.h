@@ -25,7 +25,7 @@ public:
 
     void sync_shared_env(SharedEnvironment* env);
 
-    void set_num_tasks_reveal(int num){num_tasks_reveal = num*num_of_agents;};
+    void set_num_tasks_reveal(float num){num_tasks_reveal = num*num_of_agents;};
     void set_logger(Logger* logger){this->logger = logger;}
 
     bool validate_task_assgnment(vector<int> assignment); // validate the task assignment

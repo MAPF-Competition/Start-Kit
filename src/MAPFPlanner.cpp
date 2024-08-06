@@ -88,7 +88,10 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
     TimePoint init_heuristic_budget = start_time + std::chrono::milliseconds(time_limit*50/2);
     TimePoint end_time = start_time + std::chrono::milliseconds(time_limit*100);
 
-    cout<<"---timestep,"<< env->curr_timestep<<endl;
+    // auto get_median_makespan_of_unllo
+
+
+    // cout<<"---timestep,"<< env->curr_timestep<<endl;
     prev_decision.clear();
     prev_decision.resize(env->map.size(), -1);
     occupied.clear();

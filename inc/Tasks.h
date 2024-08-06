@@ -12,6 +12,9 @@ struct Task
     vector<int> locations;
     int idx_next_loc = 0;
 
+
+
+
     int get_next_loc()
     {
         if (idx_next_loc < locations.size())
