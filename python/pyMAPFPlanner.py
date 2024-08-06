@@ -7,9 +7,9 @@ import numpy as np
 # 0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 
 class pyMAPFPlanner:
-    def __init__(self, pyenv=None) -> None:
-        if pyenv is not None:
-            self.env = pyenv.env
+    def __init__(self, env=None) -> None:
+        if env is not None:
+            self.env = env
 
         print("pyMAPFPlanner created!  python debug")
 
