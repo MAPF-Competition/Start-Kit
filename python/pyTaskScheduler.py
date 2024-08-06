@@ -27,6 +27,7 @@ class pyTaskScheduler:
                         proposed_schedule[i]=self.env.task_pool[i_task].task_id
                         self.env.task_pool[i_task].agent_assigned=i
                         break
+                    i_task+=1
             else:
                 proposed_schedule[i]=self.env.curr_task_schedule[i]
         return proposed_schedule
