@@ -13,6 +13,8 @@
 #if PYTHON
 #include "pyMAPFPlanner.hpp"
 #include <pybind11/embed.h>
+#include "pyEntry.hpp"
+#include "pyTaskScheduler.hpp"
 #endif
 #endif
 
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
     // {
 #ifdef PYTHON
 #if PYTHON
-        planner = new pyMAPFPlanner();
+        planner = new PyEntry();
 #else
         planner = new Entry();
 #endif
@@ -132,7 +134,7 @@ int main(int argc, char **argv)
     system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
-    system_ptr->set_num_tasks_reveal(read_param_json<int>(data, "numTasksReveal", 1));
+    system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
     signal(SIGINT, sigint_handler);
 
