@@ -1,7 +1,7 @@
 #include "Entry.h"
 #include "Tasks.h"
 #include "utils.h"
-
+#include "heuristics.h"
 
 
 void Entry::initialize(int preprocess_time_limit)
@@ -48,19 +48,15 @@ void Entry::update_goal_locations(std::vector<int> & proposed_schedule){
 }
 
 void Entry::print_task_pool_median_makespan(){
-    auto manhattanDistance=[](int loc, int loc2,const SharedEnvironment* env){
-        int loc_x = loc/env->cols;
-        int loc_y = loc%env->cols;
-        int loc2_x = loc2/env->cols;
-        int loc2_y = loc2%env->cols;
-        return abs(loc_x-loc2_x) + abs(loc_y-loc2_y);
-    };
+
     auto get_makespan_of_task=[&](Task &task){
         int makespan = 0;
         assert(task.locations.size()==2);
         for(int i=1;i<task.locations.size();i++)
         {
-            makespan += manhattanDistance(task.locations[i],task.locations[i-1],env);
+            // makespan += manhattanDistance(task.locations[i],task.locations[i-1],env);
+            makespan+=TrafficMAPF::get_h(env,task.locations[i],task.locations[i-1]);
+
         }
         return makespan;
     };
