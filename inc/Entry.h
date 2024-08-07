@@ -33,4 +33,5 @@ public:
     virtual void compute(int time_limit, std::vector<Action> & plan, std::vector<int> & proposed_schedule);
 
     void update_goal_locations(std::vector<int> & proposed_schedule);
+    void print_task_pool_median_makespan();
 };
