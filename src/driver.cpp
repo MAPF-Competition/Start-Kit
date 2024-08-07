@@ -54,8 +54,8 @@ int main(int argc, char **argv)
         ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
         ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")
-        ("planTimeLimit,t", po::value<int>()->default_value(1), "the time limit for planner in seconds")
-        ("preprocessTimeLimit,p", po::value<int>()->default_value(30), "the time limit for preprocessing in seconds")
+        ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
+        ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
         ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);

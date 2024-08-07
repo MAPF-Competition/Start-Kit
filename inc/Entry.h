@@ -31,4 +31,6 @@ public:
 
     // return next actions and the proposed task schedule for all agents
     virtual void compute(int time_limit, std::vector<Action> & plan, std::vector<int> & proposed_schedule);
+
+    void update_goal_locations(std::vector<int> & proposed_schedule);
 };

@@ -39,7 +39,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 		if (!lns.traj_dists.empty() && !lns.traj_dists[curr_id].empty())
 			min_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, neighbor, &(lns.neighbors));	
 		else if (!lns.heuristics[lns.tasks.at(curr_id)].empty())
-			min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, lns.flow, neighbor, &(lns.neighbors));
+			min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, neighbor, &(lns.neighbors));
 		else
 			min_heuristic = manhattanDistance(neighbor,lns.tasks.at(curr_id),lns.env);
 
@@ -51,7 +51,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	if (!lns.traj_dists.empty() && !lns.traj_dists[curr_id].empty())
 		wait_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, prev_loc, &(lns.neighbors));
 	else if (!lns.heuristics.at(lns.tasks.at(curr_id)).empty())
-		wait_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, lns.flow, prev_loc, &(lns.neighbors));
+		wait_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, prev_loc, &(lns.neighbors));
 	else
 		wait_heuristic = manhattanDistance(prev_loc,lns.tasks.at(curr_id),lns.env);
 

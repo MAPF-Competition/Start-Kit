@@ -62,15 +62,15 @@ void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
     int timestep = simulator.get_curr_timestep();
 
     using namespace std::placeholders;
-    if (started && future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+    if (started && future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
     {
-        std::cout << started << "     " << (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) << std::endl;
+        std::cout << started << "     " << (future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) << std::endl;
         if(logger)
         {
             logger->log_info("planner cannot run because the previous run is still running", timestep);
         }
 
-        if (future.wait_for(std::chrono::seconds(plan_time_limit)) == std::future_status::ready)
+        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
         {
             task_td.join();
             started = false;
@@ -86,9 +86,10 @@ void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
     {
         task_td.join();
     }
+    env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
     started = true;
-    if (future.wait_for(std::chrono::seconds(plan_time_limit)) == std::future_status::ready)
+    if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
     {
         task_td.join();
         started = false;
@@ -109,8 +110,9 @@ bool BaseSystem::planner_initialize()
     std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, _1));
     auto init_future = init_task.get_future();
     
+    env->plan_start_time = std::chrono::steady_clock::now();
     auto init_td = std::thread(std::move(init_task), preprocess_time_limit);
-    if (init_future.wait_for(std::chrono::seconds(preprocess_time_limit)) == std::future_status::ready)
+    if (init_future.wait_for(std::chrono::milliseconds(preprocess_time_limit)) == std::future_status::ready)
     {
         init_td.join();
         return true;

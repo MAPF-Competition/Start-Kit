@@ -21,7 +21,7 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     if(ht.empty())
         h = manhattanDistance(start,goal,env);
     else
-        h = get_heuristic(ht,env, flow, start, ns);
+        h = get_heuristic(ht,env, start, ns);
     
 
     
@@ -80,7 +80,7 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             if(ht.empty())
                 h = manhattanDistance(next,goal,env);
             else
-                h = get_heuristic(ht,env, flow, next, ns);
+                h = get_heuristic(ht,env, next, ns);
 
             diff = next - curr->id;
             d = get_d(diff,env);
