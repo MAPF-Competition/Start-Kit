@@ -99,13 +99,13 @@ namespace TrafficMAPF{
 		int label = 0;
 		std::vector<d2p> dist2path;
 		std::deque<d2p> open;
+		
 		bool empty(){
 			return dist2path.empty();
 		}
 
 	};
 
-	typedef std::chrono::steady_clock::time_point TimePoint;
 	typedef std::vector<std::vector<int>> Neighbors;
 
 }

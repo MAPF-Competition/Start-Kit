@@ -5,6 +5,7 @@
 #include "Memory.h"
 #include "search_node.h"
 #include "heap.h"
+#include "heuristics.h"
 #include <iostream>
 
 #include <set>
@@ -12,6 +13,9 @@
 namespace TrafficMAPF{
 // enum ADAPTIVE {RANDOM, CONGESTION, COUNT};
 enum ADAPTIVE {RANDOM, CONGESTION, DEVIATION, COUNT};
+
+extern std::vector<HeuristicTable> global_heuristictable;
+extern Neighbors global_neighbors;
 
 struct FW_Metric{
     int id;
@@ -57,12 +61,12 @@ class TrajLNS{
     std::vector<std::pair<int,int>> deviation_agents;
 
     std::vector<Int4> flow;
-    std::vector<HeuristicTable> heuristics;
+    std::vector<HeuristicTable>& heuristics;
     std::vector<Dist2Path> traj_dists;
     std::vector<s_node> goal_nodes;// store the goal node of single agent search for each agent. contains all cost information.
 
     std::vector<FW_Metric> fw_metrics;
-    Neighbors neighbors;
+    Neighbors& neighbors;
 
 
     int traj_inited = 0;
@@ -75,41 +79,19 @@ class TrajLNS{
         mem.init(env->map.size());
     }
 
-    TrajLNS(SharedEnvironment* env):
+    TrajLNS(SharedEnvironment* env, std::vector<HeuristicTable>& heuristics, Neighbors& neighbors):
         env(env),
         trajs(env->num_of_agents),
         tasks(env->num_of_agents),
-        flow(env->map.size(),Int4({0,0,0,0})), heuristics(env->map.size()),
+        flow(env->map.size(),Int4({0,0,0,0})), heuristics(heuristics),
         traj_dists(env->num_of_agents),goal_nodes(env->num_of_agents),
-        fw_metrics(env->num_of_agents){
-            init_neighbor();
+        fw_metrics(env->num_of_agents),neighbors(neighbors){
         };
 
 
-    TrajLNS(){};
+    TrajLNS():heuristics(global_heuristictable), neighbors(global_neighbors){};
 
-    void init_neighbor(){
-        neighbors.resize(this->env->rows * this->env->cols);
-        for (int row=0; row<this->env->rows; row++){
-            for (int col=0; col<this->env->cols; col++){
-                int loc = row*this->env->cols+col;
-                if (this->env->map[loc]==0){
-                    if (row>0 && this->env->map[loc-this->env->cols]==0){
-                        neighbors[loc].push_back(loc-this->env->cols);
-                    }
-                    if (row<this->env->rows-1 && this->env->map[loc+this->env->cols]==0){
-                        neighbors[loc].push_back(loc+this->env->cols);
-                    }
-                    if (col>0 && this->env->map[loc-1]==0){
-                        neighbors[loc].push_back(loc-1);
-                    }
-                    if (col<this->env->cols-1 && this->env->map[loc+1]==0){
-                        neighbors[loc].push_back(loc+1);
-                    }
-                }
-            }
-        }
-    };
+    
 
 };
 }

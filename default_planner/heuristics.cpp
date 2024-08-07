@@ -4,6 +4,42 @@
 
 namespace TrafficMAPF{
 
+std::vector<HeuristicTable> global_heuristictable;
+Neighbors global_neighbors;
+
+
+
+void init_neighbor(SharedEnvironment* env){
+	global_neighbors.resize(env->rows * env->cols);
+	for (int row=0; row<env->rows; row++){
+		for (int col=0; col<env->cols; col++){
+			int loc = row*env->cols+col;
+			if (env->map[loc]==0){
+				if (row>0 && env->map[loc-env->cols]==0){
+					global_neighbors[loc].push_back(loc-env->cols);
+				}
+				if (row<env->rows-1 && env->map[loc+env->cols]==0){
+					global_neighbors[loc].push_back(loc+env->cols);
+				}
+				if (col>0 && env->map[loc-1]==0){
+					global_neighbors[loc].push_back(loc-1);
+				}
+				if (col<env->cols-1 && env->map[loc+1]==0){
+					global_neighbors[loc].push_back(loc+1);
+				}
+			}
+		}
+	}
+};
+
+void init_heuristics(SharedEnvironment* env){
+	if (global_heuristictable.size()==0){
+		global_heuristictable.resize(env->map.size());
+		init_neighbor(env);
+	}
+
+}
+
 void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_location){
 	// initialize my_heuristic, but have error on malloc: Region cookie corrupted for region
 	ht.htable.clear();
@@ -16,11 +52,11 @@ void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_locatio
 }
 
 
-int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, std::vector<Int4>& flow, int source, Neighbors* ns){
+int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighbors* ns){
 		if (ht.htable[source] < MAX_TIMESTEP) return ht.htable[source];
 
 		std::vector<int> neighbors;
-		int cost, diff, reverse_d, op_flow, vertex_flow;
+		int cost, diff;
 		while (!ht.open.empty())
 		{
 			HNode curr = ht.open.front();
@@ -53,6 +89,19 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, std::vector<Int4>&
 
 		return MAX_TIMESTEP;
 }
+
+int get_h(SharedEnvironment* env, int source, int target){
+	if (global_heuristictable.empty()){
+		init_heuristics(env);
+	}
+
+	if (global_heuristictable.at(target).empty()){
+		init_heuristic(global_heuristictable.at(target),env,target);
+	}
+
+	return get_heuristic(global_heuristictable.at(target), env, source, &global_neighbors);
+}
+
 
 
 void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path){

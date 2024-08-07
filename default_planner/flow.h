@@ -23,9 +23,6 @@ void update_fw_metrics(TrajLNS& lns);
 
 void frank_wolfe(TrajLNS& lns,std::unordered_set<int>& updated, TimePoint timelimit);
 
-
-void init_traj(TrajLNS& lns,TimePoint timelimit);
-
 void update_dist_2_path(TrajLNS& lns, int i);
 
 //compute distance table for each traj

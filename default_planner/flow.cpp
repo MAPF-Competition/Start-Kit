@@ -130,36 +130,6 @@ void frank_wolfe(TrajLNS& lns,std::unordered_set<int>& updated, TimePoint timeli
 }
 
 
-void init_traj(TrajLNS& lns, TimePoint timelimit){
-    //trajs is a vector of Traj, each Traj is a vector of int
-    //trajs[i] is a vector of int, each int is a location
-    //trajs[i][j] is a location
-
-
-    //compute the traj for each agent using astar
-    //update the flow according to the traj
-    int count = 0 ;
-    for(int i=0;i<lns.env->num_of_agents;i++){
-        if (std::chrono::steady_clock::now() >timelimit){
-            break;
-        }
-
-        if (lns.trajs[i].empty()){
-            int start = lns.env->curr_states[i].location;
-            int goal = lns.tasks[i];
-            lns.goal_nodes[i] = astar(lns.env,lns.flow, lns.heuristics[goal],lns.trajs[i],lns.mem,start,goal, &(lns.neighbors));
-
-            add_traj(lns,i);
-            init_dist_2_path(lns.traj_dists[i], lns.env, lns.trajs[i]);
-
-
-            count++;
-            lns.traj_inited++;
-        }
-
-    }    
-
-}
 
 
 void update_dist_2_path(TrajLNS& lns, int i){
@@ -175,7 +145,7 @@ void init_dist_table(TrajLNS& lns, int amount){
         if (count >= amount){
             break;
         }
-        if(!lns.trajs[i].empty() && lns.trajs[i].size() == get_heuristic(lns.heuristics[lns.trajs[i].back()], lns.env, lns.flow,lns.trajs[i].front(),&(lns.neighbors)))
+        if(!lns.trajs[i].empty() && lns.trajs[i].size() == get_heuristic(lns.heuristics[lns.trajs[i].back()], lns.env,lns.trajs[i].front(),&(lns.neighbors)))
             continue;
         if(!lns.trajs[i].empty() && lns.traj_dists[i].empty()){
             init_dist_2_path(lns.traj_dists[i], lns.env, lns.trajs[i]);
