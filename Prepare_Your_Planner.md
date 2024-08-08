@@ -22,8 +22,13 @@ You need to implement your own planner. Check out Implement your scheduler secti
 - Combined Track:
 You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out Implement your scheduler, Implement your planner and Implement your entry sections for more details.
 
+### Understand the default scheduler
+todo
+
+### Understand the default planner
+todo
+
 ### Implement your scheduler
-The starting point of
 to do
 
 ### Implement your planner
