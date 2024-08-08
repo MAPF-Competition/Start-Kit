@@ -61,7 +61,10 @@ bool TaskManager::set_task_assignment(vector< int> assignment)
     }
     if (! validate_task_assgnment(assignment))
     {
-        logger->log_warning("attempt to set invalid task assignment");
+        if (assignment.size() < num_of_agents)
+            logger->log_info("task scheduler tiemout");
+        else
+            logger->log_warning("attempt to set invalid task assignment");
         return false;
     }
 
@@ -119,7 +122,8 @@ void TaskManager::sync_shared_env(SharedEnvironment* env)
     {
         Task* task_ptr = it.second;
         Task temp = new Task(task_ptr);
-        env->task_pool.push_back(temp);
+        //env->task_pool.push_back(temp);
+        env->task_pool[temp.task_id] = temp;
     }
 
     env->curr_task_schedule = current_assignment;
