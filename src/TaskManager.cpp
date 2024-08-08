@@ -122,8 +122,8 @@ void TaskManager::sync_shared_env(SharedEnvironment* env)
     {
         Task* task_ptr = it.second;
         Task temp = new Task(task_ptr);
-        //env->task_pool.push_back(temp);
-        env->task_pool[temp.task_id] = temp;
+        env->task_pool.push_back(temp);
+        // env->task_pool[temp.task_id] = temp;
     }
 
     env->curr_task_schedule = current_assignment;
