@@ -26,26 +26,23 @@ void Entry::compute(int time_limit, std::vector<Action> & plan, std::vector<int>
 
 void Entry::update_goal_locations(std::vector<int> & proposed_schedule)
 {
-    curr_task_schedule = proposed_schedule;
+    env->curr_task_schedule = proposed_schedule;
     for (size_t i = 0; i < proposed_schedule.size(); i++)
     {
         env->goal_locations[i].clear();
         int t_id = proposed_schedule[i];
         if (t_id == -1)
             continue;
-        if (env->task_pool.find(t_id) == env->task_pool.end()) {continue;}
-        Task* task_ptr = env->task_pool[t_id];
-        // Task* task_ptr = nullptr;
-        // for (Task & task: env->task_pool)
-        // {
-        //     if (task.task_id == t_id){
-        //         task_ptr = &task;
-        //         break;
-        //     }
-        // }
-        // if(task_ptr == nullptr){continue;}
+        Task* task_ptr = nullptr;
+        for (Task & task: env->task_pool)
+        {
+            if (task.task_id == t_id){
+                task_ptr = &task;
+                break;
+            }
+        }
+        if(task_ptr == nullptr){continue;}
         int i_loc = task_ptr->idx_next_loc;
-        
         env->goal_locations[i].push_back({task_ptr->locations.at(i_loc), task_ptr->t_revealed});
     }
     return;
