@@ -1,15 +1,30 @@
-# Prepare Your Planner
+# Prepare Your Entry
 To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
 
-## Planner Integration
+## Entry Integration
 
 Before you write any code, get familiar with the simulated setups:
 - Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
 - Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
 - A `State` of a robot: a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
-- Tasks of robots: a `task` of a robot is an int, which represents a single location (linearised) in the map.
+- Tasks of robots: a `task` of a robot contains a list of multiple errands. Each errand is a single location on the map and should be visited one by one in order.
 - `Action` enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
+- The `Entry` class act as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and next schedule for each agent to proceeed. The compute function of the Entry will call the task scheduler to shedule next task for each agent first, call the planenr to plan next actions. 
 
+### What to implement for each track
+
+- Plannning Track:
+You need to implement your own planner. Check out Implement your planner section for more details.
+
+- Scheduling Track:
+You need to implement your own planner. Check out Implement your scheduler section for more details.
+
+- Combined Track:
+You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out Implement your scheduler, Implement your planner and Implement your entry sections for more details.
+
+### Implement your scheduler
+The starting point of
+to do
 
 ### Implement your planner
 
@@ -33,10 +48,16 @@ Start your implementation by understanding the `SharedEnvironment` API. This dat
 -  file_storage_path: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
 -  goal locations, vector of vector of `pair<int,int>`: current tasks locations allocated to each robot. The first int of a task (pair of int) is the goal location, and the second int indicates the timestep that the task was allocated.
 -  current_timestep: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
--  curr_states: vector of `State`, the current state for each robot at the current time step, 
+-  curr_states: vector of `State`, the current state for each robot at the current time step.
 
-### Plan commands for your robots
+### Implement your entry
+to do
 
+### Compute command for your robots
+- Plan command in the scheduler
+to do 
+
+- Plan command in the planner
 At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit`. The `time_limit` is given as an input parameter to your planner's `plan()` function. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
 
 At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command for robot `i` is a valid `Action` at position `actions[i]` in the vector.
