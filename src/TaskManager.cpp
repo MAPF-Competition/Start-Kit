@@ -102,14 +102,10 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep)
                 task->t_completed = timestep;
 
                 finished_tasks_this_timestep.push_back(task->task_id);
-                events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
                 finished_tasks[task->agent_assigned].emplace_back(task);
                 num_of_task_finish++;
             }
-            else if (task->idx_next_loc == 1)
-            {
-                events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
-            }
+            events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
         }
     }
     return finished_tasks_this_timestep;
