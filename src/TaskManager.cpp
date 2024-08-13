@@ -61,7 +61,10 @@ bool TaskManager::set_task_assignment(vector< int> assignment)
     }
     if (! validate_task_assgnment(assignment))
     {
-        logger->log_warning("attempt to set invalid task assignment");
+        if (assignment.size() < num_of_agents)
+            logger->log_info("task scheduler tiemout");
+        else
+            logger->log_warning("attempt to set invalid task assignment");
         return false;
     }
 
@@ -102,14 +105,10 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep)
                 task->t_completed = timestep;
 
                 finished_tasks_this_timestep.push_back(task->task_id);
-                events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
                 finished_tasks[task->agent_assigned].emplace_back(task);
                 num_of_task_finish++;
             }
-            else if (task->idx_next_loc == 1)
-            {
-                events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
-            }
+            events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
         }
     }
     return finished_tasks_this_timestep;
@@ -124,6 +123,7 @@ void TaskManager::sync_shared_env(SharedEnvironment* env)
         Task* task_ptr = it.second;
         Task temp = new Task(task_ptr);
         env->task_pool.push_back(temp);
+        // env->task_pool[temp.task_id] = temp;
     }
 
     env->curr_task_schedule = current_assignment;

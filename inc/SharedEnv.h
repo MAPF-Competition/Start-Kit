@@ -26,6 +26,7 @@ public:
     vector<State> curr_states;
 
     vector<Task> task_pool;
+    // unordered_map<int,Task> task_pool;
     vector<int> curr_task_schedule;
 
     // plan_start_time records the time point that plan/initialise() function is called; 

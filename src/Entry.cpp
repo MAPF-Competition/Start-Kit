@@ -26,7 +26,9 @@ void Entry::compute(int time_limit, std::vector<Action> & plan, std::vector<int>
 
 }
 
-void Entry::update_goal_locations(std::vector<int> & proposed_schedule){
+void Entry::update_goal_locations(std::vector<int> & proposed_schedule)
+{
+    env->curr_task_schedule = proposed_schedule;
     for (size_t i = 0; i < proposed_schedule.size(); i++)
     {
         env->goal_locations[i].clear();
