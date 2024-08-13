@@ -15,8 +15,10 @@ void Entry::compute(int time_limit, std::vector<Action> & plan, std::vector<int>
 {
     print_task_pool_median_makespan();
     //first call task schedule
+    
 
     scheduler->plan(time_limit,proposed_schedule);
+
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
     
