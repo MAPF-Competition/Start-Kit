@@ -40,7 +40,7 @@ public:
         current_assignment.resize(num_of_agents);
         for (auto & t: current_assignment)
             t = -1;
-        events.resize(num_of_agents);
+        // events.resize(num_of_agents);
         actual_schedule.resize(num_of_agents);
         planner_schedule.resize(num_of_agents);
     }
