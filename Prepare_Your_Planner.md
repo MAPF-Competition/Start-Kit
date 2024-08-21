@@ -23,10 +23,13 @@ You need to implement your own planner. Check out Implement your scheduler secti
 You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out Implement your scheduler, Implement your planner and Implement your entry sections for more details.
 
 ### Understand the default scheduler
-todo
+In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
+- The preprocessing function of the default scheduler (see `schedule_initialize` in `scheduler.cpp`) calls the `TrafficMAPF::init_heuristics` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent. 
+- The scheduling function of the default scheduler (see `schedule_plan` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when `schedule_plan` is called, it iterates over all agents. For each agent `a` that does not have an assigned task, the algorithm iterates over tasks that are not assigned to any agent. From these tasks, the algorithm finds the task with the earliest possible completion time if assigned to `a`, ignoring conflicts with other agents. The algorithm then assigns this task to `a`.
 
 ### Understand the default planner
 todo
+
 
 ### Implement your scheduler
 to do
