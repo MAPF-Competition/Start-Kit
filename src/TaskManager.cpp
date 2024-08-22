@@ -107,6 +107,8 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep)
                 finished_tasks_this_timestep.push_back(task->task_id);
                 finished_tasks[task->agent_assigned].emplace_back(task);
                 num_of_task_finish++;
+                logger->log_info("Agent " + std::to_string(task->agent_assigned) + " finishes task " + std::to_string(task->task_id), timestep);
+                logger->flush();
             }
             events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
         }
