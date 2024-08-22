@@ -64,8 +64,8 @@ public:
 
     void set_num_tasks_reveal(float num){task_manager.set_num_tasks_reveal(num);};
     // void set_plan_time_limit(int limit){plan_time_limit = limit;};
-    void set_planner_time_limit(int limit){plan_time_limit = limit;};
-    void set_scheduler_time_limit(int limit){plan_time_limit = limit;};
+    void set_planner_time_limit(int limit){planner_time_limit = limit;};
+    void set_scheduler_time_limit(int limit){scheduler_time_limit = limit;};
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
     void set_logger(Logger* logger){
         this->logger = logger;
