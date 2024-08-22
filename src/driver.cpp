@@ -54,7 +54,8 @@ int main(int argc, char **argv)
         ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
         ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")
-        ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
+        ("plannerTimeLimit", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
+        ("schedulerTimeLimit", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
         ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
         ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
     clock_t start_time = clock();
@@ -131,7 +132,8 @@ int main(int argc, char **argv)
     system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
 
     system_ptr->set_logger(logger);
-    system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
+    system_ptr->set_planer_time_limit(vm["plannerTimeLimit"].as<int>());
+    system_ptr->set_scheduler_time_limit(vm["schedulerTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));

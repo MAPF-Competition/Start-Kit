@@ -51,7 +51,7 @@ std::pair<vector<Action> ,vector<int> > BaseSystem::plan_wrapper()
 {
     vector<Action> actions;
     vector<int> proposed_schedule;
-    planner->compute(plan_time_limit, actions,proposed_schedule);
+    planner->compute(entry_time_limit, actions,proposed_schedule);
     return {actions, proposed_schedule};
 }
 
@@ -70,7 +70,7 @@ void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
             logger->log_info("planner cannot run because the previous run is still running", timestep);
         }
 
-        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
+        if (future.wait_for(std::chrono::milliseconds(entry_time_limit)) == std::future_status::ready)
         {
             task_td.join();
             started = false;
@@ -89,7 +89,7 @@ void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
     env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
     started = true;
-    if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
+    if (future.wait_for(std::chrono::milliseconds(entry_time_limit)) == std::future_status::ready)
     {
         task_td.join();
         started = false;
@@ -189,7 +189,7 @@ void BaseSystem::simulate(int simulation_time)
         }
         if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA)
         {
-            planner_times.back()+=plan_time_limit;  //add planning time to last record
+            planner_times.back()+=entry_time_limit;  //add planning time to last record
         }
         else
         {
@@ -209,6 +209,10 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
+
+    entry_time_limit = planner_time_limit+scheduler_time_limit;
+    planner->planner_time_limit = planner_time_limit;
+    planner->scheduler = scheduler_time_limit;
     
     // // bool succ = load_records(); // continue simulating from the records
     // timestep = 0;
