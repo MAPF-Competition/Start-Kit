@@ -135,8 +135,8 @@ protected:
     bool valid_moves(vector<State>& prev, vector<Action>& next);
 
     void log_preprocessing(bool succ);
-    void log_event_assigned(int agent_id, int task_id, int timestep);
-    void log_event_finished(int agent_id, int task_id, int timestep);
+    // void log_event_assigned(int agent_id, int task_id, int timestep);
+    // void log_event_finished(int agent_id, int task_id, int timestep);
 
 };
 
