@@ -212,7 +212,7 @@ void BaseSystem::initialize()
 
     entry_time_limit = planner_time_limit+scheduler_time_limit;
     planner->planner_time_limit = planner_time_limit;
-    planner->scheduler = scheduler_time_limit;
+    planner->scheduler_time_limit = scheduler_time_limit;
     
     // // bool succ = load_records(); // continue simulating from the records
     // timestep = 0;

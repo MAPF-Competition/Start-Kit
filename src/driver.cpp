@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
 
     system_ptr->set_logger(logger);
-    system_ptr->set_planer_time_limit(vm["plannerTimeLimit"].as<int>());
+    system_ptr->set_planner_time_limit(vm["plannerTimeLimit"].as<int>());
     system_ptr->set_scheduler_time_limit(vm["schedulerTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
