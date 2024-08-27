@@ -14,6 +14,6 @@ void TaskScheduler::plan(int time_limit, std::vector<int> & proposed_schedule)
 {
     //give at most half of the entry time_limit to scheduler;
     //-10 for timing error tolerance
-    // int limit = time_limit/2 - 10;
-    TrafficMAPF::schedule_plan(time_limit, proposed_schedule, env);
+    int limit = time_limit/2 - 10;
+    TrafficMAPF::schedule_plan(limit, proposed_schedule, env);
 }

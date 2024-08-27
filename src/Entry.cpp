@@ -16,13 +16,13 @@ void Entry::compute(int time_limit, std::vector<Action> & plan, std::vector<int>
     //first call task schedule
     
 
-    scheduler->plan(scheduler_time_limit-100,proposed_schedule);
+    scheduler->plan(time_limit,proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
     
     //then call planner
-    planner->plan(planner_time_limit-100,plan);
+    planner->plan(time_limit,plan);
 
 }
 

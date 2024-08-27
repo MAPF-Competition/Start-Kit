@@ -13,9 +13,6 @@ public:
     MAPFPlanner* planner;
     TaskScheduler* scheduler;
 
-    int planner_time_limit;
-    int scheduler_time_limit;
-
 	Entry(SharedEnvironment* env): env(env)
     {
         planner = new MAPFPlanner(env);
