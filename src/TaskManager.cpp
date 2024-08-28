@@ -155,6 +155,7 @@ void TaskManager::reveal_tasks(int timestep)
         ongoing_tasks[task->task_id] = task;
         all_tasks.push_back(task);
         task_id++;
+        logger->log_info("Task " + std::to_string(task_id) + " is revealed");
     }
 }
 
