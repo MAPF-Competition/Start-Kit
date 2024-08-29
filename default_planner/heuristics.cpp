@@ -125,7 +125,7 @@ int get_h(SharedEnvironment* env, int source, int target){
 void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path)
 {
 	if (dp.dist2path.empty())
-		dp.dist2path.resize(env->map.size(), d2p(0,-1,MAX_TIMESTEP,MAX_TIMESTEP));
+		dp.dist2path.resize(env->map.size()*4, d2p(0,-1,MAX_TIMESTEP,MAX_TIMESTEP)); //4 directions
 	
 	dp.open.clear();
 	dp.label++;
@@ -134,9 +134,19 @@ void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path)
     for(int i = path.size()-1; i>=0; i--)
 	{
         auto p = path[i];
-		assert(dp.dist2path[p].label != dp.label || dp.dist2path[p].cost == MAX_TIMESTEP);
-		dp.open.emplace_back(dp.label,p,0,togo);
-		dp.dist2path[p] = {dp.label,p,0,togo};
+		//assert(dp.dist2path[p].label != dp.label || dp.dist2path[p].cost == MAX_TIMESTEP);
+		dp.open.emplace_back(dp.label,p*4,0,togo);
+		dp.dist2path[p] = {dp.label,p*4,0,togo};
+
+		dp.open.emplace_back(dp.label,p*4+1,0,togo);
+		dp.dist2path[p*4+1] = {dp.label,p*4+1,0,togo};
+
+		dp.open.emplace_back(dp.label,p*4+2,0,togo);
+		dp.dist2path[p*4+2] = {dp.label,p*4+2,0,togo};
+
+		dp.open.emplace_back(dp.label,p*4+3,0,togo);
+		dp.dist2path[p*4+3] = {dp.label,p*4+3,0,togo};
+
 		togo++;
     }
 
@@ -151,7 +161,7 @@ std::pair<int,int> get_source_2_path(Dist2Path& dp, SharedEnvironment* env, int 
 	}
 
 	
-	std::vector<int> neighbors;
+	std::vector<pair<int,int>> neighbors;
 	int cost;
 
 	while (!dp.open.empty())
@@ -161,17 +171,18 @@ std::pair<int,int> get_source_2_path(Dist2Path& dp, SharedEnvironment* env, int 
 
 
 
-		getNeighborLocs(ns,neighbors,curr.id);
+		//getNeighborLocs(ns,neighbors,curr.id);
+		getNeighbors(env,neighbors,curr.id/4,curr.id%4);
 
-		for (int next_location : neighbors)
+		for (auto next : neighbors)
 		{
 
 			cost = curr.cost + 1;
 
-			if (dp.dist2path[next_location].label == dp.label && cost >= dp.dist2path[next_location].cost )
+			if (dp.dist2path[next.first*4 + next.second].label == dp.label && cost >= dp.dist2path[next.first*4 + next.second].cost )
 				continue;
-			dp.open.emplace_back(dp.label,next_location,cost,curr.togo);
-			dp.dist2path[next_location] = {dp.label,next_location,cost,curr.togo};
+			dp.open.emplace_back(dp.label,next.first*4 + next.second,cost,curr.togo);
+			dp.dist2path[next.first*4 + next.second] = {dp.label,next.first*4 + next.second,cost,curr.togo};
 			
 		}
 		if (source == curr.id){

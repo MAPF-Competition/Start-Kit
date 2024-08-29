@@ -132,7 +132,8 @@ void frank_wolfe(TrajLNS& lns,std::unordered_set<int>& updated, TimePoint timeli
 
 
 
-void update_dist_2_path(TrajLNS& lns, int i){
+void update_dist_2_path(TrajLNS& lns, int i)
+{
     init_dist_2_path(lns.traj_dists[i], lns.env, lns.trajs[i]);
 }
 
@@ -147,7 +148,8 @@ void init_dist_table(TrajLNS& lns, int amount){
         }
         if(!lns.trajs[i].empty() && lns.trajs[i].size() == get_heuristic(lns.heuristics[lns.trajs[i].back()], lns.env,lns.trajs[i].front(),&(lns.neighbors)))
             continue;
-        if(!lns.trajs[i].empty() && lns.traj_dists[i].empty()){
+        if(!lns.trajs[i].empty() && lns.traj_dists[i].empty())
+        {
             init_dist_2_path(lns.traj_dists[i], lns.env, lns.trajs[i]);
             count++;
             lns.dist2path_inited++;
@@ -157,7 +159,8 @@ void init_dist_table(TrajLNS& lns, int amount){
 }
 
 //update traj and distance table for agent i
-void update_traj(TrajLNS& lns, int i){
+void update_traj(TrajLNS& lns, int i)
+{
     int start = lns.env->curr_states[i].location;
     int goal = lns.tasks[i];
     lns.goal_nodes[i] = astar(lns.env,lns.flow, lns.heuristics[goal],lns.trajs[i],lns.mem,start,goal, &(lns.neighbors));

@@ -31,14 +31,34 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	std::vector<int> neighbors;
 	std::vector<PIBT_C> successors;
 	getNeighborLocs(&(lns.neighbors),neighbors,prev_loc);
-	for (auto& neighbor: neighbors){
-
+	for (auto& neighbor: neighbors)
+	{
 		assert(validateMove(prev_loc, neighbor, lns.env));
+
+		int nex_direct;
+		int diff = neighbor - prev_loc;
+		if (diff == 1)
+		{
+			nex_direct = 0;
+		}
+		else if (diff == -1)
+		{
+			nex_direct = 2;
+		}
+		else if (diff > 0)
+		{
+			nex_direct = 3;
+		}
+		else
+		{
+			nex_direct = 1;
+		}
+
 
 		int min_heuristic;
 
 		if (!lns.traj_dists.empty() && !lns.traj_dists[curr_id].empty())
-			min_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, neighbor, &(lns.neighbors));	
+			min_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, neighbor*4+nex_direct, &(lns.neighbors));	
 		else if (!lns.heuristics[lns.tasks.at(curr_id)].empty())
 			min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, neighbor, &(lns.neighbors));
 		else
@@ -50,7 +70,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	int wait_heuristic;
 
 	if (!lns.traj_dists.empty() && !lns.traj_dists[curr_id].empty())
-		wait_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, prev_loc, &(lns.neighbors));
+		wait_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, prev_loc*4 + prev_orientation, &(lns.neighbors));
 	else if (!lns.heuristics.at(lns.tasks.at(curr_id)).empty())
 		wait_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, prev_loc, &(lns.neighbors));
 	else
