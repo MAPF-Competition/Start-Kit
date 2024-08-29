@@ -11,28 +11,54 @@ Before you write any code, get familiar with the simulated setups:
 - `Action` enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
 - The `Entry` class act as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and next schedule for each agent to proceeed. The compute function of the Entry will call the task scheduler to shedule next task for each agent first, call the planenr to plan next actions. 
 
-### What to implement for each track
+## What to implement for each track
 
 - Plannning Track:
-You need to implement your own planner. Check out Implement your planner section for more details.
+You need to implement your own planner. Check out ''Implement your planner'
+' section for more details.
 
 - Scheduling Track:
-You need to implement your own planner. Check out Implement your scheduler section for more details.
+You need to implement your own scheduler. Check out ''Implement your scheduler'' section for more details.
 
 - Combined Track:
 You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out Implement your scheduler, Implement your planner and Implement your entry sections for more details.
 
-### Understand the default scheduler
+### Understand the default entry
+In `src/Entry.cpp`, you can find the default entry. In the `compute` function, the default entry calls the default scheduler first. After the scheduler finishes, agents might be assigned new tasks and their goals locations need to be updated before the planner is called.
+Then, it calls the planner.
+The time limit is given to the default scheduler and planner. The default scheduler and planner use half amount of the time limit.
+
+#### The default scheduler
 In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
 - The preprocessing function of the default scheduler (see `schedule_initialize` in `scheduler.cpp`) calls the `TrafficMAPF::init_heuristics` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent. 
 - The scheduling function of the default scheduler (see `schedule_plan` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when `schedule_plan` is called, it iterates over all agents. For each agent `a` that does not have an assigned task, the algorithm iterates over tasks that are not assigned to any agent. From these tasks, the algorithm finds the task with the earliest possible completion time if assigned to `a`, ignoring conflicts with other agents. The algorithm then assigns this task to `a`.
 
-### Understand the default planner
+#### The default planner
 todo
 
 
 ### Implement your scheduler
-to do
+The starting point for implementing your scheduler is to look at the files `src/TaskScheduler.cpp` and `inc/TaskScheduler.h`.
+- Implement your own preprocessing function `TaskScheduler::initialize()`. 
+- Implement your own scheduling function `TaskScheduler::plan()`. The inputs to the `plan` function are a time limit and a reference to a vector of integers as the result schedule. The ith integer in the result scheduler is the index of the task assigned to the ith agent.
+- Don’t override any operating system-related functions (signal handlers)
+- Don’t interfere with the running program -- stack manipulation etc
+- Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in:
+  
+  src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, src/Evaluation.cpp, src/Grid.cpp,
+  src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, 
+  Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
+
+Start your implementation by understanding the `SharedEnvironment` API. This data structure (defined as `env` in `inc/MAPFPlanner.h`) contains useful information about the simulated setup:
+-  num_of_robots: `int`, the total team size.
+-  rows: `int`, the number of rows of the map.
+-  cols: `int`, the number of columns of the map.
+-  map_name: `string`, the map file name.
+-  map: vector of `int`, stores the map.  
+-  file_storage_path: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
+-  goal locations, vector of vector of `pair<int,int>`: current tasks locations allocated to each robot. The first int of a task (pair of int) is the goal location, and the second int indicates the timestep that the task was allocated.
+-  current_timestep: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
+-  curr_states: vector of `State`, the current state for each robot at the current time step.
 
 ### Implement your planner
 
@@ -46,17 +72,8 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
   src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, src/Evaluation.cpp, src/Grid.cpp,
   src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, 
   Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
-  
-Start your implementation by understanding the `SharedEnvironment` API. This data structure (defined as `env` in `inc/MAPFPlanner.h`) contains useful information about the simulated setup:
--  num_of_robots: `int`, the total team size.
--  rows: `int`, the number of rows of the map.
--  cols: `int`, the number of columns of the map.
--  map_name: `string`, the map file name.
--  map: vector of `int`, stores the map.  
--  file_storage_path: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
--  goal locations, vector of vector of `pair<int,int>`: current tasks locations allocated to each robot. The first int of a task (pair of int) is the goal location, and the second int indicates the timestep that the task was allocated.
--  current_timestep: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
--  curr_states: vector of `State`, the current state for each robot at the current time step.
+ 
+Similar to the scheduler, the planner can access the `SharedEnvironment` API. You can use this info for implementing your planner.
 
 ### Implement your entry
 to do
