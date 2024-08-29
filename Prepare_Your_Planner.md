@@ -14,8 +14,7 @@ Before you write any code, get familiar with the simulated setups:
 ## What to implement for each track
 
 - Plannning Track:
-You need to implement your own planner. Check out ''Implement your planner'
-' section for more details.
+You need to implement your own planner. Check out ''Implement your planner'' section for more details.
 
 - Scheduling Track:
 You need to implement your own scheduler. Check out ''Implement your scheduler'' section for more details.
@@ -24,14 +23,14 @@ You need to implement your own scheduler. Check out ''Implement your scheduler''
 You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out Implement your scheduler, Implement your planner and Implement your entry sections for more details.
 
 ### Understand the default entry
-In `src/Entry.cpp`, you can find the default entry. In the `compute` function, the default entry calls the default scheduler first. After the scheduler finishes, agents might be assigned new tasks and their goals locations need to be updated before the planner is called.
-Then, it calls the planner.
-The time limit is given to the default scheduler and planner. The default scheduler and planner use half amount of the time limit.
+In `src/Entry.cpp`, you can find the default implementation for entry. In the `Entry::compute()` function, the default entry calls the default scheduler first. After the scheduler finishes, agents might be assigned new tasks and their goals locations need to be updated before the planner is called.
+Then, the entry calls the default planner to compute the actions for agents.
+The time limit is revealed to both the default scheduler and planner. Inside the default scheduler and planner, you can see each of them using half amount of the time limit.
 
 #### The default scheduler
 In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
-- The preprocessing function of the default scheduler (see `schedule_initialize` in `scheduler.cpp`) calls the `TrafficMAPF::init_heuristics` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent. 
-- The scheduling function of the default scheduler (see `schedule_plan` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when `schedule_plan` is called, it iterates over all agents. For each agent `a` that does not have an assigned task, the algorithm iterates over tasks that are not assigned to any agent. From these tasks, the algorithm finds the task with the earliest possible completion time if assigned to `a`, ignoring conflicts with other agents. The algorithm then assigns this task to `a`.
+- The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `TrafficMAPF::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent.
+- The scheduling function of the default scheduler (see `schedule_plan()` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when the `schedule_plan()` function is called, it iterates over all agents. For each agent that does not have an assigned task, the algorithm iterates over tasks that are not assigned to any agent and, among these tasks, assigns to the agent the task with the earliest possible completion time, ignoring conflicts with other agents.
 
 #### The default planner
 todo
@@ -41,6 +40,7 @@ todo
 The starting point for implementing your scheduler is to look at the files `src/TaskScheduler.cpp` and `inc/TaskScheduler.h`.
 - Implement your own preprocessing function `TaskScheduler::initialize()`. 
 - Implement your own scheduling function `TaskScheduler::plan()`. The inputs to the `plan` function are a time limit and a reference to a vector of integers as the result schedule. The ith integer in the result scheduler is the index of the task assigned to the ith agent.
+- Don't change the definitions for the `TaskScheduler::initialize()` and `TaskScheduler::plan()` functions. Except this, you are free to add new members/functions to the `TaskScheduler` class.
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
 - Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in:
@@ -65,6 +65,7 @@ Start your implementation by understanding the `SharedEnvironment` API. This dat
 The starting point of your implementation is the file `src/MAPFPlanner.cpp` and `inc/MAPFPlanner.h`. See examples in `src/MAPFPlanner.cpp`
 - Implement your preprocessing in the function `MAPFPlanner::initialize()` that is provided to you. 
 - Implement your planner in the function `MAPFPlanner::plan()` that provided to you
+- Don't change the definitions for the `MAPFPlanner::initialize()` and `MAPFPlanner::plan()` functions. Except this, you are free to add new members/functions to the `MAPFPlanner` class.
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
 - Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in:
@@ -73,10 +74,14 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
   src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, 
   Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
  
-Similar to the scheduler, the planner can access the `SharedEnvironment` API. You can use this info for implementing your planner.
+Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API for implementing your planner.
 
 ### Implement your entry
-to do
+For participants that compete in the combined track, you can modify the entry freely to meet your needs.
+You need to implement your own `Entry::initialize()` and `Entry::compute()` functions and are not allwed to change their definitions. Except this, you are free to add new members/functions to the `Entry` class.
+The `Entry::compute()` needs to compute the task schedule and the actions for agents. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
+
+
 
 ### Compute command for your robots
 - Plan command in the scheduler
