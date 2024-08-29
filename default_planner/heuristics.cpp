@@ -40,7 +40,7 @@ void init_heuristics(SharedEnvironment* env){
 	if (global_heuristictable.size()==0)
 	{
 		global_heuristictable.resize(env->map.size());
-		//init_neighbor(env);
+		init_neighbor(env);
 	}
 
 }
@@ -56,14 +56,14 @@ void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_locatio
 	ht.htable[goal_location] = 0;
 	ht.open.push_back(root);  // add root to open
 
-	HNode root1(goal_location,1, 0);
-	ht.open.push_back(root1);  // add root to open
+	// HNode root1(goal_location,1, 0);
+	// ht.open.push_back(root1);  // add root to open
 
-	HNode root2(goal_location,2, 0);
-	ht.open.push_back(root2);  // add root to open
+	// HNode root2(goal_location,2, 0);
+	// ht.open.push_back(root2);  // add root to open
 
-	HNode root3(goal_location,3, 0);
-	ht.open.push_back(root3);  // add root to open
+	// HNode root3(goal_location,3, 0);
+	// ht.open.push_back(root3);  // add root to open
 }
 
 
@@ -71,32 +71,40 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 {
 		if (ht.htable[source] < MAX_TIMESTEP) return ht.htable[source];
 
-		std::vector<pair<int,int>> neighbors;
+		//std::vector<pair<int,int>> neighbors;
+		std::vector<int> neighbors;
 		int cost;
 		while (!ht.open.empty())
 		{
 			HNode curr = ht.open.front();
 			ht.open.pop_front();
-			ht.closed.insert(make_pair(curr.location,curr.direction));
+			//ht.closed.insert(make_pair(curr.location,curr.direction));
 
 			
-			//getNeighborLocs(ns,neighbors,curr.location);
-			getNeighbors(env,neighbors,curr.location,curr.direction);
+			getNeighborLocs(ns,neighbors,curr.location);
+			//getNeighbors(env,neighbors,curr.location,curr.direction);
 
 			
 			for (auto next : neighbors)
 			{
 				cost = curr.value + 1;
 				
-				assert(next.first >= 0 && next.first < env->map.size());
+				//assert(next.first >= 0 && next.first < env->map.size());
 				//set current cost for reversed direction
-				if (ht.closed.find(make_pair(next.first,next.second)) == ht.closed.end())
-					ht.open.emplace_back(next.first,next.second, cost);
+				//if (ht.closed.find(make_pair(next.first,next.second)) == ht.closed.end())
+					//ht.open.emplace_back(next.first,next.second, cost);
 
-				if (cost >= ht.htable[next.first] )
+				// if (cost >= ht.htable[next.first] )
+				// 	continue;
+
+				// ht.htable[next.first] = cost;
+
+				if (cost >= ht.htable[next] )
 					continue;
 
-				ht.htable[next.first] = cost;
+				ht.open.emplace_back(next,next, cost);
+
+				ht.htable[next] = cost;
 				
 			}
 

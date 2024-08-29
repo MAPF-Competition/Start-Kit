@@ -14,7 +14,8 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	 std::vector<State>& next_states,
       std::vector<int>& prev_decision, std::vector<int>& decision, 
 	  std::vector<bool>& occupied, TrajLNS& lns
-	  ){
+	  )
+	  {
 	// The PIBT works like a causal PIBT when using MAPF-T model. But a normal PIBT when using MAPF model.
 	
 	assert(next_states[curr_id].location == -1);

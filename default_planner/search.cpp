@@ -4,7 +4,8 @@
 #include "search.h"
 
 
-namespace TrafficMAPF{
+namespace TrafficMAPF
+{
 std::chrono::nanoseconds t;
 //a astar minimized the opposide traffic flow with existing traffic flow
 
@@ -49,7 +50,8 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
 
 
 
-    while (open.size() > 0){
+    while (open.size() > 0)
+    {
         s_node* curr = open.pop();
         curr->close();
 
