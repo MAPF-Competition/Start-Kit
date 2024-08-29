@@ -36,7 +36,8 @@ int manhattanDistance(int loc, int loc2,const SharedEnvironment* env){
 	return abs(loc_x-loc2_x) + abs(loc_y-loc2_y);
 
 }
-void getNeighbors(const SharedEnvironment* env, std::vector<std::pair<int,int>>& neighbors, int location,int direction) {
+void getNeighbors(const SharedEnvironment* env, std::vector<std::pair<int,int>>& neighbors, int location,int direction) 
+{
     neighbors.clear();
 	//forward
 	assert(location >= 0 && location < env->map.size());

@@ -7,7 +7,8 @@
 
 
 
-namespace TrafficMAPF{
+namespace TrafficMAPF
+{
 
 bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	 std::vector<State>& next_states,

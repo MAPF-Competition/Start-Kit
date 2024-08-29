@@ -4,17 +4,21 @@
 
 namespace TrafficMAPF{
 
-std::vector<HeuristicTable> global_heuristictable;
+std::vector<HeuristicTable> global_heuristictable; // map size, for each goal, the heuristic table is map size* 4 directions
 Neighbors global_neighbors;
 
 
 
-void init_neighbor(SharedEnvironment* env){
-	global_neighbors.resize(env->rows * env->cols);
-	for (int row=0; row<env->rows; row++){
-		for (int col=0; col<env->cols; col++){
+void init_neighbor(SharedEnvironment* env)
+{
+	global_neighbors.resize(env->rows * env->cols*4);
+	for (int row=0; row<env->rows; row++)
+	{
+		for (int col=0; col<env->cols; col++)
+		{
 			int loc = row*env->cols+col;
-			if (env->map[loc]==0){
+			if (env->map[loc]==0)
+			{
 				if (row>0 && env->map[loc-env->cols]==0){
 					global_neighbors[loc].push_back(loc-env->cols);
 				}
@@ -33,52 +37,66 @@ void init_neighbor(SharedEnvironment* env){
 };
 
 void init_heuristics(SharedEnvironment* env){
-	if (global_heuristictable.size()==0){
+	if (global_heuristictable.size()==0)
+	{
 		global_heuristictable.resize(env->map.size());
-		init_neighbor(env);
+		//init_neighbor(env);
 	}
 
 }
 
-void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_location){
+void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_location)
+{
 	// initialize my_heuristic, but have error on malloc: Region cookie corrupted for region
 	ht.htable.clear();
-	ht.htable.resize(env->map.size(),MAX_TIMESTEP);
+	ht.htable.resize(env->map.size(),MAX_TIMESTEP); //4 directions
 	ht.open.clear();
 	// generate a open that can save nodes (and a open_handle)
 	HNode root(goal_location,0, 0);
 	ht.htable[goal_location] = 0;
 	ht.open.push_back(root);  // add root to open
+
+	HNode root1(goal_location,1, 0);
+	ht.open.push_back(root1);  // add root to open
+
+	HNode root2(goal_location,2, 0);
+	ht.open.push_back(root2);  // add root to open
+
+	HNode root3(goal_location,3, 0);
+	ht.open.push_back(root3);  // add root to open
 }
 
 
-int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighbors* ns){
+int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighbors* ns)
+{
 		if (ht.htable[source] < MAX_TIMESTEP) return ht.htable[source];
 
-		std::vector<int> neighbors;
-		int cost, diff;
+		std::vector<pair<int,int>> neighbors;
+		int cost;
 		while (!ht.open.empty())
 		{
 			HNode curr = ht.open.front();
 			ht.open.pop_front();
+			ht.closed.insert(make_pair(curr.location,curr.direction));
 
 			
-			getNeighborLocs(ns,neighbors,curr.location);
+			//getNeighborLocs(ns,neighbors,curr.location);
+			getNeighbors(env,neighbors,curr.location,curr.direction);
 
 			
-			for (int next : neighbors)
+			for (auto next : neighbors)
 			{
 				cost = curr.value + 1;
-				diff = curr.location - next;
 				
-				assert(next >= 0 && next < env->map.size());
+				assert(next.first >= 0 && next.first < env->map.size());
 				//set current cost for reversed direction
+				if (ht.closed.find(make_pair(next.first,next.second)) == ht.closed.end())
+					ht.open.emplace_back(next.first,next.second, cost);
 
-				if (cost >= ht.htable[next] )
+				if (cost >= ht.htable[next.first] )
 					continue;
 
-				ht.open.emplace_back(next,0, cost);
-				ht.htable[next] = cost;
+				ht.htable[next.first] = cost;
 				
 			}
 
@@ -104,7 +122,8 @@ int get_h(SharedEnvironment* env, int source, int target){
 
 
 
-void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path){
+void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path)
+{
 	if (dp.dist2path.empty())
 		dp.dist2path.resize(env->map.size(), d2p(0,-1,MAX_TIMESTEP,MAX_TIMESTEP));
 	
@@ -112,7 +131,8 @@ void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path){
 	dp.label++;
 
     int togo = 0;
-    for(int i = path.size()-1; i>=0; i--){
+    for(int i = path.size()-1; i>=0; i--)
+	{
         auto p = path[i];
 		assert(dp.dist2path[p].label != dp.label || dp.dist2path[p].cost == MAX_TIMESTEP);
 		dp.open.emplace_back(dp.label,p,0,togo);
@@ -124,9 +144,9 @@ void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path){
 
 std::pair<int,int> get_source_2_path(Dist2Path& dp, SharedEnvironment* env, int source, Neighbors* ns)
 {
-	if (dp.dist2path[source].label == dp.label && dp.dist2path[source].cost < MAX_TIMESTEP){
+	if (dp.dist2path[source].label == dp.label && dp.dist2path[source].cost < MAX_TIMESTEP)
+	{
 		// std::cout<<dp.dist2path[source].first<<" "<<dp.dist2path[source].second<<std::endl;
-
 		return std::make_pair(dp.dist2path[source].cost, dp.dist2path[source].togo);
 	}
 

@@ -54,7 +54,7 @@ namespace TrafficMAPF{
 		{
 			int label;
 			int location;
-			int direction;
+			int direction; // 0:east, 1:south, 2:west, 3:north
 			int value;
 			int other;
 
@@ -78,6 +78,7 @@ namespace TrafficMAPF{
 	struct HeuristicTable{
 		std::vector<int> htable;
 		std::deque<HNode> open;
+		unordered_set<pair<int,int>> closed;
 		
 		bool empty(){
 			return htable.empty();

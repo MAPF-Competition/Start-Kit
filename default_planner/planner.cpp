@@ -89,7 +89,8 @@ namespace TrafficMAPF{
                 for(int j=0; j<env->goal_locations[i].size(); j++)
                 {
                     int goal_loc = env->goal_locations[i][j].first;
-                        if (trajLNS.heuristics.at(goal_loc).empty()){
+                        if (trajLNS.heuristics.at(goal_loc).empty())
+                        {
                             init_heuristic(trajLNS.heuristics[goal_loc],env,goal_loc);
                             count++;
                         }
