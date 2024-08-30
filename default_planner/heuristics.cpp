@@ -11,7 +11,7 @@ Neighbors global_neighbors;
 
 void init_neighbor(SharedEnvironment* env)
 {
-	global_neighbors.resize(env->rows * env->cols*4);
+	global_neighbors.resize(env->rows * env->cols);
 	for (int row=0; row<env->rows; row++)
 	{
 		for (int col=0; col<env->cols; col++)
