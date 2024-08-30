@@ -49,7 +49,7 @@ void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_locatio
 {
 	// initialize my_heuristic, but have error on malloc: Region cookie corrupted for region
 	ht.htable.clear();
-	ht.htable.resize(env->map.size(),MAX_TIMESTEP); //4 directions
+	ht.htable.resize(env->map.size(),MAX_TIMESTEP);
 	ht.open.clear();
 	// generate a open that can save nodes (and a open_handle)
 	HNode root(goal_location,0, 0);
@@ -73,7 +73,7 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 
 		//std::vector<pair<int,int>> neighbors;
 		std::vector<int> neighbors;
-		int cost;
+		int cost, diff;
 		while (!ht.open.empty())
 		{
 			HNode curr = ht.open.front();
@@ -88,6 +88,7 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 			for (auto next : neighbors)
 			{
 				cost = curr.value + 1;
+				diff = curr.location - next;
 				
 				//assert(next.first >= 0 && next.first < env->map.size());
 				//set current cost for reversed direction
@@ -99,11 +100,13 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 
 				// ht.htable[next.first] = cost;
 
+				assert(next >= 0 && next < env->map.size());
+				//set current cost for reversed direction
+
 				if (cost >= ht.htable[next] )
 					continue;
 
 				ht.open.emplace_back(next,0, cost);
-
 				ht.htable[next] = cost;
 				
 			}
