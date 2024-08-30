@@ -102,7 +102,7 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 				if (cost >= ht.htable[next] )
 					continue;
 
-				ht.open.emplace_back(next,next, cost);
+				ht.open.emplace_back(next,0, cost);
 
 				ht.htable[next] = cost;
 				
