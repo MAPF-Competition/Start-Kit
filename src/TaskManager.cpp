@@ -62,7 +62,7 @@ bool TaskManager::set_task_assignment(vector< int> assignment)
     if (! validate_task_assgnment(assignment))
     {
         if (assignment.size() < num_of_agents)
-            logger->log_info("task scheduler tiemout");
+            logger->log_info("task scheduler timeout");
         else
             logger->log_warning("attempt to set invalid task assignment");
         return false;

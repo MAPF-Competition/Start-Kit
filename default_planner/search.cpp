@@ -11,7 +11,7 @@ std::chrono::nanoseconds t;
 
 s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     HeuristicTable& ht, Traj& traj,
-    MemoryPool& mem, int start, int goal, Neighbors* ns)
+    MemoryPool& mem, int start, int start_direct, int goal, Neighbors* ns)
 {
     mem.reset();
 
@@ -26,11 +26,12 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     
 
     
-    s_node* root = mem.generate_node(start,0, h,0,0,0);
+    s_node* root = mem.generate_node(start*4+start_direct,0, h,0,0,0);
 
-    if (start == goal){
+    if (start == goal)
+    {
         traj.clear();
-        traj.push_back(start);
+        traj.push_back(start*4+start_direct);
         return *root;
     }
 
@@ -45,7 +46,8 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     double tie_breaker, decay_factor;
 
     s_node* goal_node = nullptr;
-    int neighbors[4];
+    // int neighbors[4];
+    std::vector<std::pair<int,int>> neighbors;
     int next_neighbors[4];
 
 
@@ -55,23 +57,25 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
         s_node* curr = open.pop();
         curr->close();
 
-        if (curr->id == goal){
+        if (curr->id/4 == goal)
+        {
             goal_node = curr;
             break;
         }
         expanded++;
-        getNeighborLocs(ns,neighbors,curr->id);
+
+        int curr_loc = curr->id/4;
+        int curr_direct = curr->id%4;
+        // getNeighborLocs(ns,neighbors,curr->id);
+        getNeighbors(env,neighbors,curr_loc,curr_direct);
         
-        for (int i=0; i<4; i++){
-            int next = neighbors[i];
-            if (next == -1){
-                continue;
-            }
+        for (auto next: neighbors)
+        {
 
             cost = curr->g+1;
             tie_breaker = curr->tie_breaker;
 
-            assert(next >= 0 && next < env->map.size());
+            assert(next.first >= 0 && next.first < env->map.size());
             depth = curr->depth + 1;
 
             //moving direction
@@ -80,21 +84,22 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             all_vertex_flow = 0;
 
             if(ht.empty())
-                h = manhattanDistance(next,goal,env);
+                h = manhattanDistance(next.first,goal,env);
             else
-                h = get_heuristic(ht,env, next, ns);
+                h = get_heuristic(ht,env, next.first, ns);
 
-            diff = next - curr->id;
+            diff = next.first - curr_loc;
             d = get_d(diff,env);
 
 
-            temp_op = ( (flow[curr->id].d[d]+1) * flow[next].d[(d+2)%4]);///( ( (flow[curr->id].d[d]+1) + flow[next].d[(d+2)%4]));
+            temp_op = ( (flow[curr_loc].d[d]+1) * flow[next.first].d[(d+2)%4]);///( ( (flow[curr->id].d[d]+1) + flow[next].d[(d+2)%4]));
 
             //all vertex flow
             //the sum of all out going edge flow is the same as the total number of vertex visiting.
             temp_vertex = 1;
-            for (int j=0; j<4; j++){
-                temp_vertex += flow[next].d[j];                
+            for (int j=0; j<4; j++)
+            {
+                temp_vertex += flow[next.first].d[j];                
             }
 
             op_flow += temp_op;
@@ -102,29 +107,36 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             all_vertex_flow+= (temp_vertex-1) /2;
 
             p_diff = 0;
-            if (curr->parent != nullptr){
-                p_diff = curr->id - curr->parent->id;
+            if (curr->parent != nullptr)
+            {
+                p_diff = curr_loc - curr->parent->id/4;
             }
 
             op_flow += curr->op_flow; //op_flow is contra flow
             all_vertex_flow += curr->all_vertex_flow;
 
-            s_node temp_node(next,cost,h,op_flow, depth);
+            int next_id = next.first*4+next.second;
+
+            s_node temp_node(next_id,cost,h,op_flow, depth);
             temp_node.tie_breaker = tie_breaker;
             temp_node.set_all_flow(op_flow,  all_vertex_flow);
 
-            if (!mem.has_node(next)){
-                s_node* next_node = mem.generate_node(next,cost,h,op_flow, depth,all_vertex_flow);
+            if (!mem.has_node(next_id))
+            {
+                s_node* next_node = mem.generate_node(next_id,cost,h,op_flow, depth,all_vertex_flow);
                 next_node->parent = curr;
                 next_node->tie_breaker = tie_breaker;
                 open.push(next_node);
                 generated++;
             }
-            else{ 
-                s_node* existing = mem.get_node(next);
+            else
+            { 
+                s_node* existing = mem.get_node(next_id);
 
-                if (!existing->is_closed()){
-                    if (re(temp_node,*existing)){
+                if (!existing->is_closed())
+                {
+                    if (re(temp_node,*existing))
+                    {
                         existing->g = cost;
                         existing->parent = curr;
                         existing->depth = depth;
@@ -135,7 +147,8 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
                 }
                 else{
 
-                    if (re(temp_node,*existing)){ 
+                    if (re(temp_node,*existing))
+                    { 
                         std::cout << "error in astar: re-expansion" << std::endl;
                         assert(false);
                         exit(1);
@@ -158,7 +171,8 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
 
     traj.resize(goal_node->depth+1);
     s_node* curr = goal_node;
-    for (int i=goal_node->depth; i>=0; i--){
+    for (int i=goal_node->depth; i>=0; i--)
+    {
         traj[i] = curr->id;
         curr = curr->parent;
     }

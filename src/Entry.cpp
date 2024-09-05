@@ -15,7 +15,6 @@ void Entry::compute(int time_limit, std::vector<Action> & plan, std::vector<int>
 {
     //first call task schedule
     
-
     scheduler->plan(time_limit,proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference

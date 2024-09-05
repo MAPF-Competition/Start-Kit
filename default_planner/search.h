@@ -14,7 +14,7 @@ namespace TrafficMAPF{
 
 s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     HeuristicTable& ht, Traj& traj,
-    MemoryPool& mem, int start, int goal, Neighbors* ns);
+    MemoryPool& mem, int start, int start_direct, int goal, Neighbors* ns);
 }
 
 #endif

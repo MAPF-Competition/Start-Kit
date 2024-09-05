@@ -78,7 +78,7 @@ namespace TrafficMAPF{
 	struct HeuristicTable{
 		std::vector<int> htable;
 		std::deque<HNode> open;
-		// unordered_set<pair<int,int>> closed;
+		unordered_set<pair<int,int>> closed;
 		
 		bool empty(){
 			return htable.empty();

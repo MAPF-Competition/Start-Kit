@@ -8,7 +8,7 @@ namespace TrafficMAPF{
 struct s_node
 {
     int label = 0;
-    int id = -1; //also location, -1 indicated not generated yet.
+    int id = -1; //also id, -1 indicated not generated yet.
     int g = 0;
     int h = 0;
     int op_flow = 0;

@@ -60,10 +60,10 @@ namespace TrafficMAPF{
         //cap the time for distance to goal heuristic table initialisation to half of the given time_limit;
         TimePoint init_heuristic_budget = start_time + std::chrono::milliseconds(time_limit/2); 
 
-        int pibt_time = 1 * env->num_of_agents/100;
+        int pibt_time = 2 * env->num_of_agents/100;
         //traffic flow assignment end time, leave 1ms per 100 agent for computing pibt actions;
         TimePoint end_time = start_time + std::chrono::milliseconds(time_limit - pibt_time); 
-        // cout << "plan limit " << time_limit <<endl;
+        cout << "plan limit " << time_limit <<endl;
 
         if (env->curr_timestep == 0){
             dummy_goals.resize(env->num_of_agents);
@@ -75,7 +75,7 @@ namespace TrafficMAPF{
 
 
 
-        // cout<<"---timestep,"<< env->curr_timestep<<endl;
+        //cout<<"---timestep,"<< env->curr_timestep<<endl;
         prev_decision.clear();
         prev_decision.resize(env->map.size(), -1);
         occupied.clear();
@@ -146,6 +146,7 @@ namespace TrafficMAPF{
         }
 
 
+
         std::unordered_set<int> updated;
 
         frank_wolfe(trajLNS, updated,end_time);
@@ -156,7 +157,7 @@ namespace TrafficMAPF{
             }
         );
 
-        // cout <<"time used: " <<  std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() <<endl;;
+        cout <<"time used: " <<  std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() <<endl;;
         //pibt
         for (int i : ids){
             if (decided[i].state == DONE::NOT_DONE){

@@ -16,7 +16,7 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
     //use at most half of time_limit to compute schedule, -10 for timing error tolerance
     //so that the remainning time are left for path planner
     TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(time_limit);
-    // cout<<"schedule plan limit" << time_limit <<endl;
+    //cout<<"schedule plan limit" << time_limit <<endl;
 
     proposed_schedule.resize(env->num_of_agents, -1); //default no schedule
 

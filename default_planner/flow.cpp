@@ -21,9 +21,10 @@ void remove_traj(TrajLNS& lns, int agent){
 
     to = lns.trajs[agent].size();
 
-    for (int j = 1; j < to; j++){
-        loc = lns.trajs[agent][j];
-        prev_loc = lns.trajs[agent][j-1];
+    for (int j = 1; j < to; j++)
+    {
+        loc = lns.trajs[agent][j]/4;
+        prev_loc = lns.trajs[agent][j-1]/4;
         diff = loc - prev_loc;
         d = get_d(diff, lns.env);
 
@@ -33,24 +34,26 @@ void remove_traj(TrajLNS& lns, int agent){
     }
 }
 
-void add_traj(TrajLNS& lns, int agent){
+void add_traj(TrajLNS& lns, int agent)
+{
 
     //update last replan time for agent
     lns.fw_metrics[agent].last_replan_t = lns.env->curr_timestep;
 
     lns.soc += lns.trajs[agent].size() - 1;
-    if (lns.trajs[agent].size() <= 1){
+    if (lns.trajs[agent].size() <= 1)
+    {
         return;
     }
     int loc, prev_loc, diff, d;
-    for (int j = 1; j < lns.trajs[agent].size(); j++){
-        loc = lns.trajs[agent][j];
-        prev_loc = lns.trajs[agent][j-1];
+    for (int j = 1; j < lns.trajs[agent].size(); j++)
+    {
+        loc = lns.trajs[agent][j]/4;
+        prev_loc = lns.trajs[agent][j-1]/4;
         diff = loc - prev_loc;
         d = get_d(diff, lns.env);
 
         lns.flow[prev_loc].d[d] += 1;
-
     }
 }
 
@@ -61,7 +64,7 @@ void get_deviation(TrajLNS& lns){
         if (lns.traj_dists[i].empty() || lns.trajs[i].empty())
             continue;
 
-        std::pair<int,int> dists =  get_source_2_path(lns.traj_dists[i], lns.env, lns.env->curr_states[i].location, &(lns.neighbors));
+        std::pair<int,int> dists =  get_source_2_path(lns.traj_dists[i], lns.env, lns.env->curr_states[i].location*4 + lns.env->curr_states[i].orientation, &(lns.neighbors));
 
         if (dists.first > 0){
             lns.deviation_agents.emplace_back(dists.first, i);
@@ -162,9 +165,11 @@ void init_dist_table(TrajLNS& lns, int amount){
 void update_traj(TrajLNS& lns, int i)
 {
     int start = lns.env->curr_states[i].location;
+    int start_direct = lns.env->curr_states[i].orientation;
     int goal = lns.tasks[i];
-    lns.goal_nodes[i] = astar(lns.env,lns.flow, lns.heuristics[goal],lns.trajs[i],lns.mem,start,goal, &(lns.neighbors));
+    lns.goal_nodes[i] = astar(lns.env,lns.flow, lns.heuristics[goal],lns.trajs[i],lns.mem,start,start_direct,goal, &(lns.neighbors));
     add_traj(lns,i);
+
     update_dist_2_path(lns,i);
 }
 

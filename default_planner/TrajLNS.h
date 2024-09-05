@@ -75,8 +75,9 @@ class TrajLNS{
 
     MemoryPool mem;
 
-    void init_mem(){
-        mem.init(env->map.size());
+    void init_mem()
+    {
+        mem.init(env->map.size()*4);
     }
 
     TrajLNS(SharedEnvironment* env, std::vector<HeuristicTable>& heuristics, Neighbors& neighbors):
