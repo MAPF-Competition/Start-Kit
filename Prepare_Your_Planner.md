@@ -151,6 +151,7 @@ For example, to install `numpy`, you can put `python3-numpy` in `apt.txt``.
 ## Evaluation
 
 Once your planner is implemented and compiled, you are ready for local testing and evaluation.
+The evaluation system uses official pytorch image [pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel](https://hub.docker.com/layers/pytorch/pytorch/2.4.1-cuda11.8-cudnn9-devel/images/sha256-ebefd256e8247f1cea8f8cadd77f1944f6c3e65585c4e39a8d4135d29de4a0cb?context=explore) as docker base image to build the evaluation environment, which have GPU driver, cuda, cudnn, and other essential GPU softwares ready. We officially support and tested `Pytorch` in this setup, other frameworks may or may not work in the evaluaiton environment.
 
 ### Local Testing
 A variety of test problems are provided in the `example_problems` folder. Use any JSON input file there for testing.
@@ -167,8 +168,8 @@ In the remainder of this section, we explain how the script works and how to use
 
 #### Using `RunInDocker.sh`
 
-* The evaluation system uses an official [ubuntu:jammy](https://hub.docker.com/layers/library/ubuntu/jammy/images/sha256-b060fffe8e1561c9c3e6dea6db487b900100fc26830b9ea2ec966c151ab4c020?context=explore) image as base image.
-* In the root of your code base, run the command `./RunInDocker.sh`. This script will automatically generate a Dockerfile to build the Docker image.
+* In the root of your code base, run the command `./RunInDocker.sh`. This script will automatically generate a Dockerfile to build the Docker image based on `pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel`.
+* However, image `pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel` only support linux/amd64 os/architecture. If you are using another os/architecture (e.g. MacOS with Arm CPUs) and do not use GPU, you could use [ubuntu:jammy](https://hub.docker.com/layers/library/ubuntu/jammy/images/sha256-58148fb210e3d70c972b5e72bdfcd68be667dec91e8a2ed6376b9e9c980cd573?context=explore) as a replacement, by running the script with a base image specified: `./RunInDocker.sh ubuntu:jammy`.
 * It will copy your codes to the Docker Environment, install dependencies listed in `apt.txt` using apt-get, and compile your code using `compile.sh`.
 * You are inside the docker container when the script finishes.
 * You can run the compiled program inside Docker container now.
