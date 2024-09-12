@@ -74,6 +74,9 @@ void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
         {
             task_td.join();
             started = false;
+            auto res = future.get();
+            actions = res.first;
+            proposed_schedule = res.second;
             return;
         }
         logger->log_info("planner timeout", timestep);
