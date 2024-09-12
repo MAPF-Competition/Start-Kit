@@ -104,6 +104,7 @@ namespace TrafficMAPF{
                 trajLNS.tasks[i] = env->goal_locations[i].front().first;
             }
 
+            require_guide_path[i] = false;
             if (trajLNS.trajs[i].empty() || trajLNS.trajs[i].back() != trajLNS.tasks[i])
                     require_guide_path[i] = true;
             
