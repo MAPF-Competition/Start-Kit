@@ -121,8 +121,8 @@ namespace TrafficMAPF{
                 decided[i].state = DONE::DONE;
             }
             if (decided[i].state == DONE::NOT_DONE){
-                occupied.at(decided[i].loc) = true;
-                occupied.at(prev_states[i].location) = true;
+                decision.at(decided[i].loc) = i;
+                next_states[i] = State(decided[i].loc,-1,-1);
             }
 
             if(require_guide_path[i])
@@ -169,13 +169,9 @@ namespace TrafficMAPF{
         
         actions.resize(env->num_of_agents);
         for (int id : ids){
+            //clear the decision table based on which agent has next_states
             if (next_states.at(id).location!= -1)
                 decision.at(next_states.at(id).location) = -1;
-            
-            assert(
-                (next_states.at(id).location >=0 && decided.at(id).state == DONE::DONE)||
-                (next_states.at(id).location == -1 && decided.at(id).state == DONE::NOT_DONE)
-            );
 
             if (next_states.at(id).location >=0){
                 decided.at(id) = DCR({next_states.at(id).location,DONE::NOT_DONE});
