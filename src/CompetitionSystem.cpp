@@ -247,17 +247,12 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     json js;
     // Save action model
     js["actionModel"] = "MAPF_T";
+    js["version"] = "2024 LoRR";
 
     std::string feasible = fast_mover_feasible ? "Yes" : "No";
     js["AllValid"] = feasible;
 
     js["teamSize"] = num_of_agents;
-
-    // Save start locations[x,y,orientation]
-    if (screen <= 2)
-    {
-        js["start"] = simulator.starts_to_json();
-    }
 
     js["numTaskFinished"] = task_manager.num_of_task_finish;
     int sum_of_cost = 0;
@@ -277,6 +272,12 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     }
     js["sumOfCost"] = sum_of_cost;
     js["makespan"] = makespan;
+
+    // Save start locations[x,y,orientation]
+    if (screen <= 2)
+    {
+        js["start"] = simulator.starts_to_json();
+    }
     
     if (screen <= 2)
     {
