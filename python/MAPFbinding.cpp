@@ -53,7 +53,7 @@ PYBIND11_MODULE(MAPF, m ){
 
     pybind11::class_<ActionModelWithRotate>(m,"ActionModelWithRotate")
         .def(pybind11::init<Grid &>())
-        .def("is_valid",&ActionModelWithRotate::is_valid)
+        // .def("is_valid",&ActionModelWithRotate::is_valid)
         .def("set_logger",&ActionModelWithRotate::set_logger)
         .def("result_states",&ActionModelWithRotate::result_states);
 
@@ -88,17 +88,17 @@ PYBIND11_MODULE(MAPF, m ){
     //     .def_readonly("env",&pyEnvironment::env,pybind11::return_value_policy::reference)
     //     .def("get_curr_states",&pyEnvironment::get_curr_states);
 
-    pybind11::class_<Simulator>(m,"Simulator")
-        .def(pybind11::init<Grid &,std::vector<int>&,ActionModelWithRotate*>())
-        .def("move",&Simulator::move)
-        .def("get_current_state",&Simulator::get_current_state)
-        .def("get_curr_timestep",&Simulator::get_curr_timestep)
-        .def("get_all_valid",&Simulator::get_all_valid)
-        .def("sync_shared_env",&Simulator::sync_shared_env)
-        .def("actual_path_to_json",&Simulator::actual_path_to_json)
-        .def("planned_path_to_json",&Simulator::planned_path_to_json)
-        .def("starts_to_json",&Simulator::starts_to_json)
-        .def("action_errors_to_json",&Simulator::action_errors_to_json);
+    // pybind11::class_<Simulator>(m,"Simulator")
+    //     .def(pybind11::init<Grid &,std::vector<int>&,ActionModelWithRotate*>())
+    //     .def("move",&Simulator::move)
+    //     .def("get_current_state",&Simulator::get_current_state)
+    //     .def("get_curr_timestep",&Simulator::get_curr_timestep)
+    //     .def("get_all_valid",&Simulator::get_all_valid)
+    //     .def("sync_shared_env",&Simulator::sync_shared_env)
+    //     .def("actual_path_to_json",&Simulator::actual_path_to_json)
+    //     .def("planned_path_to_json",&Simulator::planned_path_to_json)
+    //     .def("starts_to_json",&Simulator::starts_to_json)
+    //     .def("action_errors_to_json",&Simulator::action_errors_to_json);
 
     
     pybind11::class_<Task>(m,"Task")
