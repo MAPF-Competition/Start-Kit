@@ -16,7 +16,7 @@
 #include "SharedEnv.h"
 #include "ActionModel.h"
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 	
 	enum DONE{

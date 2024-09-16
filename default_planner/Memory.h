@@ -6,7 +6,7 @@
 
 #include "search_node.h"
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 class MemoryPool
 {

@@ -4,7 +4,7 @@
 #include "search.h"
 
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 std::chrono::nanoseconds t;
 //a astar minimized the opposide traffic flow with existing traffic flow
 

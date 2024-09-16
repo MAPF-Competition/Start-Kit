@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <pybind11/numpy.h>
+#include <pybind11/chrono.h>
 
 #include "Grid.h"
 #include "SharedEnv.h"
@@ -70,6 +71,7 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("curr_task_schedule",&SharedEnvironment::curr_task_schedule)
         .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
         .def_readonly("curr_states",&SharedEnvironment::curr_states);
+        .def_readonly("plan_start_time",&SharedEnvironment::plan_start_time);
 
 
 
