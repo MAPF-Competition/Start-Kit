@@ -2,7 +2,7 @@
 #include "heuristics.h"
 #include <queue>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 std::vector<HeuristicTable> global_heuristictable;
 Neighbors global_neighbors;

@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 struct s_node
 {
     int label = 0;
