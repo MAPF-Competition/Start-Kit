@@ -70,7 +70,7 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("task_pool",&SharedEnvironment::task_pool)
         .def_readonly("curr_task_schedule",&SharedEnvironment::curr_task_schedule)
         .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
-        .def_readonly("curr_states",&SharedEnvironment::curr_states);
+        .def_readonly("curr_states",&SharedEnvironment::curr_states)
         .def_readonly("plan_start_time",&SharedEnvironment::plan_start_time);
 
 
