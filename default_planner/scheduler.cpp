@@ -1,13 +1,13 @@
 #include "scheduler.h"
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 std::mt19937 mt;
 
 void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env)
 {
     // cout<<"schedule initialise limit" << preprocess_time_limit<<endl;
-    TrafficMAPF::init_heuristics(env);
+    DefaultPlanner::init_heuristics(env);
     mt.seed(0);
 }
 
@@ -41,7 +41,7 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
                 dist = 0;
                 c_loc = env->curr_states.at(i).location;
                 for (int loc : env->task_pool[i_task].locations){
-                    dist += TrafficMAPF::get_h(env, c_loc, loc);
+                    dist += DefaultPlanner::get_h(env, c_loc, loc);
                     c_loc = loc;
                 }
                 if (dist < min_task_makespan){

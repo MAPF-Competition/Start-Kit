@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 int get_d(int diff, const SharedEnvironment* env)  {
 
     return (diff == 1)? 0: (diff == -1)? 2: (diff == env->cols)? 1: 3;

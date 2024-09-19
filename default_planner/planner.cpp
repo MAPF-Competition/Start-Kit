@@ -5,7 +5,7 @@
 #include "flow.h"
 
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
     //default planner data
     std::vector<int> decision; 

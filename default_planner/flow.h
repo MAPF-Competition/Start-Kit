@@ -9,7 +9,7 @@
 #include <random>
 #include <unordered_set>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 //remove flow for each location's outgoing edge according to the traj
 void remove_traj(TrajLNS& lns, int agent);

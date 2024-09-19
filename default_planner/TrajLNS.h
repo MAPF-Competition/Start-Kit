@@ -10,7 +10,7 @@
 
 #include <set>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 // enum ADAPTIVE {RANDOM, CONGESTION, COUNT};
 enum ADAPTIVE {RANDOM, CONGESTION, DEVIATION, COUNT};
 
