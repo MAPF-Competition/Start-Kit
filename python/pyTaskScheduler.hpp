@@ -9,15 +9,10 @@
 
 class pyTaskScheduler: public TaskScheduler
 {
-private:
-    pybind11::object py_scheduler;
-    /* data */
+
 public:
     pyTaskScheduler(SharedEnvironment* env);
 
-
-    void initialize(int preprocess_time_limit);
-    void plan(int time_limit, std::vector<int> & proposed_schedule);
 };
 
 
