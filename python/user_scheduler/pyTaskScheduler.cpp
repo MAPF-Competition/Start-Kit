@@ -49,7 +49,7 @@ void pyTaskScheduler::plan(int time_limit, std::vector<int> & proposed_schedule)
 {
     pybind11::gil_scoped_release release;
     pybind11::gil_scoped_acquire acquire;
-    std::cout<<"calling python scheduler"<<std::endl;
+    // std::cout<<"calling python scheduler"<<std::endl;
 
     auto proposed_schedule_object=py_scheduler.attr("plan")(time_limit);
 
