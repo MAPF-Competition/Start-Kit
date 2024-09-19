@@ -6,7 +6,7 @@
 #include <random>
 
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
     
     void initialize(int preprocess_time_limit, SharedEnvironment* env);

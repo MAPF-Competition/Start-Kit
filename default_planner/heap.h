@@ -18,7 +18,7 @@
 #include <cassert>
 #include <iostream>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 
 struct min_q 

@@ -6,7 +6,7 @@
 #include <random>
 #include <unordered_set>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 std::mt19937 g(0);
 

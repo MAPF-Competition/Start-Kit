@@ -8,7 +8,7 @@
 #include "TrajLNS.h"
 #include "search_node.h"
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 void init_heuristics(SharedEnvironment* env);
 

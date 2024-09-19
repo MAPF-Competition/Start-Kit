@@ -6,7 +6,7 @@
 #include "heuristics.h"
 #include <random>
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 
 void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env);
 

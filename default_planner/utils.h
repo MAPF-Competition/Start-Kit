@@ -4,7 +4,7 @@
 
 #include "Types.h"
 
-namespace TrafficMAPF{
+namespace DefaultPlanner{
 int get_d(int diff, const SharedEnvironment* env)  ;
 
 
