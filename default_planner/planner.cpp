@@ -78,8 +78,6 @@ namespace DefaultPlanner{
         // cout<<"---timestep,"<< env->curr_timestep<<endl;
         prev_decision.clear();
         prev_decision.resize(env->map.size(), -1);
-        occupied.clear();
-        occupied.resize(env->map.size(),false);
 
         int count = 0;
         for(int i=0; i<env->num_of_agents; i++)
