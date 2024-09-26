@@ -9,6 +9,19 @@
 
 namespace DefaultPlanner{
 
+int get_gp_h(TrajLNS& lns, int ai, int target){
+    int min_heuristic;
+
+    if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
+        min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors));	
+    else if (!lns.heuristics[lns.tasks.at(ai)].empty())
+        min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
+    else
+        min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
+    
+    return min_heuristic;
+}
+
 bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	 std::vector<State>& next_states,
       std::vector<int>& prev_decision, std::vector<int>& decision, 
@@ -34,26 +47,12 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 
 		assert(validateMove(prev_loc, neighbor, lns.env));
 
-		int min_heuristic;
-
-		if (!lns.traj_dists.empty() && !lns.traj_dists[curr_id].empty())
-			min_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, neighbor, &(lns.neighbors));	
-		else if (!lns.heuristics[lns.tasks.at(curr_id)].empty())
-			min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, neighbor, &(lns.neighbors));
-		else
-			min_heuristic = manhattanDistance(neighbor,lns.tasks.at(curr_id),lns.env);
+		int min_heuristic = get_gp_h(lns, curr_id, neighbor);
 
 		successors.emplace_back(neighbor,min_heuristic,-1,rand());
 	}
 
-	int wait_heuristic;
-
-	if (!lns.traj_dists.empty() && !lns.traj_dists[curr_id].empty())
-		wait_heuristic = get_dist_2_path(lns.traj_dists[curr_id], lns.env, prev_loc, &(lns.neighbors));
-	else if (!lns.heuristics.at(lns.tasks.at(curr_id)).empty())
-		wait_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(curr_id)], lns.env, prev_loc, &(lns.neighbors));
-	else
-		wait_heuristic = manhattanDistance(prev_loc,lns.tasks.at(curr_id),lns.env);
+	int wait_heuristic = get_gp_h(lns, curr_id, prev_loc);
 
 	successors.emplace_back(prev_loc, wait_heuristic,-1,rand());
 
