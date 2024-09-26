@@ -127,6 +127,11 @@ namespace DefaultPlanner{
                 p[i] = p_copy[i];
             else if (!env->goal_locations[i].empty())
                 p[i] = p[i]+1;
+
+            if (trajLNS.neighbors[env->curr_states[i].location].size() == 1){
+                //deadend agent will be given a highest priority
+                p[i] = p[i] + 1000;
+            }
             
         }
         //task change
