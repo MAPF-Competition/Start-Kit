@@ -118,7 +118,10 @@ struct cmp_less_of //astar open
                 if (lhs.get_f()  == rhs.get_f())
                 {
                         if (lhs.get_g() == rhs.get_g())
-                            return rand() % 2;
+                            if (lhs.tie_breaker  == rhs.tie_breaker)
+                                return rand() % 2;
+                            else
+                                return lhs.tie_breaker < rhs.tie_breaker;
                         else
                             return lhs.get_g() > rhs.get_g();
                 }
