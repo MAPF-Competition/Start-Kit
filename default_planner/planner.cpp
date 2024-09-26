@@ -128,9 +128,9 @@ namespace DefaultPlanner{
             else if (!env->goal_locations[i].empty())
                 p[i] = p[i]+1;
 
-            if (trajLNS.neighbors[env->curr_states[i].location].size() == 1){
-                //deadend agent will be given a highest priority
-                p[i] = p[i] + 1000;
+            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->curr_states[i].location].size() == 1){
+                //deadend agent will be given priority bonus
+                p[i] = p[i] + 10;
             }
             
         }
