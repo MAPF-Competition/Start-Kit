@@ -33,7 +33,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
     int prev_loc = prev_states[curr_id].location;
 	int prev_orientation = prev_states[curr_id].orientation;
 	int next[4] = { prev_loc + 1,prev_loc + lns.env->cols, prev_loc - 1, prev_loc - lns.env->cols};
-	int orien_next = next[prev_orientation];
+	int orien_next_v = next[prev_orientation];
 
 	assert(prev_loc >= 0 && prev_loc < lns.env->map.size());
 
@@ -62,9 +62,10 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 		{
 			int diff[4] = {1,lns.env->cols,-1,-lns.env->cols};
 			if (a.heuristic == b.heuristic){
-					if (a.orientation==orien_next && b.orientation!=orien_next)
+					//tie break on prefer moving forward
+					if (a.location==orien_next_v && b.location!=orien_next_v)
 						return true;
-					if (a.orientation!=orien_next && b.orientation==orien_next)
+					if (a.location!=orien_next_v && b.location==orien_next_v)
 						return false;
 					// random tie break
 					return a.tie_breaker < b.tie_breaker;

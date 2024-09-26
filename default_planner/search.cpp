@@ -38,7 +38,7 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
 
     open.push(root);
 
-    int  diff, d, cost, op_flow, total_cross, all_vertex_flow,vertex_flow, depth,p_diff;
+    int  diff, d, cost, op_flow, total_cross, all_vertex_flow,vertex_flow, depth,p_diff, p_d;
     int next_d1, next_d2, next_d1_loc, next_d2_loc;
     int temp_op, temp_vertex;
     double tie_breaker, decay_factor;
@@ -67,7 +67,6 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             }
 
             cost = curr->g+1;
-            tie_breaker = curr->tie_breaker;
 
             assert(next >= 0 && next < env->map.size());
             depth = curr->depth + 1;
@@ -84,6 +83,15 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
 
             diff = next - curr->id;
             d = get_d(diff,env);
+            if (curr->parent != nullptr){
+                p_diff = curr->id - curr->parent->id;
+                p_d = get_d(p_diff,env);
+                if (p_d!=d)
+                    tie_breaker = 0.1;
+                else
+                    tie_breaker = 0;
+                //tie breaking on prefering moving forward
+            }
 
 
             temp_op = ( (flow[curr->id].d[d]+1) * flow[next].d[(d+2)%4]);///( ( (flow[curr->id].d[d]+1) + flow[next].d[(d+2)%4]));
