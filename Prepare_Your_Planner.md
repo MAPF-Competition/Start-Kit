@@ -14,10 +14,10 @@ Before you write any code, get familiar with the simulated setups:
 ## What to implement for each track
 
 - Plannning Track:
-You need to implement your own planner. Check out ''Implement your planner'' section for more details.
+You need to implement your own planner, whcih will work with default scheduler. Check out ''Implement your planner'' section for more details.
 
 - Scheduling Track:
-You need to implement your own scheduler. Check out ''Implement your scheduler'' section for more details.
+You need to implement your own scheduler, which will work with default planner. Check out ''Implement your scheduler'' section for more details.
 
 - Combined Track:
 You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out Implement your scheduler, Implement your planner and Implement your entry sections for more details.
@@ -29,11 +29,13 @@ The time limit is revealed to both the default scheduler and planner. Inside the
 
 #### The default scheduler
 In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
-- The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `TrafficMAPF::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent.
+- The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `DefaultPlanner::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent.
 - The scheduling function of the default scheduler (see `schedule_plan()` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when the `schedule_plan()` function is called, it iterates over all agents. For each agent that does not have an assigned task, the algorithm iterates over tasks that are not assigned to any agent and, among these tasks, assigns to the agent the task with the earliest possible completion time, ignoring conflicts with other agents.
 
 #### The default planner
-todo
+In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are furture defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and global heuristic table (if not initialized by scheduler).
+
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682).](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). A more detailed technical report will be provided soon.
 
 
 ### Implement your scheduler
@@ -43,11 +45,6 @@ The starting point for implementing your scheduler is to look at the files `src/
 - Don't change the definitions for the `TaskScheduler::initialize()` and `TaskScheduler::plan()` functions. Except this, you are free to add new members/functions to the `TaskScheduler` class.
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
-- Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in:
-  
-  src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, src/Evaluation.cpp, src/Grid.cpp,
-  src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, 
-  Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
 
 Start your implementation by understanding the `SharedEnvironment` API. This data structure (defined as `env` in `inc/MAPFPlanner.h`) contains useful information about the simulated setup:
 -  num_of_robots: `int`, the total team size.
@@ -68,11 +65,6 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
 - Don't change the definitions for the `MAPFPlanner::initialize()` and `MAPFPlanner::plan()` functions. Except this, you are free to add new members/functions to the `MAPFPlanner` class.
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
-- Don’t modify any start kit functions and modify / call / interfere with any start kit variables or objects, including those in:
-  
-  src/ActionModel.cpp, src/common.cpp, src/CompetitionSystem.cpp, src/driver.cpp, src/Evaluation.cpp, src/Grid.cpp,
-  src/Logger.cpp, src/States.cpp, src/Validator.cpp, inc/ActionModel.h, inc/CompetitionSystem.h, 
-  Evaluation.h, Grid.h, Logger.h, SharedEnv.h, States.h, Tasks.h, Validator.h, common.h
  
 Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API for implementing your planner.
 
@@ -81,18 +73,44 @@ For participants that compete in the combined track, you can modify the entry fr
 You need to implement your own `Entry::initialize()` and `Entry::compute()` functions and are not allwed to change their definitions. Except this, you are free to add new members/functions to the `Entry` class.
 The `Entry::compute()` needs to compute the task schedule and the actions for agents. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
 
+### Unmodifiable files
+In any track of the competition, don't modify or interfere any start kit functionalities, including those in following files:
+```
+src/ActionModel.cpp, src/Evaluation.cpp, src/Logger.cpp, src/States.cpp,src/driver.cpp,
+src/CompetitionSystem.cpp, src/Grid.cpp, src/common.cpp, src/TaskManager.cpp, 
+inc/ActionModel.h, inc/Evaluation.h, inc/Logger.h, inc/SharedEnv.h, inc/Tasks.h, inc/CompetitionSystem.h, inc/Grid.h,
+inc/States.h, inc/common.h, inc/TaskManager.h,
+default_planner/Memory.h, default_planner/heap.h, default_planner/pibt.cpp, default_planner/search_node.h, 
+default_planner/planner.h, default_planner/search.cpp, default_planner/utils.cpp, default_planner/TrajLNS.h,
+default_planner/flow.cpp, default_planner/heuristics.cpp, default_planner/pibt.h, default_planner/scheduler.cpp,
+default_planner/search.h, default_planner/utils.h, default_planner/Types.h, default_planner/flow.h,
+default_planner/heuristics.h, default_planner/planner.cpp, default_planner/scheduler.h,  
+python/common/MAPFbinding.cpp, python/default_planner/pyMAPFPlanner.cpp, 
+python/default_scheduler/pyTaskScheduler.hpp, python/user_scheduler/pyTaskScheduler.cpp, python/common/pyEntry.hpp, python/default_planner/pyMAPFPlanner.hpp, python/user_planner/pyMAPFPlanner.cpp, 
+python/user_scheduler/pyTaskScheduler.hpp, python/common/pyEnvironment.hpp, 
+python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.hpp, python/set_track.bash        
+```
 
+In planner track, don't modify or interfere any start kit functionalities, including those in following files:
+```
+inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp
+```
+
+In scheduler track, don't modify or interfere any start kit functionalities, including those in following files:
+```
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp
+```
 
 ### Compute command for your robots
 - Plan command in the scheduler
 to do 
 
 - Plan command in the planner
-At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit`. The `time_limit` is given as an input parameter to your planner's `plan()` function. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
+At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of current timestep begin at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms . This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
 
 At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command for robot `i` is a valid `Action` at position `actions[i]` in the vector.
 
-For more details, read the interface implementation in `src/MAPFPlanner.cpp`, `inc/MAPFPlanner.h`,  `inc/SharedEnv.h`.
+For more details, read the interface implementation in `src/MAPFPlanner.cpp`, `inc/MAPFPlanner.h`, `src/TaskScheduler.cpp`, `src/TaskScheduler.h`, and `inc/SharedEnv.h`.
 
 
 ## Build
@@ -119,20 +137,47 @@ We also provide a Python interface for Python users based on pybind11.
 
 Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
 
-The pybind11 module mainly contains three files:
-+ `MAPFBinding.cpp`: this file binds the C++ classes to the "MAPF" pybind module, allowing users to access  C++ classes such as SharedEnvironment and Action
-+ `pyMAPFPlanner.py`: this file is where users implement their learning-based algorithms and return solutions as a list of actions or a numpy array.
-+ `pyMAPFPlanner.cpp`: this file imports the above Python script and calls relevant Python functions to get the solution and return it to the C++ simulation system
+The pybind11 bindings are implemented under `python/common`, `python/default_planner`, `python/default_scheduler`, `python/user_planner/`, and `python/user_scheduler/`.
+These implementations allow user implemented Python scheduler work with default c++ planner, and allow user implemented Python planner work with default c++ scheduler.
+To use the Python interface, simply implement your planner and/or scheduler in:
++ `python/pyMAPFPlanner.py`: this file is where users implement their python-based MAPF palnner algorithms and return actions as a list of actions for each agent.
++ `python/pyTaskScheduler.py`: this file is where users implement their python-based Task Scheduler algorithms and return proposed schedules as a list of task ids for each agent.
 
-To use the python interface, one can use the following to compile the program that runs pyMAPFPlanner 
+### Track Config and Compiling
 
+For each track of the competition, the start-kit uses different combination of python and c++ implementations:
+- In Schdduler Track, the start-kit uses `Python scheduler` and `c++ default planner`.
+- In Planner Track, the start-kit uses `Python planner` and `c++ default scheduler`.
+- In Combined Track, the start-kit uses both `Python planner` and `Python Scheduler`.
+
+When testing your implementation locally, you need to configure the correct track using the `./python/set_track.bash` under the root folder of the start-kit before compiling the code.
+
+For combined track:
+```shell
+./python/set_track.bash combined
+```
+For scheduler track:
+```shell
+./python/set_track.bash scheduler
+```
+For planner track:
+```shell
+./python/set_track.bash planner
+```
+
+Then edit your compile.sh to make sure it uses only the following content:
 ```shell
 mkdir build
 cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
 make -C build -j
-./build/lifelong --inputFile the_input_file_name -o output_file_location
 ```
-Once compiled, the program looks for `pyMAPFPlanner` python module under `./python` or `../python` relative to the current working direction. Additionally, you can specify a path in `config.json` and use cmake flag `-DCOPY_PY_PATH_CONFIG=ON` (which copies the `config.json` to the target build folder), so that the problem will look for the `pyMAPFPlanner` in the specified folder.
+
+Compile and test your implementation with:
+```shell
+./compile.sh
+./build/lifelong --inputFile ./example_problems/random.domain/random_32_32_20_100.json -o test.json
+```
+Once compiled, the program looks for `pyMAPFPlanner` python module and `pyTaskScheduler.py` under `./python` or `../python` relative to the current working direction. Additionally, you can specify a path in `config.json` and use cmake flag `-DCOPY_PY_PATH_CONFIG=ON` (which copies the `config.json` to the target build folder), so that the problem will look for the `pyMAPFPlanner` in the specified folder.
 
 Additionally, you can specify a specific python version by `-DPYBIND11_PYTHON_VERSION` or an exact python install by `-DPYTHON_EXECUTABLE`
 
@@ -145,8 +190,13 @@ cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYBIND11_PYTHON_VER
 cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYTHON_EXECUTABLE=path/to/python
 ```
 
-Python packages can also be installed through apt-get, thus you can specify the package you want to install in `apt.txt`.
-For example, to install `numpy`, you can put `python3-numpy` in `apt.txt``.
+Python packages can also be installed through `pip` on the evaluation server, thus you can specify the package you want to install in `pip.txt`.
+For example, on default `pip.txt` contains:
+```
+torch
+pybind11-global>=2.10.1
+numpy
+```
 
 ## Evaluation
 
