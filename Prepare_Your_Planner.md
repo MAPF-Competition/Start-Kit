@@ -35,7 +35,19 @@ In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls
 #### The default planner
 In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are furture defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and global heuristic table (if not initialized by scheduler).
 
-The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682).](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). A more detailed technical report will be provided soon.
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682).](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each agent, then computes collision free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
+
+#### Timing parameters for detault planner and default scheduler
+The default scheduler and default planner runs in sequencial manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
+The default planner uses the remaining time, after scheduler returns, to compute collision-free actions.
+
+You still have some control of the timning behavior of default scheduler and default planner.
+File `default_planner/const.h` specifies a few parameters that controls the timing of schduler and planner:
+- `PIBT_RUNTIME_PER_100_AGENTS` specifies how many time in ms is requires for PIBT to compute collision free actions per 100 agents. The default planner compute the end time for traffic flow assignment by subtracting PIBT action time from the time limit, so that the remaining time is left for PIBT to return actions.
+- `TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE` specifies the traffic flow assignment process end time tolerance in ms. The default planner will end the traffic flow assignment phase this many milliseconds before traffic flow assignment end time.
+- `PLANNER_TIMELIMIT_TOLERANCE` The MAPFPlanner will deduct this value from the time limit for default planner.
+- `SCHEDULER_TIMELIMIT_TOLERANCE` The TaskScheduler will deduct this value from the time limit for default scheduler.
+You are allowed to modify the values of these parameters to reduce/increase the time spend on related components.
 
 
 ### Implement your scheduler
