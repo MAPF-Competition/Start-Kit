@@ -3,6 +3,7 @@
 #include "SharedEnv.h"
 #include "pibt.h"
 #include "flow.h"
+#include "const.h"
 
 
 namespace DefaultPlanner{
@@ -58,11 +59,10 @@ namespace DefaultPlanner{
     void plan(int time_limit,vector<Action> & actions, SharedEnvironment* env){
         TimePoint start_time = std::chrono::steady_clock::now();
         //cap the time for distance to goal heuristic table initialisation to half of the given time_limit;
-        TimePoint init_heuristic_budget = start_time + std::chrono::milliseconds(time_limit/2); 
 
-        int pibt_time = 1 * env->num_of_agents/100;
-        //traffic flow assignment end time, leave 1ms per 100 agent for computing pibt actions;
-        TimePoint end_time = start_time + std::chrono::milliseconds(time_limit - pibt_time); 
+        int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents/100;
+        //traffic flow assignment end time, leave PIBT_RUNTIME_PER_100_AGENTS ms per 100 agent and TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE ms for computing pibt actions;
+        TimePoint end_time = start_time + std::chrono::milliseconds(time_limit - pibt_time - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE); 
         // cout << "plan limit " << time_limit <<endl;
 
         if (env->curr_timestep == 0){
@@ -83,7 +83,7 @@ namespace DefaultPlanner{
         for(int i=0; i<env->num_of_agents; i++)
         {
         
-            if ( (trajLNS.traj_inited < env->num_of_agents && std::chrono::steady_clock::now() < init_heuristic_budget) || (trajLNS.traj_inited >= env->num_of_agents)){
+            if ( ( std::chrono::steady_clock::now() < end_time) ){
                 for(int j=0; j<env->goal_locations[i].size(); j++)
                 {
                     int goal_loc = env->goal_locations[i][j].first;
