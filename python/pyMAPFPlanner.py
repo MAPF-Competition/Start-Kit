@@ -3,6 +3,7 @@ import MAPF
 from typing import Dict, List, Tuple,Set
 from queue import PriorityQueue
 import numpy as np
+import datetime
 
 # 0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 
@@ -32,11 +33,17 @@ class pyMAPFPlanner:
             actions ([Action]): the next actions
 
         Args:
-            time_limit (_type_): _description_
+            time_limit (int): time limit in milliseconds
+        
+        The time limit (ms) starts from the time when the Entr::compute() was called. 
+        You could read start time by calling self.env.plan_start_time, which is a datetime.datetime object.
+        This means that the function should return the planned actions before self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
         """
 
+        limit = self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - datetime.datetime.now()
+
         # example of only using single-agent search
-        return self.sample_priority_planner(time_limit)
+        return self.sample_priority_planner(int(limit.total_seconds() * 1000))
         # #print("python binding debug")
         # #print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
         # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
