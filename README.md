@@ -74,7 +74,7 @@ pip install pybind11-global numpy
 
 While it's technically possible to use our start-kit with Cygwin, Mingw, and MSVC, doing so would be more complex compared to using WSL. You would likely need to configure the environment yourself.
 
-If you are a docker user, another choice is to develop and test your python implementation under a docker environment. You can the re-create the evaluation environment locally on your machine. For more details, check out the [Test in Docker](./Prepare_Your_Planner.md#test-in-docker) section.
+If you are a docker user, another choice is to develop and test your python implementation under a docker environment. You can the re-create the evaluation environment locally on your machine. For more details, check out the [Test in Docker](./Prepare_Your_Submission.md#test-in-docker) section.
 
 ## Upgrade Your Start-Kit
 
@@ -84,7 +84,7 @@ You can check `version.txt` to know the current version of your start-kit.
 
 The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit. It will pull and stage the files, but not commit them. This allows you to review the changes before committing them. 
 
-For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Planner.md), you always commit their changes.
+For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Submission.md), you always commit their changes.
 
 The upgrade may overwrite some of your changes to `CMakeLists.txt`, `compile.sh`, and `apt.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on these files.
 
@@ -96,7 +96,7 @@ Please refer to the [Input_Output_Format.md](./Input_Output_Format.md).
 
 ## Prepare Your Planner
 
-Please refer to the [Prepare_Your_Planner.md](./Prepare_Your_Planner.md).
+Please refer to the [Prepare_Your_Submission.md](./Prepare_Your_Submission.md).
 
 ## Debug and Visualise Your Planner
 We provide a visualisation tool written in Python: [https://github.com/MAPF-Competition/PlanViz](https://github.com/MAPF-Competition/PlanViz).
