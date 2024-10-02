@@ -64,7 +64,7 @@ Vendor ID:               AuthenticAMD
 ```
 
 - Memory: 128 GB
-- Storage: approximately 40 GB
+- Storage: approximately 27GB free space.
 - GPU NVIDIA A10G
 
 ## Docker Environment
