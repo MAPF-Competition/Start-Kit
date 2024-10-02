@@ -71,7 +71,12 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("curr_task_schedule",&SharedEnvironment::curr_task_schedule)
         .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
         .def_readonly("curr_states",&SharedEnvironment::curr_states)
-        .def_readonly("plan_start_time",&SharedEnvironment::plan_start_time);
+        .def_readonly("plan_start_time",&SharedEnvironment::plan_start_time)
+        .def("plan_current_time",
+            [](SharedEnvironment &env) {
+                return std::chrono::steady_clock::now();
+            }
+        );
 
 
 

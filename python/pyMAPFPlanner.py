@@ -37,15 +37,16 @@ class pyMAPFPlanner:
         
         The time limit (ms) starts from the time when the Entr::compute() was called. 
         You could read start time from self.env.plan_start_time, 
-        which is a datetime.timedelta measures the time from the clocks epoch to start time.
+        which is a datetime.timedelta measures the time from the start-kit clocks epoch to start time.
         This means that the function should return the planned actions before 
-        datetime.datetime.fromtimestamp(0) + self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
+        self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - self.env.plan_current_time()
+        The start-kit uses its own c++ clock (not system clock or wall clock), the function self.env.plan_current_time() returns the C++ clock now time.
         """
 
-        limit = datetime.datetime.fromtimestamp(0) + self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - datetime.datetime.now()
+        time_remaining = self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - self.env.plan_current_time()
 
         # example of only using single-agent search
-        return self.sample_priority_planner(int(limit.total_seconds() * 1000))
+        return self.sample_priority_planner(int(time_remaining.total_seconds() * 1000))
         # #print("python binding debug")
         # #print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
         # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")

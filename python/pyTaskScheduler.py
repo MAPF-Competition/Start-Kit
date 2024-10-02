@@ -22,7 +22,8 @@ class pyTaskScheduler:
         You could read start time from self.env.plan_start_time, 
         which is a datetime.timedelta measures the time from the clocks epoch to start time.
         This means that the function should return the proposed schedule before 
-        datetime.datetime.fromtimestamp(0) + self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
+        self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - self.env.plan_current_time()
+        The start-kit uses its own c++ clock (not system clock or wall clock), the function self.env.plan_current_time() returns the C++ clock now time.
         """
         proposed_schedule=[None for i in range(self.env.num_of_agents)]
         i_task=0
