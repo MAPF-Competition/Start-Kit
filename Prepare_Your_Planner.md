@@ -215,6 +215,8 @@ numpy
 Once your planner is implemented and compiled, you are ready for local testing and evaluation.
 The evaluation system uses official pytorch image [pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel](https://hub.docker.com/layers/pytorch/pytorch/2.4.1-cuda11.8-cudnn9-devel/images/sha256-ebefd256e8247f1cea8f8cadd77f1944f6c3e65585c4e39a8d4135d29de4a0cb?context=explore) as docker base image to build the evaluation environment, which have GPU driver, cuda, cudnn, and other essential GPU softwares ready. We officially support and tested `Pytorch` in this setup, other frameworks may or may not work in the evaluaiton environment.
 
+Please refer to [Evaluation_Environment.md](./Evaluation_Environment.md) for more details.
+
 ### Local Testing
 A variety of test problems are provided in the `example_problems` folder. Use any JSON input file there for testing.
 Results of the evaluation are placed in a file at `--output_file_location` that you specified as a command line parameter.

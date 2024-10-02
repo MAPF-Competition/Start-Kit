@@ -1,5 +1,20 @@
 # Changelog
 
+Version 2.0.0 - 2024-10-2
+
+Added:
+- Added support for task scheduler
+- Added default planner and task scheduler implementation
+- Added support for combined track
+- Added pytorch and cuda support
+- Added Evaluation_Environment.md with details of evaluation environment
+
+Chages:
+- Timelimit used `ms` as unit
+- Input output format of start-kit updated for 2024 competition, with support for tasks with precedence constraints
+- Updated documentation for new features
+- Updated RunInDocker.sh to recreate evaluation environment used for 2024 competition
+
 Version 1.1.5 - 2023-11-21
 ----------------------------
 Fixed:
