@@ -6,7 +6,7 @@ Added:
 - Added support for task scheduler
 - Added default planner and task scheduler implementation
 - Added support for combined track
-- Added python support for new tracks
+- Added Python support for new tracks
 - Added Evaluation_Environment.md with details of the evaluation environment
 
 Changes:
