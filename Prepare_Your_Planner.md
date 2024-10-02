@@ -137,6 +137,7 @@ This section explains how the compilation system works and how to specify depend
 - Make sure your `compile.sh` result is an executable called `lifelong` under `build` folder.
 - The `compile.sh` build the c++ interface implementation on default. To build python implementation (more on this below), remove the commands after `# build exec for cpp` and uncomment the commands after `# build exec for python`.
 - You may adjust the `compile.sh` to match what your implementation needs.
+- You are allowed to customize `compile.sh` and `CMakeLists.txt` based on your needs, but you must ensure that the starter kit functionalities are not interfered with and that all related features are compiled, especially those implemented in unmodifiable files.
 
 ### Dependencies
 
