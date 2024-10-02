@@ -1,4 +1,43 @@
-# Evaluation Server Docker Environment
+# Evaluation Process
+
+When you request an evaluation, we will:
+1. clone the specified branch from your private repository,
+2. overwrite the set of unmodifiable files from the start-kit (you should not modify them anyway),
+3. build the docker environment and compile your code in it,
+4. run the evaluation process to compute a score for the leaderboard.
+
+## Unmodified Files
+
+In **any track** of the competition, don't modify or interfere with any start kit functionalities, including those in the following files:
+```
+src/ActionModel.cpp, src/Evaluation.cpp, src/Logger.cpp, src/States.cpp,src/driver.cpp,
+src/CompetitionSystem.cpp, src/Grid.cpp, src/common.cpp, src/TaskManager.cpp, 
+inc/ActionModel.h, inc/Evaluation.h, inc/Logger.h, inc/SharedEnv.h, inc/Tasks.h, inc/CompetitionSystem.h, inc/Grid.h,
+inc/States.h, inc/common.h, inc/TaskManager.h,
+default_planner/Memory.h, default_planner/heap.h, default_planner/pibt.cpp, default_planner/search_node.h, 
+default_planner/planner.h, default_planner/search.cpp, default_planner/utils.cpp, default_planner/TrajLNS.h,
+default_planner/flow.cpp, default_planner/heuristics.cpp, default_planner/pibt.h, default_planner/scheduler.cpp,
+default_planner/search.h, default_planner/utils.h, default_planner/Types.h, default_planner/flow.h,
+default_planner/heuristics.h, default_planner/planner.cpp, default_planner/scheduler.h,  
+python/common/MAPFbinding.cpp, python/default_planner/pyMAPFPlanner.cpp, 
+python/default_scheduler/pyTaskScheduler.hpp, python/user_scheduler/pyTaskScheduler.cpp, python/common/pyEntry.hpp, python/default_planner/pyMAPFPlanner.hpp, python/user_planner/pyMAPFPlanner.cpp, 
+python/user_scheduler/pyTaskScheduler.hpp, python/common/pyEnvironment.hpp, 
+python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.hpp, python/set_track.bash        
+```
+
+In the **planner track**, don't modify or interfere with any start kit functionalities, including those in the following files:
+```
+inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp
+```
+
+In the **scheduler track**, don't modify or interfere with any start kit functionalities, including those in the following files:
+```
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp
+```
+
+## Evaluation Server Hardware Specification
+
+Your submission will have access to a virtual machine with the following specifications:
 
 **CPU Architecture**
 ```
@@ -24,27 +63,24 @@ Vendor ID:               AuthenticAMD
 
 ```
 
-**Operating System**
-```
-Ubuntu 22.04.3 LTS (Jammy Jellyfish)
-```
+- Memory: 128 GB
+- Storage: approximately 40 GB
+- GPU NVIDIA A10G
 
-**GPU**
-```
-NVIDIA A10G
-```
+## Docker Environment
 
-## Python and Packages
+The submission will be evaluated inside a Docker environment configured as follows:
+- Operating System: Ubuntu 22.04.3 LTS (Jammy Jellyfish)
+- Full access to all machine resources
+- No internet access
 
-If using the default `apt.txt` and `pip.txt` in the start-kit. Following packages will be avaliable in the evaluation environment.
+### Python and Packages
 
-### Default python version
+If using the default `apt.txt` and `pip.txt` in the start-kit, the following packages will be available in the evaluation environment. 
+If you added extra packages to `apt.txt` and `pip.txt`, then those packages will also be available.
 
-Python >= 3.11.9
-
-Pybind11 version: pybind11_global  2.13.6 (>=2.10.1)
-
-All packages listed in the `pip.txt` will be installed to the default python. Note that there also exist a python3.10 in the environment, but packages will not be installed there.
+By default, we have provided a Python environment with version 3.11.9 and Pybind11 with 2.13.6. All packages listed in the `pip.txt` will be installed to this default Python3.11. 
+Note, however, that there is also a python3.10 provided by the Ubuntu operating system. Packages will not be installed for this environment and we recommend not to use it.
 
 ### Packages installed in default python
 ```
