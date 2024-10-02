@@ -36,11 +36,13 @@ class pyMAPFPlanner:
             time_limit (int): time limit in milliseconds
         
         The time limit (ms) starts from the time when the Entr::compute() was called. 
-        You could read start time by calling self.env.plan_start_time, which is a datetime.datetime object.
-        This means that the function should return the planned actions before self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
+        You could read start time from self.env.plan_start_time, 
+        which is a datetime.timedelta measures the time from the clocks epoch to start time.
+        This means that the function should return the planned actions before 
+        datetime.datetime.fromtimestamp(0) + self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
         """
 
-        limit = self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - datetime.datetime.now()
+        limit = datetime.datetime.fromtimestamp(0) + self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - datetime.datetime.now()
 
         # example of only using single-agent search
         return self.sample_priority_planner(int(limit.total_seconds() * 1000))

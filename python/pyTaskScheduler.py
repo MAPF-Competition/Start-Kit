@@ -19,8 +19,10 @@ class pyTaskScheduler:
         """
         Plan the task schedule
         The time limit (ms) starts from the time when the Entr::compute() was called. 
-        You could read start time by calling self.env.plan_start_time, which is a datetime.datetime object.
-        This means that the function should return the task schedule before self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
+        You could read start time from self.env.plan_start_time, 
+        which is a datetime.timedelta measures the time from the clocks epoch to start time.
+        This means that the function should return the proposed schedule before 
+        datetime.datetime.fromtimestamp(0) + self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit)
         """
         proposed_schedule=[None for i in range(self.env.num_of_agents)]
         i_task=0

@@ -83,6 +83,7 @@ The scheduler should return one task schedule per robot to the simulator environ
 - one task is assigned to more than one agent,
 - including completed task,
 - a task already opened by an agent been re-scheduled to another agent.
+If the scheduler returns invalid `proposed_schedule`, the `proposed_schedule` will be rejected and `current_schedule` remain unchanged.
 
 
 ### Implement your planner
@@ -97,7 +98,7 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
 
-At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command `actions[i]` for robot `i` should be a valid `Action` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot.
+At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command `actions[i]` for robot `i` should be a valid `Action` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot. If the planner returns invalid `Action`, all agents wait at this timestep.
  
 Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API to read the current state of the system.
 
