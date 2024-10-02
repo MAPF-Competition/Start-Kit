@@ -1,15 +1,58 @@
 # Prepare Your Entry
 To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
 
-## Entry Integration
+## Entry Integration and System Overview
 
 Before you write any code, get familiar with the simulated setups:
 - Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
 - Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
 - A `State` of a robot: a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
-- Tasks of robots: a `task` of a robot contains a list of multiple errands. Each errand is a single location on the map and should be visited one by one in order.
+- Tasks of robots: a `Task` of a robot contains a list of multiple errands `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
 - `Action` enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
-- The `Entry` class acts as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and the next schedule for each agent to proceed. The compute function of the Entry will call the task scheduler to schedule the next task for each agent first and call the planner to plan the next actions. 
+- The `Entry` class acts as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and the next schedule for each robot to proceed. The compute function of the Entry will call the task scheduler to schedule the next task for each robot first and call the planner to plan the next actions. 
+
+### System Overview
+
+<img src="./image/lorr2024_system_overview.jpg" style="margin:auto;display: block;max-width:800px"/>
+
+The image shows the system overview of the start-kit.
+At each timestep:
+1. the competition system calls the `Entry` for the proposed schedule and plan, providing the `SharedEnv` that stores the current state of the robots and schedule. Internally, `Entry` calls `Scheduler` to compute the proposed schedule and calls `Planner` to compute the proposed plan.
+2. Once `Entry` returns, the proposed plan will be passed to the simulator for validation, and the simulator returns the resulting state (current state) if the proposed plan is valid. 
+3. The current state and proposed schedule are then passed to the Task Manager to validate the proposed schedule and check which, if any, tasks are progressed or completed. The Task Manager also reveals new tasks. 
+4. Then the returned current schedule, current state, revealed tasks and other information will be passed to `Entry` through `SharedEnv` at the next timestep.
+
+Note that, once a robot **opens** its assigned task (completed the first errand of the task), the task cannot be re-scheduled to other robots.
+
+### Understand the default entry
+In `src/Entry.cpp`, you can find the default implementation for entry. In the `Entry::compute()` function, the default entry calls the default scheduler first. After the scheduler finishes, robots might be assigned new tasks and their goal locations (next errand of the scheduled task of each robot) are stored in `env->goal_locations` for planner reference.
+Then, the entry calls the default planner to compute the actions for robots.
+The time limit is revealed to both the default scheduler and planner. Inside the default scheduler and planner, you can see each of them using half amount of the time limit.
+
+#### The default scheduler
+In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
+- The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `DefaultPlanner::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given robot.
+- The scheduling function of the default scheduler (see `schedule_plan()` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when the `schedule_plan()` function is called, it iterates over each robot that does not have an assigned task. For each iterated robot, the algorithm iterates over tasks that are not assigned to any robot and assign the one with minimal makespan (the distance to travel from the robot current location through every errand of the task) to the robot.
+
+#### The default planner
+In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are further defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and a global heuristic table (if not initialized by the scheduler). Its `plan()` function computes collision free actions for the current timestep.
+
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682).](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
+
+### SharedEnv
+The `SharedEnvironment` API provides necessary information for you to compute schedule and plan actions. This data structure (defined as `env` in `inc/MAPFPlanner.h`, `inc/Entry.h`, and `inc/TaskScheduler.cpp`) describes the simulated setup and the state of current timestep:
+-  `num_of_robots`: `int`, the total team size.
+-  `rows`: `int`, the number of rows of the map.
+-  `cols`: `int`, the number of columns of the map.
+-  `map_name`: `string`, the map file name.
+-  `map`: vector of `int`, stores the map.  
+-  `file_storage_path`: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
+-  `goal_locations`: vector of vector of `pair<int,int>`: current goal location of each robot, which is the first unfinished errand of scheduled task. The first int is the goal location, and the second int indicates the timestep that the task was allocated.
+-  `current_timestep`: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
+-  `curr_states`: vector of `State`, the current state for each robot at the current time step.
+-  `plan_start_time`: `chrono::steady_clock::time_point`, stores the exact time `Entry::compute()` was called, the `Entry::compute()` should return proposed plan and schedule no more than `time_limit` ms following the plan_start_time.
+- `curr_task_schedule`: `vector<int>`, the current schedule return by the Task Manager. `curr_task_schedule[i]` indicate the `task_id` scheduled for robot`i`. `-1` indicating a robot has no scheduled task.
+- `task_pool`: `vector<Task>`,  All the revealed but unfinished tasks.
 
 ## What to implement for each track
 
@@ -22,53 +65,20 @@ You need to implement your own scheduler, which will work with the default plann
 - Combined Track:
 You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out[Implement your planner](./Prepare_Your_Submission.md#implement-your-planner), [Implement your scheduler](./Prepare_Your_Submission.md#implement-your-scheduler) and [Implement your entry](./Prepare_Your_Submission.md#implement-your-entry) for more details.
 
-### Understand the default entry
-In `src/Entry.cpp`, you can find the default implementation for entry. In the `Entry::compute()` function, the default entry calls the default scheduler first. After the scheduler finishes, agents might be assigned new tasks and their goal locations need to be updated before the planner is called.
-Then, the entry calls the default planner to compute the actions for agents.
-The time limit is revealed to both the default scheduler and planner. Inside the default scheduler and planner, you can see each of them using half amount of the time limit.
-
-#### The default scheduler
-In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
-- The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `DefaultPlanner::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given agent.
-- The scheduling function of the default scheduler (see `schedule_plan()` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when the `schedule_plan()` function is called, it iterates over all agents. For each agent that does not have an assigned task, the algorithm iterates over tasks that are not assigned to any agent and, among these tasks, assigns to the agent the task with the earliest possible completion time, ignoring conflicts with other agents.
-
-#### The default planner
-In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are further defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and a global heuristic table (if not initialized by the scheduler).
-
-The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682).](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each agent, then computes collision free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
-
-#### Timing parameters for default planner and default scheduler
-The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
-The default planner uses the remaining time, after the scheduler returns, to compute collision-free actions.
-
-You still have some control over the timing behaviour of the default scheduler and default planner.
-File `default_planner/const.h` specifies a few parameters that control the timing of the scheduler and planner:
-- `PIBT_RUNTIME_PER_100_AGENTS` specifies how much time in ms is required for PIBT to compute collision-free actions per 100 agents. The default planner computes the end time for traffic flow assignment by subtracting PIBT action time from the time limit so that the remaining time is left for PIBT to return actions.
-- `TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE` specifies the traffic flow assignment process end time tolerance in ms. The default planner will end the traffic flow assignment phase this many milliseconds before the traffic flow assignment end time.
-- `PLANNER_TIMELIMIT_TOLERANCE` The MAPFPlanner will deduct this value from the time limit for the default planner.
-- `SCHEDULER_TIMELIMIT_TOLERANCE` The TaskScheduler will deduct this value from the time limit for the default scheduler.
-
-You are allowed to modify the values of these parameters to reduce/increase the time spent on related components.
-
-
 ### Implement your scheduler
 The starting point for implementing your scheduler is to look at the files `src/TaskScheduler.cpp` and `inc/TaskScheduler.h`.
 - Implement your own preprocessing function `TaskScheduler::initialize()`. 
-- Implement your own scheduling function `TaskScheduler::plan()`. The inputs to the `plan` function are a time limit and a reference to a vector of integers as the resulting schedule. The ith integer in the result scheduler is the index of the task assigned to the ith agent.
+- Implement your own scheduling function `TaskScheduler::plan()`. The inputs to the `plan` function are a time limit and a reference to a vector of integers as the resulting schedule. The ith integer in the result scheduler is the index of the task assigned to the ith robot.
 - Don't change the definitions for the `TaskScheduler::initialize()` and `TaskScheduler::plan()` functions. Except for this, you are free to add new members/functions to the `TaskScheduler` class.
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
 
-Start your implementation by understanding the `SharedEnvironment` API. This data structure (defined as `env` in `inc/MAPFPlanner.h`) contains useful information about the simulated setup:
--  num_of_robots: `int`, the total team size.
--  rows: `int`, the number of rows of the map.
--  cols: `int`, the number of columns of the map.
--  map_name: `string`, the map file name.
--  map: vector of `int`, stores the map.  
--  file_storage_path: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
--  goal locations, vector of vector of `pair<int,int>`: current tasks locations allocated to each robot. The first int of a task (pair of int) is the goal location, and the second int indicates the timestep that the task was allocated.
--  current_timestep: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
--  curr_states: vector of `State`, the current state for each robot at the current time step.
+At each timestep, the scheduler could assign tasks in `env->task_pool` to robots.
+The scheduler should return one task schedule per robot to the simulator environment. The schedule are written into the `proposed_schedule` vector, which is the input parameter of `plan()` function. A schedule `proposed_schedule[i]` for robot `i` is the `task_id` of a open task. A schedule is invalid if:
+- one task is assigned to more than one agent,
+- including completed task,
+- a task already opened by an agent been re-scheduled to another agent.
+
 
 ### Implement your planner
 
@@ -78,13 +88,32 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
 - Don't change the definitions for the `MAPFPlanner::initialize()` and `MAPFPlanner::plan()` functions. Except for this, you are free to add new members/functions to the `MAPFPlanner` class.
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
+
+At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command `actions[i]` for robot `i` should be a valid `Action` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot.
  
-Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API for implementing your planner.
+Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API to read the current state of the system.
 
 ### Implement your entry
 For participants that compete in the combined track, you can modify the entry freely to meet your needs.
 You need to implement your own `Entry::initialize()` and `Entry::compute()` functions and are not allowed to change their definitions. Except for this, you are free to add new members/functions to the `Entry` class.
-The `Entry::compute()` needs to compute the task schedule and the actions for agents. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
+The `Entry::compute()` needs to compute the task schedule and the actions for robots. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
+
+### Timing parameters for default planner and scheduler
+
+Plan command in the planner
+At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
+
+The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
+The default planner uses the remaining time, after the scheduler returns, to compute collision-free actions.
+
+You still have some control over the timing behaviour of the default scheduler and default planner.
+File `default_planner/const.h` specifies a few parameters that control the timing of the scheduler and planner:
+- `PIBT_RUNTIME_PER_100_AGENTS` specifies how much time in ms is required for PIBT to compute collision-free actions per 100 robots. The default planner computes the end time for traffic flow assignment by subtracting PIBT action time from the time limit so that the remaining time is left for PIBT to return actions.
+- `TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE` specifies the traffic flow assignment process end time tolerance in ms. The default planner will end the traffic flow assignment phase this many milliseconds before the traffic flow assignment end time.
+- `PLANNER_TIMELIMIT_TOLERANCE` The MAPFPlanner will deduct this value from the time limit for the default planner.
+- `SCHEDULER_TIMELIMIT_TOLERANCE` The TaskScheduler will deduct this value from the time limit for the default scheduler.
+
+You are allowed to modify the values of these parameters to reduce/increase the time spent on related components.
 
 ### Unmodifiable files
 In any track of the competition, don't modify or interfere with any start kit functionalities, including those in the following files:
@@ -114,18 +143,6 @@ In the scheduler track, don't modify or interfere with any start kit functionali
 inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp
 ```
 
-### Compute command for your robots
-- Plan command in the scheduler
-to do 
-
-- Plan command in the planner
-At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
-
-At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command for robot `i` is a valid `Action` at position `actions[i]` in the vector.
-
-For more details, read the interface implementation in `src/MAPFPlanner.cpp`, `inc/MAPFPlanner.h`, `src/TaskScheduler.cpp`, `src/TaskScheduler.h`, and `inc/SharedEnv.h`.
-
-
 ## Build
 
 Once you implement your planner, you need to compile your submission for local testing and evaluation.
@@ -154,8 +171,8 @@ Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
 The pybind11 bindings are implemented under `python/common`, `python/default_planner`, `python/default_scheduler`, `python/user_planner/`, and `python/user_scheduler/`.
 These implementations allow the user-implemented Python scheduler to work with the default C++ planner and allow user implemented Python planner to work with the default C++ scheduler.
 To use the Python interface, simply implement your planner and/or scheduler in:
-+ `python/pyMAPFPlanner.py`: this file is where users implement their python-based MAPF planner algorithms and return actions as a list of actions for each agent.
-+ `python/pyTaskScheduler.py`: this file is where users implement their python-based Task Scheduler algorithms and return proposed schedules as a list of task IDs for each agent.
++ `python/pyMAPFPlanner.py`: this file is where users implement their python-based MAPF planner algorithms and return actions as a list of actions for each robot.
++ `python/pyTaskScheduler.py`: this file is where users implement their python-based Task Scheduler algorithms and return proposed schedules as a list of task IDs for each robot.
 
 ### Track Config and Compiling
 

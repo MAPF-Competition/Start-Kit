@@ -1,6 +1,6 @@
 # Submission Instruction
 
-Read the start-kit [README.md](./README.md) and [Prepare_Your_Planner.md](./Prepare_Your_Planner.md) to know what files you should (not) modify, and how you could implement your algorithm.
+Read the start-kit [README.md](./README.md) and [Prepare_Your_Submission.md](./Prepare_Your_Submission.md) to know what files you should (not) modify, and how you could implement your algorithm.
 
 When your implementation is ready to evaluate, add, commit, and push all your changes by running the following commands in your local repo:
 ```

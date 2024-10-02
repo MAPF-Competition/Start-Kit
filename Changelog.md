@@ -15,6 +15,7 @@ Changes:
 - Updated documentation for new features
 - Updated RunInDocker.sh to recreate the evaluation environment used for the 2024 competition
 - Evaluation environment support PyTorch and CUDA
+- rename Prepare_Your_Planner.md to Prepare_Your_Submission.md
 
 
 Version 1.1.5 - 2023-11-21
