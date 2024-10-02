@@ -6,14 +6,16 @@ Added:
 - Added support for task scheduler
 - Added default planner and task scheduler implementation
 - Added support for combined track
-- Added pytorch and cuda support
-- Added Evaluation_Environment.md with details of evaluation environment
+- Added python support for new tracks
+- Added Evaluation_Environment.md with details of the evaluation environment
 
-Chages:
-- Timelimit used `ms` as unit
-- Input output format of start-kit updated for 2024 competition, with support for tasks with precedence constraints
+Changes:
+- Time limit uses `ms` as the unit
+- Input-output format of the starter kit updated for the 2024 competition, with support for tasks with precedence constraints
 - Updated documentation for new features
-- Updated RunInDocker.sh to recreate evaluation environment used for 2024 competition
+- Updated RunInDocker.sh to recreate the evaluation environment used for the 2024 competition
+- Evaluation environment support PyTorch and CUDA
+
 
 Version 1.1.5 - 2023-11-21
 ----------------------------

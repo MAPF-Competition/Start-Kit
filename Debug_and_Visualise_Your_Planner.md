@@ -1,4 +1,7 @@
 # Debug and Visualise Your Planner
+
+**Note that, PlanVis for start-kit v2.0.0 is currently under development and is coming soon!**
+
 The output file provides some related information to help you design and debug your planner. 
 Begin by familiarizing yourself with the structure of the output JSON file. Please refer to the [Input_Output_Format.md](./Input_Output_Format.md).
 
