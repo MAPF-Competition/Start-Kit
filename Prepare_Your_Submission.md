@@ -9,19 +9,21 @@ To run the program, please refer to [README.md](./README.md) to download the sta
 The image shows the system overview of the start-kit.
 At each timestep:
 1. the competition system calls the `Entry` for the proposed schedule and plan, providing the `SharedEnv` that stores the current state of the robots and schedule. Internally, `Entry` calls `Scheduler` to compute the proposed schedule and calls `Planner` to compute the proposed plan.
-2. Once `Entry` returns, the proposed plan will be passed to the simulator for validation, and the simulator will return the resulting state (current state) if the proposed plan is valid. 
-3. The current state and proposed schedule are then passed to the Task Manager to validate the proposed schedule and check which, if any, tasks are progressed or completed. The Task Manager also reveals new tasks. 
+2. Once `Entry` returns, the proposed plan will be passed to the Simulator for validation, and the Simulator will execute the plan and return the resulting state (current state) if the proposed plan is valid. 
+3. The current state and proposed schedule are then passed to the Task Manager to validate the proposed schedule and check which, if any, tasks are progressed or completed. The Task Manager also reveals new tasks to the system. 
 4. Then the returned current schedule, current state, revealed tasks and other information will be passed to `Entry` through `SharedEnv` at the next timestep.
 
-Note that, once a robot **opens** its assigned task (completed the first errand of the task), the task cannot be re-scheduled to other robots.
+
 
 ## Entry Integration
 
 Before you write any code, get familiar with the simulated setups:
 - Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
 - Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
-- A `State` of a robot: a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
-- Tasks of robots: a `Task` of a robot contains a list of multiple errands `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
+- `State`: a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
+- `Task`: A task contains a list of multiple errands, which is stored in `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
+  A task can be reassigned to a different robot if its first errand has not been completed (i.e. `idx_next_loc=0`).
+  However once a robot **opens** its assigned task (i.e., completes the first errand of the task), the task cannot be re-assigned to other robots.
 - `Action` enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
 - The `Entry` class acts as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and the next schedule for each robot to proceed. The compute function of the Entry will call the task scheduler to schedule the next task for each robot first and call the planner to plan the next actions. 
 
@@ -42,7 +44,7 @@ The MAPF planner implemented in the default planner is a variant of Traffic Flow
 
 ### SharedEnv
 The `SharedEnvironment` API provides the necessary information for you to compute schedule and plan actions. This data structure (defined as `env` in `inc/MAPFPlanner.h`, `inc/Entry.h`, and `inc/TaskScheduler.cpp`) describes the simulated setup and the state of the current timestep:
--  `num_of_robots`: `int`, the total team size.
+-  `num_of_agents`: `int`, the total team size.
 -  `rows`: `int`, the number of rows of the map.
 -  `cols`: `int`, the number of columns of the map.
 -  `map_name`: `string`, the map file name.
@@ -78,11 +80,13 @@ The starting point for implementing your scheduler is to look at the files `src/
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
 
-At each timestep, the scheduler could assign tasks in `env->task_pool` to robots.
+At each timestep, the scheduler can access the `SharedEnvironment` API to read which tasks can be assigned to robots in `env->task_pool`.
 The scheduler should return one task schedule per robot to the simulator environment. The schedule are written into the `proposed_schedule` vector, which is the input parameter of `plan()` function. A schedule `proposed_schedule[i]` for robot `i` is the `task_id` of a open task. A schedule is invalid if:
 - one task is assigned to more than one agent,
-- including completed task,
-- a task already opened by an agent been re-scheduled to another agent.
+- it includes completed task,
+- a task already opened by an agent is reassgned to another agent.
+
+  
 If the scheduler returns invalid `proposed_schedule`, the `proposed_schedule` will be rejected and `current_schedule` remain unchanged.
 
 
@@ -98,7 +102,7 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
 - Don’t override any operating system-related functions (signal handlers)
 - Don’t interfere with the running program -- stack manipulation etc
 
-At the end of each planning episode, you return one command per robot to the simulator environment. The commands are written into the `actions` vector, which is the input parameter of `plan()` function. The command `actions[i]` for robot `i` should be a valid `Action` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot. If the planner returns invalid `Action`, all agents wait at this timestep.
+At the end of each planning episode, you return one `Action` per robot to the simulator environment. The actions are written into the `actions` vector, which is input to the `plan()` function as a reference. `actions[i]` should be a valid `Action` for robot `i` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot. If the planner returns any invalid `Action`, all agents wait at this timestep.
  
 Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API to read the current state of the system.
 
@@ -106,10 +110,11 @@ Similar to the scheduler, the planner can access the `SharedEnvironment` API. Yo
 For participants that compete in the combined track, you can modify the `Entry`, `MAPFPlanner`, and `TaskScheduler` freely to meet your needs.
 You need to implement your own `Entry::initialize()` and `Entry::compute()` functions and are not allowed to change their definitions. Except for this, you are free to add new members/functions to the `Entry` class.
 The `Entry::compute()` needs to compute the task schedule and the actions for robots. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
+If you compete in the combined track, you are allowed to modify the `Entry::compute()` function.
 
 ### Timing parameters for default planner and scheduler
 
-Plan command in the planner
+
 At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
 
 The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
