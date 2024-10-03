@@ -13,19 +13,37 @@ At each timestep:
 3. The current state and proposed schedule are then passed to the Task Manager to validate the proposed schedule and check which, if any, tasks are progressed or completed. The Task Manager also reveals new tasks to the system. 
 4. Then the returned current schedule, current state, revealed tasks and other information will be passed to `Entry` through `SharedEnv` at the next timestep.
 
+### Important concepts
 
-
-## Entry Integration
-
-Before you write any code, get familiar with the simulated setups:
+Before you start, get familiar with the following concepts in the code base:
 - Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
 - Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
-- `State`: a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
-- `Task`: A task contains a list of multiple errands, which is stored in `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
+- `State` (defined in `inc/States.h`): a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
+- `Task` (defined in `inc/Tasks.h`): A task contains a list of multiple errands, which is stored in `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
   A task can be reassigned to a different robot if its first errand has not been completed (i.e. `idx_next_loc=0`).
   However once a robot **opens** its assigned task (i.e., completes the first errand of the task), the task cannot be re-assigned to other robots.
-- `Action` enum: the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
-- The `Entry` class acts as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and the next schedule for each robot to proceed. The compute function of the Entry will call the task scheduler to schedule the next task for each robot first and call the planner to plan the next actions. 
+- `Action` enum (defined in `inc/ActionModel.h`): the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
+- The `Entry` class acts as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and the next schedule for each robot to proceed. The compute function of the Entry will call the task scheduler to schedule the next task for each robot first and call the planner to plan the next actions.
+
+  
+### SharedEnv
+The `SharedEnvironment` API provides the necessary information for you to compute schedule and actions. This data structure (defined as `env` in `inc/MAPFPlanner.h`, `inc/Entry.h`, and `inc/TaskScheduler.cpp`) describes the simulated setup and the state of the current timestep:
+-  `num_of_agents`: `int`, the total team size.
+-  `rows`: `int`, the number of rows of the map.
+-  `cols`: `int`, the number of columns of the map.
+-  `map_name`: `string`, the map file name.
+-  `map`: vector of `int`, stores the map.  
+-  `file_storage_path`: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
+-  `goal_locations`: vector of vector of `pair<int,int>`: current goal location of each robot, which is the first unfinished errand of the scheduled task. The first int is the goal location, and the second int indicates the timestep that the task was allocated.
+-  `current_timestep`: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
+-  `curr_states`: vector of `State`, the current state for each robot at the current time step.
+-  `plan_start_time`: `chrono::steady_clock::time_point`, stores the exact time `Entry::compute()` was called, the `Entry::compute()` should return proposed plan and schedule no more than `time_limit` ms following the plan_start_time.
+- `curr_task_schedule`: `vector<int>`, the current schedule return by the Task Manager. `curr_task_schedule[i]` indicates the `task_id` scheduled for robot `i`. `-1` indicates a robot has no scheduled task.
+- `task_pool`: `vector<Task>`,  All the revealed but unfinished tasks.
+
+  
+## Entry Integration
+
 
 ### Understand the default entry
 In `src/Entry.cpp`, you can find the default implementation for entry. In the `Entry::compute()` function, the default entry calls the default scheduler first. After the scheduler finishes, robots might be assigned new tasks and their goal locations (next errand of the scheduled task of each robot) are stored in `env->goal_locations` for planner reference.
@@ -42,20 +60,7 @@ In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which
 
 The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
 
-### SharedEnv
-The `SharedEnvironment` API provides the necessary information for you to compute schedule and plan actions. This data structure (defined as `env` in `inc/MAPFPlanner.h`, `inc/Entry.h`, and `inc/TaskScheduler.cpp`) describes the simulated setup and the state of the current timestep:
--  `num_of_agents`: `int`, the total team size.
--  `rows`: `int`, the number of rows of the map.
--  `cols`: `int`, the number of columns of the map.
--  `map_name`: `string`, the map file name.
--  `map`: vector of `int`, stores the map.  
--  `file_storage_path`: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
--  `goal_locations`: vector of vector of `pair<int,int>`: current goal location of each robot, which is the first unfinished errand of the scheduled task. The first int is the goal location, and the second int indicates the timestep that the task was allocated.
--  `current_timestep`: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
--  `curr_states`: vector of `State`, the current state for each robot at the current time step.
--  `plan_start_time`: `chrono::steady_clock::time_point`, stores the exact time `Entry::compute()` was called, the `Entry::compute()` should return proposed plan and schedule no more than `time_limit` ms following the plan_start_time.
-- `curr_task_schedule`: `vector<int>`, the current schedule return by the Task Manager. `curr_task_schedule[i]` indicates the `task_id` scheduled for robot `i`. `-1` indicates a robot has no scheduled task.
-- `task_pool`: `vector<Task>`,  All the revealed but unfinished tasks.
+
 
 ## What to implement for each track
 
