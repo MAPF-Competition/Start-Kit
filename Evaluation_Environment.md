@@ -70,6 +70,7 @@ Vendor ID:               AuthenticAMD
 ## Docker Environment
 
 The submission will be evaluated inside a Docker environment configured as follows:
+- Base image: [pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel](https://hub.docker.com/layers/pytorch/pytorch/2.4.1-cuda11.8-cudnn9-devel/images/sha256-ebefd256e8247f1cea8f8cadd77f1944f6c3e65585c4e39a8d4135d29de4a0cb?context=explore)
 - Operating System: Ubuntu 22.04.3 LTS (Jammy Jellyfish)
 - Full access to all machine resources
 - No internet access
