@@ -1,8 +1,0 @@
-{
-    "mapFile": "maps/sortation_large.map",
-    "agentFile": "agents/sortation_large_800.agents",
-    "teamSize": 800,
-    "taskFile": "tasks/sortation_large.tasks",
-    "numTasksReveal": 1,
-    "taskAssignmentStrategy": "roundrobin"
-}

@@ -4,15 +4,48 @@
 struct Task
 {
     int task_id;
-    int location;
-    int t_assigned = -1;
+    // int location;
     int t_completed = -1;
+    int t_revealed = -1;
     int agent_assigned = -1;
 
+    vector<int> locations;
+    int idx_next_loc = 0;
 
-    Task(int task_id, int location): task_id(task_id), location(location) {};
-    Task(int task_id, int location, int t_assigned, int agent_assigned):
-        task_id(task_id), location(location),
-        t_assigned(t_assigned), agent_assigned(agent_assigned)
-    {};
+
+
+
+    int get_next_loc()
+    {
+        if (idx_next_loc < locations.size())
+        {
+            return locations.at(idx_next_loc);
+        } 
+        else 
+        {
+            assert(false);
+            return -1;
+        }
+    }
+
+    bool is_finished()
+    {
+        return idx_next_loc == locations.size();
+    }
+
+    //Task(int task_id, int location): task_id(task_id), locations({location}) {};
+    Task(int task_id, list<int> location, int t_revealed): task_id(task_id), t_revealed(t_revealed)
+    {
+        for (auto loc: location)
+            locations.push_back(loc);
+    };
+
+    Task(Task* other)
+    {
+        task_id = other->task_id;
+        locations = other->locations;
+        t_revealed = other->t_revealed;
+        idx_next_loc = other->idx_next_loc;
+        agent_assigned = other->agent_assigned;
+    };
 };

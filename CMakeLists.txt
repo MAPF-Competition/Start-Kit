@@ -25,6 +25,12 @@ ENDIF()
 
 include_directories("inc")
 
+# default planner
+include_directories("default_planner")
+
+file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp")
+
+
 # Find Boost
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 #SET(Boost_USE_STATIC_LIBS ON)
@@ -34,19 +40,22 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 
 
 IF(PYTHON)
-    include_directories("python")
     message(STATUS "Python support is enabled")
 
     find_package(pybind11 REQUIRED)
     set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
+     # check if python/tmp exists, raise an error if it does not
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/python/tmp")
+        message(FATAL_ERROR "Track is not configured for python bindings. Please run python/set_track.bash <combined|planner|scheduler> to configure the track before compiling.")
+    endif()
 
-    pybind11_add_module(MAPF "./src/Grid.cpp"   "./src/States.cpp" "./python/MAPFbinding.cpp")
+    include_directories("python/tmp")
+
+    pybind11_add_module(MAPF "./src/Grid.cpp"   "./src/States.cpp" "./python/tmp/MAPFbinding.cpp")
     target_link_libraries(MAPF PRIVATE ) 
 
-    file(GLOB SOURCES "src/*.cpp")
-
-    file(GLOB PY_SOURCES "python/*.cpp")
+    file(GLOB PY_SOURCES "python/tmp/*.cpp")
     list(FILTER PY_SOURCES EXCLUDE REGEX ".*python/MAPFbinding\.cpp")
 
     add_executable(lifelong  ${PY_SOURCES} ${SOURCES})
@@ -61,7 +70,6 @@ IF(PYTHON)
 ELSE()
     message(STATUS "Python support is disabled")
     
-    file(GLOB SOURCES "src/*.cpp")
 
     add_executable(lifelong ${SOURCES} )
     target_link_libraries(lifelong ${Boost_LIBRARIES})

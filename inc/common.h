@@ -64,7 +64,8 @@ inline std::vector<int> read_int_vec(string fname, int team_size)
 	if (!myfile.is_open()) return {};
 
 	getline(myfile, line);
-    while (!myfile.eof() && line[0] == '#') {
+    while (!myfile.eof() && line[0] == '#') 
+    {
         getline(myfile, line);
     }
 
@@ -97,15 +98,17 @@ inline std::vector<int> read_int_vec(string fname, int team_size)
 }
 
 
-inline std::vector<int> read_int_vec(string fname)
+//inline std::vector<int> read_int_vec(string fname)
+inline std::vector<list<int>> read_int_vec(string fname)
 {
-    std::vector<int> res;
+    std::vector<list<int>> res;
 	string line;
 	std::ifstream myfile(fname.c_str());
 	if (!myfile.is_open()) return {};
 
 	getline(myfile, line);
-    while (!myfile.eof() && line[0] == '#') {
+    while (!myfile.eof() && line[0] == '#') 
+    {
         getline(myfile, line);
     }
 
@@ -125,8 +128,12 @@ inline std::vector<int> read_int_vec(string fname)
         }
         boost::tokenizer<boost::char_separator<char>> tok(line, sep);
         boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
-        // read start [row,col] for agent i
-        res.push_back(atoi((*beg).c_str()));
+        list<int> locs;
+        for(;beg!=tok.end();++beg)
+        {
+            locs.push_back(atoi((*beg).c_str()));
+        }
+        res.push_back(locs);
     }
     myfile.close();
 

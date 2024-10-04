@@ -3,6 +3,6 @@
     "agentFile": "agents/sortation_large_2000.agents",
     "teamSize": 2000,
     "taskFile": "tasks/sortation_large.tasks",
-    "numTasksReveal": 1,
-    "taskAssignmentStrategy": "roundrobin"
+    "numTasksReveal": 1.5,
+    "version": "2024 LoRR"
 }

@@ -2,7 +2,7 @@
     "mapFile": "maps/brc202d.map",
     "agentFile": "agents/brc202d_500.agents",
     "teamSize": 500,
-    "taskFile": "tasks/brc202d_500.tasks",
-    "numTasksReveal": 1,
-    "taskAssignmentStrategy": "roundrobin"
+    "taskFile": "tasks/brc202d.tasks",
+    "numTasksReveal": 1.5,
+    "version": "2024 LoRR"
 }

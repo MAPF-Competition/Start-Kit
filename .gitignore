@@ -2,3 +2,7 @@ build
 .vscode
 Dockerfile
 local
+test.json
+test.txt
+.DS_Store
+python/tmp

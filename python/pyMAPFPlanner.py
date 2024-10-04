@@ -3,15 +3,16 @@ import MAPF
 from typing import Dict, List, Tuple,Set
 from queue import PriorityQueue
 import numpy as np
+import datetime
 
 # 0=Action.FW, 1=Action.CR, 2=Action.CCR, 3=Action.W
 
 class pyMAPFPlanner:
-    def __init__(self, pyenv=None) -> None:
-        if pyenv is not None:
-            self.env = pyenv.env
+    def __init__(self, env=None) -> None:
+        if env is not None:
+            self.env = env
 
-        print("pyMAPFPlanner created!  python debug")
+        #print("pyMAPFPlanner created!  python debug")
 
     def initialize(self, preprocess_time_limit: int):
         """_summary_
@@ -21,7 +22,7 @@ class pyMAPFPlanner:
         """
         pass
         # testlib.test_torch()
-        print("planner initialize done... python debug")
+        #print("planner initialize done... python debug")
         return True
         # raise NotImplementedError()
 
@@ -32,32 +33,39 @@ class pyMAPFPlanner:
             actions ([Action]): the next actions
 
         Args:
-            time_limit (_type_): _description_
+            time_limit (int): time limit in milliseconds
+        
+        The time limit (ms) starts from the time when the Entr::compute() was called. 
+        You could read start time from self.env.plan_start_time, 
+        which is a datetime.timedelta measures the time from the start-kit clocks epoch to start time.
+        This means that the function should return the planned actions before 
+        self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - self.env.plan_current_time()
+        The start-kit uses its own c++ clock (not system clock or wall clock), the function self.env.plan_current_time() returns the C++ clock now time.
         """
 
+        time_remaining = self.env.plan_start_time + datetime.timedelta(milliseconds=time_limit) - self.env.plan_current_time()
+
         # example of only using single-agent search
-        return self.sample_priority_planner(time_limit)
-        # print("python binding debug")
-        # print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
+        return self.sample_priority_planner(int(time_remaining.total_seconds() * 1000))
+        # #print("python binding debug")
+        # #print("env.rows=",self.env.rows,"env.cols=",self.env.cols,"env.map=",self.env.map)
         # raise NotImplementedError("YOU NEED TO IMPLEMENT THE PYMAPFPLANNER!")
 
     def naive_a_star(self,time_limit):
-        print("I am planning")
+        #print("I am planning")
         actions = [MAPF.Action.W for i in range(len(self.env.curr_states))]
         for i in range(0, self.env.num_of_agents):
-            print("python start plan for agent ", i, end=" ")
+            #print("python start plan for agent ", i, end=" ")
             path = []
             if len(self.env.goal_locations[i]) == 0:
-                print(i, " does not have any goal left", end=" ")
-                path.append(
-                    (self.env.curr_states[i].location, self.env.curr_states[i].orientation))
+                #print(i, " does not have any goal left", end=" ")
+                path.append((self.env.curr_states[i].location, self.env.curr_states[i].orientation))
             else:
-                print(" with start and goal: ", end=" ")
+                #print(" with start and goal: ", end=" ")
                 path = self.single_agent_plan(
                     self.env.curr_states[i].location, self.env.curr_states[i].orientation, self.env.goal_locations[i][0][0])
 
-            print("current location:", path[0][0],
-                  "current direction: ", path[0][1])
+            #print("current location:", path[0][0],"current direction: ", path[0][1])
             if path[0][0] != self.env.curr_states[i].location:
                 actions[i] = MAPF.Action.FW
             elif path[0][1] != self.env.curr_states[i].orientation:
@@ -66,13 +74,13 @@ class pyMAPFPlanner:
                     actions[i] = MAPF.Action.CR
                 elif incr == -1 or incr == 3:
                     actions[i] = MAPF.Action.CCR
-        # print(actions)
+        # #print(actions)
         actions = [int(a) for a in actions]
-        # print(actions)
+        # #print(actions)
         return np.array(actions, dtype=int)
 
     def single_agent_plan(self, start: int, start_direct: int, end: int):
-        print(start, start_direct, end)
+        #print(start, start_direct, end)
         path = []
         # AStarNode (u,dir,t,f)
         open_list = PriorityQueue()
@@ -95,7 +103,7 @@ class pyMAPFPlanner:
 
                 break
             neighbors = self.getNeighbors(curr[0], curr[1])
-            # print("neighbors=",neighbors)
+            # #print("neighbors=",neighbors)
             for neighbor in neighbors:
                 if (neighbor[0]*4+neighbor[1]) in close_list:
                     continue
@@ -103,7 +111,7 @@ class pyMAPFPlanner:
                              self.getManhattanDistance(neighbor[0], end))
                 parent[(next_node[0], next_node[1])] = (curr[0], curr[1])
                 open_list.put([next_node[3]+next_node[2], next_node])
-        print(path)
+        #print(path)
         return path
 
     def getManhattanDistance(self, loc1: int, loc2: int) -> int:
@@ -143,11 +151,11 @@ class pyMAPFPlanner:
         if (new_direction == 4):
             new_direction = 0
         neighbors.append((location, new_direction))
-        # print("debug!!!!!!!", neighbors)
+        # #print("debug!!!!!!!", neighbors)
         return neighbors
 
     def space_time_plan(self,start: int, start_direct: int, end: int, reservation: Set[Tuple[int, int, int]]) -> List[Tuple[int, int]]:
-        print(start, start_direct, end)
+        #print(start, start_direct, end)
         path = []
         open_list = PriorityQueue()
         all_nodes = {}  # loc+dict, t
@@ -159,7 +167,7 @@ class pyMAPFPlanner:
 
         while not open_list.empty():
             n=open_list.get()
-            # print("n=",n)
+            # #print("n=",n)
             _, _, curr = n
         
             curr_location, curr_direction, curr_g, _ = curr
@@ -206,9 +214,9 @@ class pyMAPFPlanner:
                     parent[(neighbor_location * 4 +
                             neighbor_direction, next_node[2])]=curr
 
-        for v in path:
-            print(f"({v[0]},{v[1]}), ", end="")
-        print()
+        # for v in path:
+        #     print(f"({v[0]},{v[1]}), ", end="")
+        # print()
         return path
 
     def sample_priority_planner(self,time_limit:int):
@@ -216,18 +224,18 @@ class pyMAPFPlanner:
         reservation = set()  # loc1, loc2, t
 
         for i in range(self.env.num_of_agents):
-            print("start plan for agent", i)
+            #print("start plan for agent", i)
             path = []
             if not self.env.goal_locations[i]:
-                print(", which does not have any goal left.")
+                #print(", which does not have any goal left.")
                 path.append((self.env.curr_states[i].location, self.env.curr_states[i].orientation))
                 reservation.add((self.env.curr_states[i].location, -1, 1))
 
         for i in range(self.env.num_of_agents):
-            print("start plan for agent", i)
+            #print("start plan for agent", i)
             path = []
             if self.env.goal_locations[i]:
-                print("with start and goal:")
+                #print("with start and goal:")
                 path = self.space_time_plan(
                     self.env.curr_states[i].location,
                     self.env.curr_states[i].orientation,
@@ -236,7 +244,7 @@ class pyMAPFPlanner:
                 )
             
             if path:
-                print("current location:", path[0][0], "current direction:", path[0][1])
+                #print("current location:", path[0][0], "current direction:", path[0][1])
                 if path[0][0] != self.env.curr_states[i].location:
                     actions[i] = MAPF.Action.FW
                 elif path[0][1] != self.env.curr_states[i].orientation:
