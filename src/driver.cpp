@@ -13,6 +13,8 @@
 #if PYTHON
 #include "pyMAPFPlanner.hpp"
 #include <pybind11/embed.h>
+#include "pyEntry.hpp"
+#include "pyTaskScheduler.hpp"
 #endif
 #endif
 
@@ -48,12 +50,12 @@ int main(int argc, char **argv)
         // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")
-        ("outputScreen", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
-        ("evaluationMode", po::value<bool>()->default_value(false), "evaluate an existing output file")
-        ("simulationTime", po::value<int>()->default_value(5000), "run simulation")
-        ("fileStoragePath", po::value<std::string>()->default_value(""), "the path to the storage path")
-        ("planTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for planner in seconds")
-        ("preprocessTimeLimit", po::value<int>()->default_value(INT_MAX), "the time limit for preprocessing in seconds")
+        ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
+        ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
+        ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
+        ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")
+        ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
+        ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
         ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -77,23 +79,23 @@ int main(int argc, char **argv)
 
     Logger *logger = new Logger(vm["logFile"].as<std::string>());
 
-    MAPFPlanner *planner = nullptr;
+    Entry *planner = nullptr;
     // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
-    if (vm["evaluationMode"].as<bool>())
-    {
-        logger->log_info("running the evaluation mode");
-        planner = new DummyPlanner(vm["output"].as<std::string>());
-    }
-    else
-    {
+    // if (vm["evaluationMode"].as<bool>())
+    // {
+    //     logger->log_info("running the evaluation mode");
+    //     planner = new DummyPlanner(vm["output"].as<std::string>());
+    // }
+    // else
+    // {
 #ifdef PYTHON
 #if PYTHON
-        planner = new pyMAPFPlanner();
+        planner = new PyEntry();
 #else
-        planner = new MAPFPlanner();
+        planner = new Entry();
 #endif
 #endif
-    }
+    //}
 
     auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
@@ -121,40 +123,18 @@ int main(int argc, char **argv)
     int team_size = read_param_json<int>(data, "teamSize");
 
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
-    std::vector<int> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
+    std::vector<list<int>> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-    std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
-    if (task_assignment_strategy == "greedy")
-    {
-        system_ptr = std::make_unique<TaskAssignSystem>(grid, planner, agents, tasks, model);
-    }
-    else if (task_assignment_strategy == "roundrobin")
-    {
-        system_ptr = std::make_unique<InfAssignSystem>(grid, planner, agents, tasks, model);
-    }
-    else if (task_assignment_strategy == "roundrobin_fixed")
-    {
-        std::vector<vector<int>> assigned_tasks(agents.size());
-        for (int i = 0; i < tasks.size(); i++)
-        {
-            assigned_tasks[i % agents.size()].push_back(tasks[i]);
-        }
-        system_ptr = std::make_unique<FixedAssignSystem>(grid, planner, agents, assigned_tasks, model);
-    }
-    else
-    {
-        std::cerr << "unkown task assignment strategy " << data["taskAssignmentStrategy"].get<std::string>() << std::endl;
-        logger->log_fatal("unkown task assignment strategy " + data["taskAssignmentStrategy"].get<std::string>());
-        exit(1);
-    }
+    // std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
+    system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
 
     system_ptr->set_logger(logger);
     system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
-    system_ptr->set_num_tasks_reveal(read_param_json<int>(data, "numTasksReveal", 1));
+    system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
     signal(SIGINT, sigint_handler);
 

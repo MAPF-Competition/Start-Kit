@@ -1,5 +1,23 @@
 # Changelog
 
+Version 2.0.0 - 2024-10-2
+
+Added:
+- Added support for task scheduler
+- Added default planner and task scheduler implementation
+- Added support for combined track
+- Added Python support for new tracks
+- Added Evaluation_Environment.md with details of the evaluation environment
+
+Changes:
+- Time limit uses `ms` as the unit
+- Input-output format of the starter kit updated for the 2024 competition, with support for tasks with precedence constraints
+- Updated documentation for new features
+- Updated RunInDocker.sh to recreate the evaluation environment used for the 2024 competition
+- Evaluation environment support PyTorch and CUDA
+- rename Prepare_Your_Planner.md to Prepare_Your_Submission.md
+
+
 Version 1.1.5 - 2023-11-21
 ----------------------------
 Fixed:
