@@ -11,6 +11,7 @@ void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env)
     // cout<<"schedule initialise limit" << preprocess_time_limit<<endl;
     DefaultPlanner::init_heuristics(env);
     mt.seed(0);
+    return;
 }
 
 void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  SharedEnvironment* env)
@@ -47,7 +48,7 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
         for (int t_id : free_tasks)
         {
             //check if endtime is reached every 1000 tasks
-            if (count % 1000 == 0 && std::chrono::steady_clock::now() > endtime)
+            if (count % 10 == 0 && std::chrono::steady_clock::now() > endtime)
             {
                 break;
             }
@@ -67,7 +68,6 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
 
         if (min_task_i != -1){
             proposed_schedule[i] = min_task_i;
-            env->task_pool[min_task_i].agent_assigned = i;
             it = free_agents.erase(it);
             free_tasks.erase(min_task_i);
         }
@@ -81,5 +81,6 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
     cout << "new free agents: " << env->new_freeagents.size() << " new tasks: "<< env->new_tasks.size() <<  endl;
     cout << "free agents: " << free_agents.size() << " free tasks: " << free_tasks.size() << endl;
     #endif
+    return;
 }
 }
