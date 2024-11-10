@@ -129,20 +129,6 @@ void TaskManager::sync_shared_env(SharedEnvironment* env)
     env->curr_task_schedule = current_assignment;
     env->new_freeagents = new_freeagents;
     env->new_tasks = new_tasks; 
-
-    // for (size_t i = 0; i < num_of_agents; i++)
-    // {
-    //     env->goal_locations[i].clear();
-    //     int t_id = current_assignment[i];
-    //     if (t_id != -1)
-    //     {
-    //         auto& task = ongoing_tasks[t_id];
-    //         for (int i_task = task->idx_next_loc; i_task < task->locations.size(); i_task++ )
-    //         {
-    //             env->goal_locations[i].push_back({task->locations.at(i_task), task->t_revealed});
-    //         }
-    //     }
-    // }
 }
 
 void TaskManager::reveal_tasks(int timestep)
@@ -156,8 +142,8 @@ void TaskManager::reveal_tasks(int timestep)
         ongoing_tasks[task->task_id] = task;
         all_tasks.push_back(task);
         new_tasks.push_back(task->task_id);         // record the new tasks
-        task_id++;
         logger->log_info("Task " + std::to_string(task_id) + " is revealed");
+        task_id++;
     }
 }
 
