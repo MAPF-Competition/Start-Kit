@@ -35,17 +35,9 @@ void Entry::update_goal_locations(std::vector<int> & proposed_schedule)
         int t_id = proposed_schedule[i];
         if (t_id == -1)
             continue;
-        Task* task_ptr = nullptr;
-        for (Task & task: env->task_pool)
-        {
-            if (task.task_id == t_id){
-                task_ptr = &task;
-                break;
-            }
-        }
-        if(task_ptr == nullptr){continue;}
-        int i_loc = task_ptr->idx_next_loc;
-        env->goal_locations[i].push_back({task_ptr->locations.at(i_loc), task_ptr->t_revealed});
+
+        int i_loc = env->task_pool[t_id].idx_next_loc;
+        env->goal_locations[i].push_back({env->task_pool[t_id].locations.at(i_loc), env->task_pool[t_id].t_revealed});
     }
     return;
 }

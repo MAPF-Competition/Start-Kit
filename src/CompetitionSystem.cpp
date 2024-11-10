@@ -36,9 +36,18 @@ void BaseSystem::move(vector<Action>& actions)
 void BaseSystem::sync_shared_env() {
 
   if (!started){
-      env->goal_locations.resize(num_of_agents);
-      task_manager.sync_shared_env(env);
-      simulator.sync_shared_env(env);
+    env->goal_locations.resize(num_of_agents);
+    task_manager.sync_shared_env(env);
+    simulator.sync_shared_env(env);
+
+    if (simulator.get_curr_timestep() == 0)
+    {
+        env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
+        for (int i = 0; i < num_of_agents; i++)
+        {
+            env->new_freeagents.push_back(i);
+        }
+    }
   }
   else
   {
@@ -228,7 +237,7 @@ void BaseSystem::initialize()
         _exit(124);
 
     // initialize_goal_locations();
-    task_manager.reveal_tasks(timestep);
+    task_manager.reveal_tasks(timestep); //this also intialize env->new_tasks
 
     sync_shared_env();
 
