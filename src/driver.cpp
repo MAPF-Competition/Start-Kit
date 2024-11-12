@@ -79,6 +79,14 @@ int main(int argc, char **argv)
 
     Logger *logger = new Logger(vm["logFile"].as<std::string>());
 
+    std::filesystem::path filepath(vm["output"].as<std::string>());
+    if ( !std::filesystem::is_directory(filepath.parent_path()))
+    {
+        logger->log_fatal("running the evaluation mode",0);
+        _exit(1);
+    }
+
+
     Entry *planner = nullptr;
     // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
     // if (vm["evaluationMode"].as<bool>())
