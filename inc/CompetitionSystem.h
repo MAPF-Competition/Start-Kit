@@ -22,7 +22,6 @@ public:
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
-        paths.resize(num_of_agents);
 
         for (size_t i = 0; i < start_locs.size(); i++)
             {
@@ -97,15 +96,14 @@ protected:
 
     int plan_time_limit = 3;
 
-    std::vector<Path> paths;
 
     vector<State> starts;
     int num_of_agents;
 
     //vector<State> curr_states;
 
-    vector<list<Action>> actual_movements;
-    vector<list<Action>> planner_movements;
+    // vector<list<Action>> actual_movements;
+    // vector<list<Action>> planner_movements;
 
     // tasks that haven't been finished but have been revealed to agents;
 

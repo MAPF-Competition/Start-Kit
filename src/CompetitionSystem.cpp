@@ -9,19 +9,6 @@
 using json = nlohmann::ordered_json;
 
 
-void BaseSystem::move(vector<Action>& actions)
-{
-
-    vector<State> curr_states = simulator.move(actions);
-    int timestep = simulator.get_curr_timestep();
-    // agents do not move
-
-    for (int k = 0; k < num_of_agents; k++)
-    {
-        paths[k].push_back(curr_states[k]);
-        actual_movements[k].push_back(actions[k]);
-    }
-}
 
 
 
@@ -194,11 +181,6 @@ void BaseSystem::simulate(int simulation_time)
         int timestep = simulator.get_curr_timestep();
         // agents do not move
 
-        for (int k = 0; k < num_of_agents; k++)
-        {
-            paths[k].push_back(curr_states[k]);
-            actual_movements[k].push_back(actions[k]);
-        }
         if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA)
         {
             planner_times.back()+=plan_time_limit;  //add planning time to last record
@@ -241,8 +223,6 @@ void BaseSystem::initialize()
 
     sync_shared_env();
 
-    actual_movements.resize(num_of_agents);
-    planner_movements.resize(num_of_agents);
     solution_costs.resize(num_of_agents);
     for (int a = 0; a < num_of_agents; a++)
     {
