@@ -258,8 +258,8 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     js["actionModel"] = "MAPF_T";
     js["version"] = "2024 LoRR";
 
-    std::string feasible = fast_mover_feasible ? "Yes" : "No";
-    js["AllValid"] = feasible;
+    // std::string feasible = fast_mover_feasible ? "Yes" : "No";
+    // js["AllValid"] = feasible;
 
     js["teamSize"] = num_of_agents;
 
@@ -281,6 +281,9 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     }
     js["sumOfCost"] = sum_of_cost;
     js["makespan"] = makespan;
+
+    js["numPlannerErrors"] = simulator.get_number_errors();
+    js["numScheduleErrors"] = task_manager.get_number_errors();
 
     // Save start locations[x,y,orientation]
     if (screen <= 2)

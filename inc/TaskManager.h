@@ -34,6 +34,8 @@ public:
     bool validate_task_assgnment(vector<int> assignment); // validate the task assignment
     bool set_task_assignment( vector<int>  assignment); // set the task assignment; return true if task is valid
 
+    int get_number_errors() const {return schedule_errors.size();}
+
 
 
     TaskManager(std::vector<list<int>>& tasks, int num_of_agents):
