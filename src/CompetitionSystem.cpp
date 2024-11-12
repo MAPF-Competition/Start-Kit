@@ -43,63 +43,47 @@ void BaseSystem::sync_shared_env() {
 }
 
 
-std::pair<vector<Action> ,vector<int> > BaseSystem::plan_wrapper()
+bool BaseSystem::planner_wrapper()
 {
-    vector<Action> actions;
-    vector<int> proposed_schedule;
-    planner->compute(plan_time_limit, actions,proposed_schedule);
-    return {actions, proposed_schedule};
+    planner->compute(plan_time_limit, proposed_actions, proposed_schedule);
+    return true;
 }
 
 
-void BaseSystem::plan(vector<Action> & actions,vector<int> & proposed_schedule)
+void BaseSystem::plan(int & timeout_timesteps)
 {
 
+    using namespace std::placeholders;
     int timestep = simulator.get_curr_timestep();
 
-    using namespace std::placeholders;
-    if (started && future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
-    {
-        std::cout << started << "     " << (future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) << std::endl;
-        if(logger)
-        {
-            logger->log_info("planner cannot run because the previous run is still running", timestep);
-        }
+    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
 
-        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
-        {
-            task_td.join();
-            started = false;
-            auto res = future.get();
-            actions = res.first;
-            proposed_schedule = res.second;
-            return;
-        }
-        logger->log_info("planner timeout", timestep);
-        return;
-    }
 
-    std::packaged_task<std::pair<vector<Action> ,vector<int> >()> task(std::bind(&BaseSystem::plan_wrapper, this));
     future = task.get_future();
-    if (task_td.joinable())
-    {
+    if (task_td.joinable()){
         task_td.join();
     }
     env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
-    started = true;
-    if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
-    {
-        task_td.join();
-        started = false;
-        auto res = future.get();
-        actions = res.first;
-        proposed_schedule = res.second;
 
-        return;
+    started = true;
+
+    while (timestep + timeout_timesteps < simulation_time){
+
+        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
+            {
+                task_td.join();
+                started = false;
+                auto res = future.get();
+
+                logger->log_info("planner returns", timestep + timeout_timesteps);
+                return;
+            }
+        logger->log_info("planner timeout", timestep + timeout_timesteps);
+        timeout_timesteps += 1;
     }
-    logger->log_info("planner timeout", timestep);
-    return;
+
+    //
 }
 
 
@@ -156,6 +140,10 @@ void BaseSystem::simulate(int simulation_time)
     //Logger* log = new Logger();
     initialize();
 
+    this->simulation_time = simulation_time;
+
+    vector<Action> all_wait_actions(num_of_agents, Action::NA);
+
     for (; simulator.get_curr_timestep() < simulation_time; )
     {
         // find a plan
@@ -163,33 +151,44 @@ void BaseSystem::simulate(int simulation_time)
 
         auto start = std::chrono::steady_clock::now();
 
-        vector<Action> actions;
-        vector<int> proposed_schedule;
-        plan(actions,proposed_schedule);
+        int timeout_timesteps = 0;
+
+        plan(timeout_timesteps);
 
         auto end = std::chrono::steady_clock::now();
 
-        for (int a = 0; a < num_of_agents; a++)
-        {
-            if (!env->goal_locations[a].empty())
-                solution_costs[a]++;
+        for (int i = 0 ; i< timeout_timesteps; i ++){
+            simulator.move(all_wait_actions);
+            for (int k = 0; k < num_of_agents; k++)
+
+            for (int a = 0; a < num_of_agents; a++)
+                {
+                    if (!env->goal_locations[a].empty())
+                        solution_costs[a]++;
+                }
         }
 
+        if (simulator.get_curr_timestep() >= simulation_time){
+
+            auto diff = end-start;
+            planner_times.push_back(std::chrono::duration<double>(diff).count());
+            break;
+        }
+
+        for (int a = 0; a < num_of_agents; a++)
+            {
+                if (!env->goal_locations[a].empty())
+                    solution_costs[a]++;
+            }
+
         // move drives
-        //move(actions);
-        vector<State> curr_states = simulator.move(actions);
+        vector<State> curr_states = simulator.move(proposed_actions);
         int timestep = simulator.get_curr_timestep();
         // agents do not move
 
-        if (!planner_movements[0].empty() && planner_movements[0].back() == Action::NA)
-        {
-            planner_times.back()+=plan_time_limit;  //add planning time to last record
-        }
-        else
-        {
-            auto diff = end-start;
-            planner_times.push_back(std::chrono::duration<double>(diff).count());
-        }
+
+        auto diff = end-start;
+        planner_times.push_back(std::chrono::duration<double>(diff).count());
 
         // update tasks
         task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
@@ -228,6 +227,9 @@ void BaseSystem::initialize()
     {
         solution_costs[a] = 0;
     }
+
+    proposed_actions.resize(num_of_agents);
+    proposed_schedule.resize(num_of_agents, -1);
 }
 
 
