@@ -84,6 +84,8 @@ protected:
     vector<Action> proposed_actions;
     vector<int> proposed_schedule;
 
+    int total_timetous = 0;
+
 
     std::future<bool> future;
     std::thread task_td;

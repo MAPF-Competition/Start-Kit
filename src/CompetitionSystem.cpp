@@ -167,6 +167,8 @@ void BaseSystem::simulate(int simulation_time)
                         solution_costs[a]++;
                 }
         }
+        
+        total_timetous+=timeout_timesteps;
 
         if (simulator.get_curr_timestep() >= simulation_time){
 
@@ -246,7 +248,6 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     js["teamSize"] = num_of_agents;
 
     js["numTaskFinished"] = task_manager.num_of_task_finish;
-    int sum_of_cost = 0;
     int makespan = 0;
     if (num_of_agents > 0)
     {
@@ -254,18 +255,18 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
         makespan = solution_costs[0];
         for (int a = 1; a < num_of_agents; a++)
         {
-            sum_of_cost += solution_costs[a];
             if (solution_costs[a] > makespan)
             {
                 makespan = solution_costs[a];
             }
         }
     }
-    js["sumOfCost"] = sum_of_cost;
     js["makespan"] = makespan;
 
     js["numPlannerErrors"] = simulator.get_number_errors();
     js["numScheduleErrors"] = task_manager.get_number_errors();
+
+    js["numEntryTimeouts"] = total_timetous;
 
     // Save start locations[x,y,orientation]
     if (screen <= 2)
