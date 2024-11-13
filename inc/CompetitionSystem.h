@@ -22,7 +22,6 @@ public:
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
-        paths.resize(num_of_agents);
 
         for (size_t i = 0; i < start_locs.size(); i++)
             {
@@ -71,8 +70,8 @@ public:
     }
 
     void simulate(int simulation_time);
-    void plan(vector<Action> & actions,vector<int> & proposed_schedule);
-    std::pair<vector<Action> ,vector<int>> plan_wrapper();
+    void plan(int & timeout_timesteps);
+    bool planner_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen) const;
@@ -80,8 +79,13 @@ public:
 
 protected:
     Grid map;
+    int simulation_time;
 
-    std::future<std::pair<vector<Action> ,vector<int> >> future;
+    vector<Action> proposed_actions;
+    vector<int> proposed_schedule;
+
+
+    std::future<bool> future;
     std::thread task_td;
     bool started = false;
 
@@ -97,15 +101,14 @@ protected:
 
     int plan_time_limit = 3;
 
-    std::vector<Path> paths;
 
     vector<State> starts;
     int num_of_agents;
 
     //vector<State> curr_states;
 
-    vector<list<Action>> actual_movements;
-    vector<list<Action>> planner_movements;
+    // vector<list<Action>> actual_movements;
+    // vector<list<Action>> planner_movements;
 
     // tasks that haven't been finished but have been revealed to agents;
 
