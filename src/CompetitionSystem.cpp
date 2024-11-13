@@ -20,26 +20,33 @@ using json = nlohmann::ordered_json;
 // }
 
 
-void BaseSystem::sync_shared_env() {
-
-  if (!started){
-    env->goal_locations.resize(num_of_agents);
-    task_manager.sync_shared_env(env);
-    simulator.sync_shared_env(env);
-
-    if (simulator.get_curr_timestep() == 0)
+void BaseSystem::sync_shared_env() 
+{
+    if (!started)
     {
-        env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
-        for (int i = 0; i < num_of_agents; i++)
+        env->goal_locations.resize(num_of_agents);
+        task_manager.sync_shared_env(env);
+        simulator.sync_shared_env(env);
+
+        if (simulator.get_curr_timestep() == 0)
         {
-            env->new_freeagents.push_back(i);
+            env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
+            for (int i = 0; i < num_of_agents; i++)
+            {
+                env->new_freeagents.push_back(i);
+            }
         }
+        //update proposed action to all wait
+        proposed_actions.clear();
+        proposed_actions.resize(num_of_agents, Action::W);
+        //update proposed schedule to previous assignment
+        proposed_schedule = env->curr_task_schedule;
+        
     }
-  }
-  else
-  {
-    env->curr_timestep = simulator.get_curr_timestep();
-  }
+    else
+    {
+        env->curr_timestep = simulator.get_curr_timestep();
+    }
 }
 
 
@@ -167,7 +174,7 @@ void BaseSystem::simulate(int simulation_time)
                         solution_costs[a]++;
                 }
         }
-        
+
         total_timetous+=timeout_timesteps;
 
         if (simulator.get_curr_timestep() >= simulation_time){
@@ -230,7 +237,7 @@ void BaseSystem::initialize()
         solution_costs[a] = 0;
     }
 
-    proposed_actions.resize(num_of_agents);
+    proposed_actions.resize(num_of_agents, Action::W);
     proposed_schedule.resize(num_of_agents, -1);
 }
 
@@ -251,7 +258,6 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     int makespan = 0;
     if (num_of_agents > 0)
     {
-        sum_of_cost = solution_costs[0];
         makespan = solution_costs[0];
         for (int a = 1; a < num_of_agents; a++)
         {
