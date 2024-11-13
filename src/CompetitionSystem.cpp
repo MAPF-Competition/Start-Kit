@@ -128,18 +128,6 @@ void BaseSystem::log_preprocessing(bool succ)
     logger->flush();
 }
 
-// void BaseSystem::log_event_assigned(int agent_id, int task_id, int timestep)
-// {
-//     logger->log_info("Task " + std::to_string(task_id) + " is assigned to agent " + std::to_string(agent_id), timestep);
-// }
-
-
-// Moved to TaskManager
-// void BaseSystem::log_event_finished(int agent_id, int task_id, int timestep) 
-// {
-//     logger->log_info("Agent " + std::to_string(agent_id) + " finishes task " + std::to_string(task_id), timestep);
-// }
-
 
 void BaseSystem::simulate(int simulation_time)
 {
@@ -185,10 +173,10 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         for (int a = 0; a < num_of_agents; a++)
-            {
-                if (!env->goal_locations[a].empty())
-                    solution_costs[a]++;
-            }
+        {
+            if (!env->goal_locations[a].empty())
+                solution_costs[a]++;
+        }
 
         // move drives
         vector<State> curr_states = simulator.move(proposed_actions);
