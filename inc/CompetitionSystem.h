@@ -64,6 +64,7 @@ public:
     void set_num_tasks_reveal(float num){task_manager.set_num_tasks_reveal(num);};
     void set_plan_time_limit(int limit){plan_time_limit = limit;};
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
+    void set_log_level(int level){log_level = level;};
     void set_logger(Logger* logger){
         this->logger = logger;
         task_manager.set_logger(logger);
@@ -94,11 +95,6 @@ protected:
     Entry* planner;
     SharedEnvironment* env;
 
-    //ActionModelWithRotate* model;
-
-    // #timesteps for simulation
-    //int timestep;
-
     int preprocess_time_limit=10;
 
     int plan_time_limit = 3;
@@ -107,10 +103,7 @@ protected:
     vector<State> starts;
     int num_of_agents;
 
-    //vector<State> curr_states;
-
-    // vector<list<Action>> actual_movements;
-    // vector<list<Action>> planner_movements;
+    int log_level = 1;
 
     // tasks that haven't been finished but have been revealed to agents;
 
