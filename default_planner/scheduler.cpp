@@ -21,7 +21,6 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
     TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(time_limit);
     // cout<<"schedule plan limit" << time_limit <<endl;
 
-    proposed_schedule = env->curr_task_schedule; //default no schedule
     free_agents.insert(env->new_freeagents.begin(), env->new_freeagents.end());
     free_tasks.insert(env->new_tasks.begin(), env->new_tasks.end());
 

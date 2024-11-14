@@ -12,8 +12,11 @@ Changes:
 - Documentation updated to reflect the changes in the API.
 - The competition system now waits for entry to return and records the number of timeouts, then progress to the simulator. This prevents the entry using the unrecorded time spent on the simulator.
 - Output JSON records a number of entry timeouts, invalid schedules, and invalid actions.
-- Default Scheduler now uses a new API to schedule tasks.
-- The `update_goal_locations` function in Default Entry is updated to use the new `task_pool` API. (Warning, when updating your entry, make sure the update on this function is merged to your Entry implementation, or you refer to the default implementation to implement your version.)
+- Default Scheduler now uses the new API to schedule tasks.
+- The `update_goal_locations` function in Default Entry is updated to use the new `task_pool` API. (Warning, when updating your entry, make sure you review the changes on `Entry.cpp` and decide how you adapt the changes to your entry implementation.)
+- Update the Python binding to support the updated API.
+- Updated the example python scheduler to use the new API. (Warning, when updating, make sure you review the changes on `pyTaskScheduler.py` and decides to how you adapt the changes to your scheduler implementation.)
+
 
 Version 2.0.0 - 2024-10-2
 ----------------------------
