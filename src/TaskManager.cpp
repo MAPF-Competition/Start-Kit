@@ -22,6 +22,8 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
         if (assignment[i_agent] != -1 && ongoing_tasks.find(assignment[i_agent]) == ongoing_tasks.end())
         {
             schedule_errors.push_back(make_tuple("task already finished",assignment[i_agent],i_agent,-1,curr_timestep+1));
+            logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already finished",curr_timestep+1);
+            logger->flush();
             return false;
         }
 
@@ -29,6 +31,7 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
         if (assignment[i_agent] != -1 && idx_set.find(assignment[i_agent]) != idx_set.end())
         {
             schedule_errors.push_back(make_tuple("task is already assigned by the second agent at the same time",assignment[i_agent],i_agent,idx_set[assignment[i_agent]],curr_timestep+1));
+            logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already assigned to agent " + std::to_string(idx_set[assignment[i_agent]]),curr_timestep+1);
             return false;
         }
 
@@ -38,6 +41,7 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
             if (ongoing_tasks[current_assignment[i_agent]]->idx_next_loc > 0 && (current_assignment[i_agent] == -1  || assignment[i_agent] != current_assignment[i_agent]))
             {
                 schedule_errors.push_back(make_tuple("task is already opened by the second agent",assignment[i_agent],i_agent,ongoing_tasks[current_assignment[i_agent]]->agent_assigned,curr_timestep+1));
+                logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already opened by agent " + std::to_string(ongoing_tasks[current_assignment[i_agent]]->agent_assigned),curr_timestep+1);
                 return false;
             }
         }
@@ -61,17 +65,17 @@ bool TaskManager::set_task_assignment(vector< int> assignment)
     }
     if (! validate_task_assgnment(assignment))
     {
-        if (assignment.size() < num_of_agents)
-            logger->log_info("task scheduler tiemout");
-        else
-            logger->log_warning("attempt to set invalid task assignment");
         return false;
     }
 
     for (int a = 0; a < assignment.size(); a++)
     {
-        if (assignment[a] < 0)
+        if (assignment[a] < 0 && current_assignment[a] < 0)
+        {
             continue;
+        }
+        if (current_assignment[a] >= 0)
+            ongoing_tasks[current_assignment[a]]->agent_assigned = -1;
         int t_id = assignment[a];
         current_assignment[a] = t_id;
         ongoing_tasks[t_id]->agent_assigned = a;

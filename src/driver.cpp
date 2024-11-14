@@ -28,10 +28,7 @@ std::unique_ptr<BaseSystem> system_ptr;
 void sigint_handler(int a)
 {
     fprintf(stdout, "stop the simulation...\n");
-    if (!vm["evaluationMode"].as<bool>())
-    {
-        system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
-    }
+    system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
     _exit(0);
 }
 
@@ -47,7 +44,6 @@ int main(int argc, char **argv)
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")
-        // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")
         ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
@@ -56,7 +52,8 @@ int main(int argc, char **argv)
         ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")
         ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
         ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
-        ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
+        ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name")
+        ("logDetailLevel,d", po::value<int>()->default_value(1), "the level of logs to display, 1--showing all the logs, 2--showing warnings and fatal errors, 3--showing fatal erros only");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -77,7 +74,23 @@ int main(int argc, char **argv)
         base_folder += "/";
     }
 
-    Logger *logger = new Logger(vm["logFile"].as<std::string>());
+    int log_level = vm["logDetailLevel"].as<int>();
+    if (log_level <= 1)
+        log_level = 2; //info
+    else if (log_level == 2)
+        log_level = 3; //warning
+    else
+        log_level = 5; //fatal
+
+    Logger *logger = new Logger(vm["logFile"].as<std::string>(),log_level);
+
+    std::filesystem::path filepath(vm["output"].as<std::string>());
+    if (filepath.parent_path().string().size() > 0 && !std::filesystem::is_directory(filepath.parent_path()))
+    {
+        logger->log_fatal("output directory not exist",0);
+        _exit(1);
+    }
+
 
     Entry *planner = nullptr;
     // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
@@ -140,10 +153,8 @@ int main(int argc, char **argv)
 
     system_ptr->simulate(vm["simulationTime"].as<int>());
 
-    if (!vm["evaluationMode"].as<bool>())
-    {
-        system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
-    }
+
+    system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
 
     delete model;
     delete logger;

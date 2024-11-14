@@ -17,7 +17,7 @@ std::ostream& operator<<(std::ostream &stream, const Action &action)
 }
 
 
-bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Action> & actions)
+bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Action> & actions, int timestep)
 {
     if (prev.size() != actions.size())
     {
@@ -36,16 +36,19 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
             (abs(next[i].location / cols - prev[i].location/cols) + abs(next[i].location % cols - prev[i].location %cols) > 1 ))
         {
             errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
+            logger->log_warning("Planner Error: unallowed move for agent " + std::to_string(i) + " from location " + std::to_string(prev[i].location) + " to location " + std::to_string(next[i].location),timestep+1);
             return false;
         }
         if (grid.map[next[i].location] == 1) {
             errors.push_back(make_tuple("unallowed move",i,-1,next[i].timestep));
+            logger->log_warning("Planner Error: unallowed move for agent " + std::to_string(i) + " from location " + std::to_string(prev[i].location) + " to location " + std::to_string(next[i].location),timestep+1);
             return false;
         }
         
 
         if (vertex_occupied.find(next[i].location) != vertex_occupied.end()) {
             errors.push_back(make_tuple("vertex conflict",i,vertex_occupied[next[i].location], next[i].timestep));
+            logger->log_warning("Planner Error: vertex conflict for agent " + std::to_string(i) + " and agent " + std::to_string(vertex_occupied[next[i].location]) + " at location " + std::to_string(next[i].location),timestep+1);
             return false;
         }
 
@@ -53,6 +56,7 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
 
         if (edge_occupied.find({prev[i].location, next[i].location}) != edge_occupied.end()) {
             errors.push_back(make_tuple("edge conflict", i, edge_occupied[{prev[i].location, next[i].location}], next[i].timestep));
+            logger->log_warning("Planner Error: vertex conflict for agent " + std::to_string(i) + " and agent " + std::to_string(edge_occupied[{prev[i].location, next[i].location}]) + " from location " + std::to_string(prev[i].location) + " to location " + std::to_string(next[i].location));
             return false;
         }
         
