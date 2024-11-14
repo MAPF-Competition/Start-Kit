@@ -39,7 +39,9 @@ The `SharedEnvironment` API provides the necessary information for you to comput
 -  `curr_states`: vector of `State`, the current state for each robot at the current time step.
 -  `plan_start_time`: `chrono::steady_clock::time_point`, stores the exact time `Entry::compute()` was called, the `Entry::compute()` should return proposed plan and schedule no more than `time_limit` ms following the plan_start_time.
 - `curr_task_schedule`: `vector<int>`, the current schedule return by the Task Manager. `curr_task_schedule[i]` indicates the `task_id` scheduled for robot `i`. `-1` indicates a robot has no scheduled task.
-- `task_pool`: `vector<Task>`,  All the revealed but unfinished tasks.
+- `task_pool`: `unordered_map<int, Task>`, this `unordered_map` stores all revealed but unfinished tasks, using `task_id` as keys.
+- `new_tasks`: `vector<int>`, the `task_id` of the newly revealed tasks at the current timestep.
+- `new_freeagents`: `vector<int>`, the `id` of the newly freed robots (robots have their tasks completed) at the current timestep.
 
   
 ## Entry Integration
