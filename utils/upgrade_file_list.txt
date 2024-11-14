@@ -1,11 +1,9 @@
 inc/TaskManager.h
 inc/ActionModel.h
-inc/TaskScheduler.h
 inc/.DS_Store
 inc/CompetitionSystem.h
 inc/Tasks.h
 inc/Evaluation.h
-inc/Entry.h
 inc/Grid.h
 inc/SharedEnv.h
 inc/Simulator.h
@@ -13,7 +11,6 @@ inc/common.h
 inc/nlohmann/json.hpp
 inc/nlohmann/json_fwd.hpp
 inc/States.h
-inc/MAPFPlanner.h
 inc/Logger.h
 src/common.cpp
 src/.DS_Store
@@ -26,6 +23,7 @@ src/ActionModel.cpp
 src/Logger.cpp
 src/States.cpp
 src/Evaluation.cpp
+src/Entry.cpp
 python/common/pyEntry.hpp
 python/common/pyEnvironment.hpp
 python/common/MAPFbinding.cpp

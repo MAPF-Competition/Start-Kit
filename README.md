@@ -86,9 +86,9 @@ The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed 
 
 For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Submission.md), you always commit their changes.
 
-The upgrade may overwrite some of your changes to `CMakeLists.txt`, `compile.sh`, and `apt.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on these files.
+The upgrade may overwrite some of your changes to `src/Entry.cpp`, `CMakeLists.txt`, `compile.sh`, `apt.txt`, and `pip.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on these files.
 
-The upgrade script will not touch any participants' created file, `python/pyMAPFPlanner.py`, `inc/MAPFPlanner.h` and `src/MAPFPlanner.cpp`. So that participants' implementations should not be influenced by the start-kit upgrade.
+The upgrade script will not touch participants' implementation file, `python/pyMAPFPlanner.py`, `inc/MAPFPlanner.h`, `inc/TaskScheduler.h`, `src/MAPFPlanner.cpp` and `src/TaskScheduler.cpp`. But please be aware that the update on `SharedEnvironment` APIs impacts the default `update_goal_locations` implementation in `src/Entry.cpp`, you might need to carefully review the changes and update your implementation accordingly.
 
 ## Input output description
 

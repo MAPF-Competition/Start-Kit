@@ -15,4 +15,4 @@ echo restore files: $files
 
 git restore --staged --worktree --source=upstream/main $files
 
-echo "Update pulled, please check the changes and commit them."
+echo "Update pulled, please review the changes and commit them."
