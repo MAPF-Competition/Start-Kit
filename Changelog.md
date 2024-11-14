@@ -3,17 +3,17 @@
 Version 2.1.0 - 2024-11-15
 ----------------------------
 Added:
-- Added `new_tasks` api to `SharedEnvironment` to notify the entry of new tasks released at the current timestep.
-- Added `new_freeagents` api to `SharedEnvironment` to notify the entry of new free robots, who newly completed their assigned task, at the current timestep.
+- Added `new_tasks` API to `SharedEnvironment` to notify the entry of new tasks released at the current timestep.
+- Added `new_freeagents` API to `SharedEnvironment` to notify the entry of new free robots, who newly completed their assigned task, at the current timestep.
 - Added `--logDetailLevel` option to specify the level of details of the log file.
 
 Changes:
-- API `vector<int> task_pool` in `SharedEnvironment` is now deprecated. Use `unordered_map<int,Task> task_pool` instead, which uses `task_id` as key.
+- API `vector<int> task_pool` in `SharedEnvironment` is now deprecated. Use `unordered_map<int, Task> task_pool` instead, which uses `task_id` as the key.
 - Documentation updated to reflect the changes in the API.
-- The competition system now waits for entry to return and records number of timeouts, then progress to the simulator. This prevents the entry uses the unrecorded time spends on the simulator.
-- Output JSON records number of entry timeouts, invalid schedules, and invalid actions.
-- Default Scheduler now uses new API to schedule tasks.
-- The `update_goal_locations` function in Default Entry is updated to use the new `task_pool` API. (Warning, when updating your entry, make sure the update on this function is merged to your Entry implementation, or you refer to default implementation to implement your version.)
+- The competition system now waits for entry to return and records the number of timeouts, then progress to the simulator. This prevents the entry using the unrecorded time spent on the simulator.
+- Output JSON records a number of entry timeouts, invalid schedules, and invalid actions.
+- Default Scheduler now uses a new API to schedule tasks.
+- The `update_goal_locations` function in Default Entry is updated to use the new `task_pool` API. (Warning, when updating your entry, make sure the update on this function is merged to your Entry implementation, or you refer to the default implementation to implement your version.)
 
 Version 2.0.0 - 2024-10-2
 ----------------------------
