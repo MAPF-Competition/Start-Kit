@@ -5,14 +5,14 @@
 |-----------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | --help                |                                                                                                                                        |
 | --inputFile           | String <br /> The input file describes the problem to be solved in JSON format                                                                                                    |
-| --output              | String  <br /> The output file describes the planner result in JSON format                                                                                                   |
+| --output              | String  <br /> output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'                                                                                                   |
 | --outputScreen        | Int (=1)  <br /> The level of details in the output file (=1 to show all, = 2 to show problem summary, start and actual path and =3 to show only problem summary).                                                                                                |
 | --simulationTime      | Int <br /> The maximum number of timesteps allowed for solving the problem, we sometimes refer to this as planning horizon                                                                                             |
-| --fileStoragePath              | String  <br /> The folder path that your local preprocessing file locates                                                                                                |
+| --fileStoragePath              | String  <br /> the large file storage path                                                                                                |
 | --planTimeLimit       | Int <br /> The amount of time available for planning in each timestep (in millseconds), if this time limit is exceeded by the planner, all robots are issued wait commands at current timestep  and the task schedule keeps the same as last time. Note that for 2023 round the planTimeLimit is planning time for each timestep in seconds, so if you are using the planner from 2023 participants, please carefully checkout the timeout settings in the planner.                                                                                 |
 | --preprocessTimeLimit | Int <br /> The amount of time in millseconds available for loading and precomputing auxiliary data before the problem-solving process begins                                                                                              |
 | --logFile             | String  <br /> An output file that records all warnings and errors issued by the simulator in the event of invalid or incomplete actions from the planner                                                                                                     |
-| --logDetailLevel      | Int (=1) <br /> The level of logs to display, 1--showing all the logs, 2--showing warnings and fatal errors, 3--showing fatal erros only |
+| --logDetailLevel      | Int (=1) <br /> The minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only |
 
 
 ## Input Problem File (in JSON format)
@@ -48,7 +48,7 @@ Map Symbols:
 | S                      | service point (for ‘pick up’ goal) - traversable                                                                                                                                                                                                        |
 
 
-## Onput File (in JSON format)
+## Output File (in JSON format)
 
 The output file of `./lifelong` is a JSON file consisting of the planner output, actual paths of robots, and the statistics.
 
