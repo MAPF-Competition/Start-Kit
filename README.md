@@ -78,7 +78,7 @@ If you are a docker user, another choice is to develop and test your python impl
 
 ## Upgrade Your Start-Kit
 
-If your private start-kit copy repo was created before a start-kit upgrade, you could run the `./upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
+If your private start-kit copy repo was created before a start-kit upgrade, you could run the script `./upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
 
 You can check `version.txt` to know the current version of your start-kit.
 
@@ -88,7 +88,7 @@ For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Su
 
 The upgrade may overwrite some of your changes to `src/Entry.cpp`, `CMakeLists.txt`, `compile.sh`, `apt.txt`, and `pip.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on these files.
 
-The upgrade script will not touch participants' implementation file, `python/pyMAPFPlanner.py`, `inc/MAPFPlanner.h`, `inc/TaskScheduler.h`, `src/MAPFPlanner.cpp` and `src/TaskScheduler.cpp`. But please be aware that the update on `SharedEnvironment` APIs impacts the default `update_goal_locations` implementation in `src/Entry.cpp`, you might need to carefully review the changes and update your implementation accordingly.
+The upgrade script will not touch most of the participants' implementation file, `python/pyMAPFPlanner.py`,`python/pyTaskScheduler.py`, `inc/MAPFPlanner.h`, `inc/TaskScheduler.h`, `src/MAPFPlanner.cpp` and `src/TaskScheduler.cpp`. But please be aware that, the start-kit v2.1.0 introduces requested API changes on `task_pool`. This requires minor revision to your implementation. It also impacts the function `update_goal_locations` in `src/Entry.cpp`, please review the changes in `src/Entry.cpp` and merge them into your impementation.
 
 ## Input output description
 
