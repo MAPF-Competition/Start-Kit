@@ -128,7 +128,23 @@ int main(int argc, char **argv)
     Grid grid(base_folder + map_path);
 
     planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);
-    planner->env->file_storage_path = vm["fileStoragePath"].as<std::string>();
+
+
+    string file_storage_path = vm["fileStoragePath"].as<std::string>();
+    if (file_storage_path==""){
+      char const* tmp = getenv("LORR_LARGE_FILE_STORAGE_PATH");
+      if ( tmp != nullptr ) {
+        file_storage_path = string(tmp);
+      }
+    }
+
+    // check if the path exists;
+    if (file_storage_path!="" &&!std::filesystem::exists(file_storage_path)){
+      std::ostringstream stringStream;
+      stringStream << "fileStoragePath (" << file_storage_path << ") is not valid";
+      logger->log_warning(stringStream.str());
+    }
+    planner->env->file_storage_path = file_storage_path;
 
     ActionModelWithRotate *model = new ActionModelWithRotate(grid);
     model->set_logger(logger);
