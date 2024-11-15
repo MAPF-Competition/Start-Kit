@@ -24,7 +24,7 @@ void TaskScheduler::initialize(int preprocess_time_limit)
 /**
  * Plans a task schedule within a specified time limit.
  * 
- * This function schedules tasks by using up to half of the given time limit,
+ * This function schedules tasks by calling shedule_plan function in default planner with half of the given time limit,
  * adjusted for timing error tolerance. The planned schedule is output to the provided schedule vector.
  * 
  * @param time_limit The total time limit allocated for scheduling (in milliseconds).

@@ -21,7 +21,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit)
 }
 
 /**
- * Plans a path using a basic A* algorithm that ignores the time dimension.
+ * Plans a path using default planner
  * 
  * This function performs path planning within the timelimit given, and call the plan function in default planner.
  * The planned actions are output to the provided actions vector.

@@ -36,7 +36,6 @@ void sigint_handler(int a)
 int main(int argc, char **argv)
 {
 #ifdef PYTHON
-    // st::cout<<"Using Python="<<PYTHON<<std::endl;
 #if PYTHON
     pybind11::initialize_interpreter();
 #endif
@@ -65,7 +64,6 @@ int main(int argc, char **argv)
 
     po::notify(vm);
 
-    // std::string base_folder = vm["inputFolder"].as<std::string>();
     boost::filesystem::path p(vm["inputFile"].as<std::string>());
     boost::filesystem::path dir = p.parent_path();
     std::string base_folder = dir.string();
@@ -93,14 +91,7 @@ int main(int argc, char **argv)
 
 
     Entry *planner = nullptr;
-    // Planner is inited here, but will be managed and deleted by system_ptr deconstructor
-    // if (vm["evaluationMode"].as<bool>())
-    // {
-    //     logger->log_info("running the evaluation mode");
-    //     planner = new DummyPlanner(vm["output"].as<std::string>());
-    // }
-    // else
-    // {
+
 #ifdef PYTHON
 #if PYTHON
         planner = new PyEntry();
@@ -108,7 +99,6 @@ int main(int argc, char **argv)
         planner = new Entry();
 #endif
 #endif
-    //}
 
     auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
@@ -140,7 +130,6 @@ int main(int argc, char **argv)
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-    // std::string task_assignment_strategy = data["taskAssignmentStrategy"].get<std::string>();
     system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
 
     system_ptr->set_logger(logger);
