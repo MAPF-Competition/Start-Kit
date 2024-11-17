@@ -86,9 +86,11 @@ The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed 
 
 For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Submission.md), you always commit their changes.
 
-The upgrade may overwrite some of your changes to `src/Entry.cpp`, `CMakeLists.txt`, `compile.sh`, `apt.txt`, and `pip.txt`, you could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on these files.
+⚠️ But please be aware that, the start-kit v2.1.0 introduces requested API changes on `task_pool`. This requires minor revision to your implementation to adapt to the new API.  
+This change also impacts the implementation of function `update_goal_locations` in `src/Entry.cpp`, therefore, the upgrade script will pull the new version of `src/Entry.cpp` and may overwrite your changes. You could compare the difference using `git diff` and decide whether to revert some modifications or partially accept changes on this file. 
 
-The upgrade script will not touch most of the participants' implementation file, `python/pyMAPFPlanner.py`,`python/pyTaskScheduler.py`, `inc/MAPFPlanner.h`, `inc/TaskScheduler.h`, `src/MAPFPlanner.cpp` and `src/TaskScheduler.cpp`. But please be aware that, the start-kit v2.1.0 introduces requested API changes on `task_pool`. This requires minor revision to your implementation. It also impacts the function `update_goal_locations` in `src/Entry.cpp`, please review the changes in `src/Entry.cpp` and merge them into your impementation.
+The upgrade script will not touch most of the participants' implementation file.
+How every the example implementation in `python/pyMAPFPlanner.py`,`python/pyTaskScheduler.py`, `inc/MAPFPlanner.h`, `inc/TaskScheduler.h`, `src/MAPFPlanner.cpp`, `src/TaskScheduler.cpp`, `default_planner/planner.cpp` and `default_planner/scheduler.cpp` are updated with with new API and additional documentaion. You may want to view changes on these files. 
 
 ## Input output description
 
