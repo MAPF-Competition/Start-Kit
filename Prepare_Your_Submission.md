@@ -92,6 +92,7 @@ The scheduler should return one task schedule per robot to the simulator environ
 - one task is assigned to more than one agent,
 - it includes completed task,
 - a task already opened by an agent is reassgned to another agent.
+Additionally, assigning `task_id` `-1` to an agent to indicate no assigned task. This drops any existing but unopened task. However, assign `-1` to an agent with opened task leads to an invalid schedule error.
 
   
 If the scheduler returns invalid `proposed_schedule`, the `proposed_schedule` will be rejected and `current_schedule` remain unchanged.
@@ -111,7 +112,7 @@ The starting point of your implementation is the file `src/MAPFPlanner.cpp` and 
 
 At the end of each planning episode, you return one `Action` per robot to the simulator environment. The actions are written into the `actions` vector, which is input to the `plan()` function as a reference. `actions[i]` should be a valid `Action` for robot `i` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot. If the planner returns any invalid `Action`, all agents wait at this timestep.
  
-Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API to read the current state of the system.
+Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API to read the current state of the system. The default `Entry` implementation writes next goal locations of agents with assigned tasks in `env->goal_locations`. The planner could refer to these goal locations to compute the next actions for the agents. The planner could also access the `env->curr_task_schedule` to know the detailed task schedule and task details.
 
 ### Implement your entry
 For participants that compete in the combined track, you can modify the `Entry`, `MAPFPlanner`, and `TaskScheduler` freely to meet your needs.
