@@ -1,11 +1,8 @@
 inc/TaskManager.h
 inc/ActionModel.h
-inc/TaskScheduler.h
-inc/.DS_Store
 inc/CompetitionSystem.h
 inc/Tasks.h
 inc/Evaluation.h
-inc/Entry.h
 inc/Grid.h
 inc/SharedEnv.h
 inc/Simulator.h
@@ -13,10 +10,8 @@ inc/common.h
 inc/nlohmann/json.hpp
 inc/nlohmann/json_fwd.hpp
 inc/States.h
-inc/MAPFPlanner.h
 inc/Logger.h
 src/common.cpp
-src/.DS_Store
 src/Simulator.cpp
 src/TaskManager.cpp
 src/driver.cpp
@@ -26,6 +21,7 @@ src/ActionModel.cpp
 src/Logger.cpp
 src/States.cpp
 src/Evaluation.cpp
+src/Entry.cpp
 python/common/pyEntry.hpp
 python/common/pyEnvironment.hpp
 python/common/MAPFbinding.cpp
@@ -46,9 +42,6 @@ README.md
 version.txt
 RunInDocker.sh
 upgrade_start_kit.sh
-CMakeLists.txt
-apt.txt
-pip.txt
 example_problems
 example_problems/game.domain
 example_problems/game.domain/maps
@@ -83,7 +76,6 @@ example_problems/city.domain/maps
 example_problems/city.domain/maps/Paris_1_256.map
 example_problems/city.domain/tasks
 example_problems/city.domain/tasks/paris_1_256.tasks
-example_problems/city.domain/.DS_Store
 example_problems/city.domain/agents
 example_problems/city.domain/agents/paris_1_256_250.agents
 example_problems/city.domain/paris_1_256_250.json
