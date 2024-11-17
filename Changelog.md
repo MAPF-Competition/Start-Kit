@@ -16,6 +16,7 @@ Changes:
 - The `update_goal_locations` function in Default Entry is updated to use the new `task_pool` API. (Warning, when updating your entry, make sure you review the changes on `Entry.cpp` and decide how you adapt the changes to your entry implementation.)
 - Update the Python binding to support the updated API.
 - Updated the example python scheduler to use the new API. (Warning, when updating, make sure you review the changes on `pyTaskScheduler.py` and decide how you adapt the changes to your scheduler implementation.)
+- Assigning `task_id` `-1` to an agent to indicate no assigned task. This drops any existing but unopened task. However, assign `-1` to an agent with opened task leads to an invalid schedule error
 
 Version 2.0.0 - 2024-10-2
 ----------------------------
