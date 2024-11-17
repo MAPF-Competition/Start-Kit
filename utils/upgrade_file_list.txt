@@ -44,9 +44,6 @@ README.md
 version.txt
 RunInDocker.sh
 upgrade_start_kit.sh
-CMakeLists.txt
-apt.txt
-pip.txt
 example_problems
 example_problems/game.domain
 example_problems/game.domain/maps
