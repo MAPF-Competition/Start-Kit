@@ -6,3 +6,5 @@ test.json
 test.txt
 .DS_Store
 python/tmp
+python/__pycache__
+output.json

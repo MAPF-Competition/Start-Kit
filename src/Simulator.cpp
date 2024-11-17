@@ -18,7 +18,7 @@ vector<State> Simulator::move(vector<Action>& actions)
         }
     }
 
-    if (!model->is_valid(curr_states, actions))
+    if (!model->is_valid(curr_states, actions,timestep))
     {
         //move_valid = false;
         all_valid = false;

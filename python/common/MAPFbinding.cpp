@@ -11,7 +11,7 @@
 #include "pyEnvironment.hpp"
 #include <pybind11/stl_bind.h>
 #include "Tasks.h"
-#include"Simulator.h"
+#include "Simulator.h"
 
 
 
@@ -20,6 +20,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<int>);
 PYBIND11_MAKE_OPAQUE(std::vector<vector<std::pair<int,int>>>);
 PYBIND11_MAKE_OPAQUE(std::vector<State>);
 PYBIND11_MAKE_OPAQUE(std::vector<Task>);
+PYBIND11_MAKE_OPAQUE(std::unordered_map<int, Task>);
 
 
 namespace py = pybind11;
@@ -68,6 +69,8 @@ PYBIND11_MODULE(MAPF, m ){
         .def_readonly("map",&SharedEnvironment::map)
         .def_readonly("map_name",&SharedEnvironment::map_name)
         .def_readonly("task_pool",&SharedEnvironment::task_pool)
+        .def_readonly("new_tasks",&SharedEnvironment::new_tasks)
+        .def_readonly("new_freeagents",&SharedEnvironment::new_freeagents)
         .def_readonly("curr_task_schedule",&SharedEnvironment::curr_task_schedule)
         .def_readonly("file_storage_path", &SharedEnvironment::file_storage_path)
         .def_readonly("curr_states",&SharedEnvironment::curr_states)
@@ -125,4 +128,5 @@ PYBIND11_MODULE(MAPF, m ){
     pybind11::bind_vector<std::vector<vector<std::pair<int,int>>>>(m, "VectorGoals");
     pybind11::bind_vector<std::vector<State>>(m, "VectorState");
     pybind11::bind_vector<std::vector<Task>>(m, "VectorTask");
+    pybind11::bind_map<std::unordered_map<int, Task>>(m, "MapTask");
 }
