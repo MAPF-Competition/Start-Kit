@@ -1,6 +1,5 @@
 inc/TaskManager.h
 inc/ActionModel.h
-inc/.DS_Store
 inc/CompetitionSystem.h
 inc/Tasks.h
 inc/Evaluation.h
@@ -13,7 +12,6 @@ inc/nlohmann/json_fwd.hpp
 inc/States.h
 inc/Logger.h
 src/common.cpp
-src/.DS_Store
 src/Simulator.cpp
 src/TaskManager.cpp
 src/driver.cpp
@@ -78,7 +76,6 @@ example_problems/city.domain/maps
 example_problems/city.domain/maps/Paris_1_256.map
 example_problems/city.domain/tasks
 example_problems/city.domain/tasks/paris_1_256.tasks
-example_problems/city.domain/.DS_Store
 example_problems/city.domain/agents
 example_problems/city.domain/agents/paris_1_256_250.agents
 example_problems/city.domain/paris_1_256_250.json
