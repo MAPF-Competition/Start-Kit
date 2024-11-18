@@ -62,6 +62,24 @@ In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which
 
 The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
 
+⚠️ Note that, the default planner is an anytime algorithm, meaning the time it has to compute a solution directly impacts the quality of that solution. If insufficient time is allocated, the planner tends to act as vanilla PIBT, which returns less efficient actions. If you are a scheduler track participant, it is suggested that your `schedule_plan()` returns as soon as possible or been paralleled the scheduler computation with planner computation.
+
+### Timing parameters for default planner and scheduler
+
+At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
+
+The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
+The default planner uses the remaining time, after the scheduler returns, to compute collision-free actions.
+
+You still have some control over the timing behaviour of the default scheduler and default planner.
+File `default_planner/const.h` specifies a few parameters that control the timing of the scheduler and planner:
+- `PIBT_RUNTIME_PER_100_AGENTS` specifies how much time in ms is required for PIBT to compute collision-free actions per 100 robots. The default planner computes the end time for traffic flow assignment by subtracting PIBT action time from the time limit so that the remaining time is left for PIBT to return actions.
+- `TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE` specifies the traffic flow assignment process end time tolerance in ms. The default planner will end the traffic flow assignment phase this many milliseconds before the traffic flow assignment end time.
+- `PLANNER_TIMELIMIT_TOLERANCE` The MAPFPlanner will deduct this value from the time limit for the default planner.
+- `SCHEDULER_TIMELIMIT_TOLERANCE` The TaskScheduler will deduct this value from the time limit for the default scheduler.
+
+You are allowed to modify the values of these parameters to reduce/increase the time spent on related components.
+
 
 
 ## What to implement for each track
@@ -120,22 +138,6 @@ You need to implement your own `Entry::initialize()` and `Entry::compute()` func
 The `Entry::compute()` needs to compute the task schedule and the actions for robots. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
 If you compete in the combined track, you are allowed to modify the `Entry::compute()` function.
 
-### Timing parameters for default planner and scheduler
-
-
-At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
-
-The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
-The default planner uses the remaining time, after the scheduler returns, to compute collision-free actions.
-
-You still have some control over the timing behaviour of the default scheduler and default planner.
-File `default_planner/const.h` specifies a few parameters that control the timing of the scheduler and planner:
-- `PIBT_RUNTIME_PER_100_AGENTS` specifies how much time in ms is required for PIBT to compute collision-free actions per 100 robots. The default planner computes the end time for traffic flow assignment by subtracting PIBT action time from the time limit so that the remaining time is left for PIBT to return actions.
-- `TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE` specifies the traffic flow assignment process end time tolerance in ms. The default planner will end the traffic flow assignment phase this many milliseconds before the traffic flow assignment end time.
-- `PLANNER_TIMELIMIT_TOLERANCE` The MAPFPlanner will deduct this value from the time limit for the default planner.
-- `SCHEDULER_TIMELIMIT_TOLERANCE` The TaskScheduler will deduct this value from the time limit for the default scheduler.
-
-You are allowed to modify the values of these parameters to reduce/increase the time spent on related components.
 
 ### Unmodifiable files
 
