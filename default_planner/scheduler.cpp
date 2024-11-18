@@ -1,4 +1,6 @@
 #include "scheduler.h"
+#include <algorithm>
+#include <random>
 
 namespace DefaultPlanner{
 
@@ -27,6 +29,34 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
 
     int min_task_i, min_task_makespan, dist, c_loc, count;
     clock_t start = clock();
+
+    //random destory
+    vector<int> schedule_copy;
+    schedule_copy.reserve(env->num_of_agents);
+    for (int i=0; i<env->curr_task_schedule.size();i++){
+        if (env->curr_task_schedule[i] >=0 && env->task_pool[env->curr_task_schedule[i]].idx_next_loc == 0){
+            schedule_copy.push_back(i);
+        }
+    }
+
+    if (!schedule_copy.empty() && env->curr_timestep%10 == 0){
+        //random shuffle task_pool_copy
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(schedule_copy), std::end(schedule_copy), rng);
+        int c = 0;
+        for (auto i : schedule_copy){
+            if (c >=1)
+                break;
+            
+            free_agents.insert(i);
+            free_tasks.insert(env->curr_task_schedule[i]);
+            proposed_schedule[i] = -1;
+            c++;
+        }
+    }
+
+
+
 
     // iterate over the free agents to decide which task to assign to each of them
     std::unordered_set<int>::iterator it = free_agents.begin();
@@ -83,6 +113,8 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             it++;
         }
     }
+
+
     #ifndef NDEBUG
     cout << "Time Usage: " <<  ((float)(clock() - start))/CLOCKS_PER_SEC <<endl;
     cout << "new free agents: " << env->new_freeagents.size() << " new tasks: "<< env->new_tasks.size() <<  endl;
