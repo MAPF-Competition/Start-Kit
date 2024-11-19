@@ -3,7 +3,10 @@ Version 2.1.1 - 2024-11-18
 ----------------------------
 Fixed:
 - Bug: Solution costs counted multiple times.
-- Bug: When reassign a task to agent with smaller id, `task->agent_assigned` been reset to -1 instead of the smaller id agent.
+- Bug: When reassigning a task to an agent with a smaller id, `task->agent_assigned` will be reset to -1 instead of the smaller id agent.  
+
+Added:
+- Docs explaining the anytime behaviour of the default planner.
 
 
 Version 2.1.0 - 2024-11-15
