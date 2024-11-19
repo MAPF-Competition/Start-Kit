@@ -7,6 +7,8 @@ namespace DefaultPlanner{
 std::mt19937 mt;
 std::unordered_set<int> free_agents;
 std::unordered_set<int> free_tasks;
+std::unordered_set<int> abandoned_tasks;
+
 
 void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env)
 {
@@ -29,6 +31,14 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
 
     int min_task_i, min_task_makespan, dist, c_loc, count;
     clock_t start = clock();
+    cout<<"num abandoned tasks: "<<abandoned_tasks.size()<<endl;    
+    for(auto t_id : abandoned_tasks){
+        if (env->task_pool[t_id].agent_assigned != -1){
+            cout<<"error: "<< t_id<< " "<<env->task_pool[t_id].agent_assigned<<" is not -1"<<endl;
+            _exit(1);
+        }
+    }
+    abandoned_tasks.clear();
 
     //random destory
     vector<int> schedule_copy;
@@ -38,23 +48,6 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             schedule_copy.push_back(i);
         }
     }
-
-    if (!schedule_copy.empty() && env->curr_timestep%10 == 0){
-        //random shuffle task_pool_copy
-        auto rng = std::default_random_engine {};
-        std::shuffle(std::begin(schedule_copy), std::end(schedule_copy), rng);
-        int c = 0;
-        for (auto i : schedule_copy){
-            if (c >=1)
-                break;
-            
-            free_agents.insert(i);
-            free_tasks.insert(env->curr_task_schedule[i]);
-            proposed_schedule[i] = -1;
-            c++;
-        }
-    }
-
 
 
 
@@ -111,6 +104,29 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
         else{
             proposed_schedule[i] = -1;
             it++;
+        }
+    }
+
+    if (!schedule_copy.empty() && env->curr_timestep%10 == 0){
+        //random shuffle task_pool_copy
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(schedule_copy), std::end(schedule_copy), rng);
+        int c = 0;
+        for (auto i : schedule_copy){
+            if (c >=5)
+                break;
+            
+            free_agents.insert(i);
+            if (env->task_pool[env->curr_task_schedule[i]].agent_assigned != i){
+                cout<<"error: "<< env->curr_task_schedule[i]<< " "<<env->task_pool[env->curr_task_schedule[i]].agent_assigned<<" "<<i<<endl;
+                _exit(1);
+            }
+
+            free_tasks.insert(env->curr_task_schedule[i]);
+            abandoned_tasks.insert(env->curr_task_schedule[i]);
+            
+            proposed_schedule[i] = -1;
+            c++;
         }
     }
 
