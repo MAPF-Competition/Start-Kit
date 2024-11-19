@@ -17,22 +17,22 @@ public:
     vector<int> new_freeagents;
     vector<int> new_tasks;
 
-    list<int> check_finished_tasks(vector<State> states, int timestep);
+    list<int> check_finished_tasks(vector<State>& states, int timestep);
 
     int curr_timestep;
 
 
     // reveal new task
     void reveal_tasks(int timestep);
-    void update_tasks(vector<State> states, vector<int> assignment, int timestep);
+    void update_tasks(vector<State>& states, vector<int>& assignment, int timestep);
 
     void sync_shared_env(SharedEnvironment* env);
 
     void set_num_tasks_reveal(float num){num_tasks_reveal = num*num_of_agents;};
     void set_logger(Logger* logger){this->logger = logger;}
 
-    bool validate_task_assgnment(vector<int> assignment); // validate the task assignment
-    bool set_task_assignment( vector<int>  assignment); // set the task assignment; return true if task is valid
+    bool validate_task_assignment(vector<int>& assignment); // validate the task assignment
+    bool set_task_assignment( vector<int>&  assignment); // set the task assignment; return true if task is valid
 
     int get_number_errors() const {return schedule_errors.size();}
 
