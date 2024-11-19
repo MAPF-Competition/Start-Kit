@@ -60,9 +60,13 @@ In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls
 #### The default planner
 In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are further defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and a global heuristic table (if not initialized by the scheduler). Its `plan()` function computes collision-free actions for the current timestep.
 
-The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) (PIBT) following the optimised traffic flow. A more detailed technical report will be provided soon.
 
-
+> ⚠️ **NOTE** ⚠️, the default planner is an anytime algorithm, meaning the time it has to compute a solution directly impacts the quality of that solution. 
+When a small amount of time is allocated, the default planner behaves like vanilla PIBT. When more time is allocated, the default planner updates traffic cost and incrementally recomputes guide paths for agents to improve their arrival time.
+If you are a Scheduling Track participant, remember that the sooner your `schedule_plan()` function returns, the more time is avaliable to the default planner.
+Better plans and better schedules can both substantially influence the performance of your submission on the leaderboard. 
+How to allocate time between these two components is an important part of a successful strategy.
 
 ## What to implement for each track
 
@@ -122,8 +126,7 @@ If you compete in the combined track, you are allowed to modify the `Entry::comp
 
 ### Timing parameters for default planner and scheduler
 
-
-At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
+At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `Entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
 
 The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
 The default planner uses the remaining time, after the scheduler returns, to compute collision-free actions.
