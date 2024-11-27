@@ -8,6 +8,8 @@ std::mt19937 mt;
 std::unordered_set<int> free_agents;
 std::unordered_set<int> free_tasks;
 std::unordered_set<int> abandoned_tasks;
+std::unordered_map<int, int> reassigned_tasks;
+std::unordered_set<int> reassign_agents;
 
 
 void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env)
@@ -31,6 +33,8 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
 
     int min_task_i, min_task_makespan, dist, c_loc, count;
     clock_t start = clock();
+
+    //check correctness of abandoned tasks
     cout<<"num abandoned tasks: "<<abandoned_tasks.size()<<endl;    
     for(auto t_id : abandoned_tasks){
         if (env->task_pool[t_id].agent_assigned != -1){
@@ -40,12 +44,47 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
     }
     abandoned_tasks.clear();
 
-    //random destory
+    //check correctness of reassigned tasks
+    cout<<"num reassigned tasks: "<<reassigned_tasks.size()<<endl;
+    for(auto item : reassigned_tasks){
+        if (env->task_pool[item.first].agent_assigned != item.second){
+            cout<<"error reassign: "<< item.first<< " "<<env->task_pool[item.first].agent_assigned<<" "<<item.second<<endl;
+            _exit(1);
+        }
+
+    }
+    reassigned_tasks.clear();
+    reassign_agents.clear();
+
+
     vector<int> schedule_copy;
     schedule_copy.reserve(env->num_of_agents);
     for (int i=0; i<env->curr_task_schedule.size();i++){
         if (env->curr_task_schedule[i] >=0 && env->task_pool[env->curr_task_schedule[i]].idx_next_loc == 0){
             schedule_copy.push_back(i);
+        }
+    }
+    int c = 0;
+    //random remove some tasks
+    if (!schedule_copy.empty() && env->curr_timestep%2 == 0){
+        //random shuffle task_pool_copy
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(schedule_copy), std::end(schedule_copy), rng);
+        
+        for (c=0; c<schedule_copy.size() && c <= 5 ; c++){
+            int i = schedule_copy[c];
+
+            
+            free_agents.insert(i);
+            if (env->task_pool[env->curr_task_schedule[i]].agent_assigned != i){
+                cout<<"error agent_assigned does not match schedule: "<< env->curr_task_schedule[i]<< " "<<env->task_pool[env->curr_task_schedule[i]].agent_assigned<<" "<<i<<endl;
+                _exit(1);
+            }
+
+            free_tasks.insert(env->curr_task_schedule[i]);
+            abandoned_tasks.insert(env->curr_task_schedule[i]);
+            
+            proposed_schedule[i] = -1;
         }
     }
 
@@ -99,6 +138,12 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             proposed_schedule[i] = min_task_i;
             it = free_agents.erase(it);
             free_tasks.erase(min_task_i);
+
+            if (abandoned_tasks.find(min_task_i) != abandoned_tasks.end()){
+                abandoned_tasks.erase(min_task_i);
+                reassigned_tasks.insert({min_task_i, i});
+                reassign_agents.insert(i);
+            }
         }
         // nothing to assign
         else{
@@ -107,14 +152,16 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
         }
     }
 
-    if (!schedule_copy.empty() && env->curr_timestep%10 == 0){
+    if (!schedule_copy.empty() && env->curr_timestep%2 == 0){
         //random shuffle task_pool_copy
         auto rng = std::default_random_engine {};
         std::shuffle(std::begin(schedule_copy), std::end(schedule_copy), rng);
-        int c = 0;
-        for (auto i : schedule_copy){
-            if (c >=5)
-                break;
+        for (; c<schedule_copy.size() && c <= 10 ; c++){
+            int i = schedule_copy[c];
+
+            if (reassign_agents.find(i) != reassign_agents.end()){
+                continue;
+            }
             
             free_agents.insert(i);
             if (env->task_pool[env->curr_task_schedule[i]].agent_assigned != i){
@@ -126,7 +173,6 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             abandoned_tasks.insert(env->curr_task_schedule[i]);
             
             proposed_schedule[i] = -1;
-            c++;
         }
     }
 
