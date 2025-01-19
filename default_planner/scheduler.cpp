@@ -10,6 +10,7 @@ std::unordered_set<int> free_tasks;
 std::unordered_set<int> abandoned_tasks;
 std::unordered_map<int, int> reassigned_tasks;
 std::unordered_set<int> reassign_agents;
+std::unordered_set<int> abandon_task_agents;
 
 
 void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env)
@@ -53,6 +54,18 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
         }
 
     }
+
+    //check correctness of agents abandon their tasks and remain schedule -1
+    cout<<"num agents abandon tasks keep schedule -1: "<<abandon_task_agents.size()<<endl;
+    for(auto item : abandon_task_agents){
+        if (env->curr_task_schedule.at(item) != -1) {
+            cout<<"error on agent abandon task: "<< item<< " should have schedule -1 but get task "<<env->curr_task_schedule.at(item)<<endl;
+            _exit(1);
+        }
+
+    }
+
+    abandon_task_agents.clear();
     reassigned_tasks.clear();
     reassign_agents.clear();
 
@@ -80,6 +93,7 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
                 cout<<"error agent_assigned does not match schedule: "<< env->curr_task_schedule[i]<< " "<<env->task_pool[env->curr_task_schedule[i]].agent_assigned<<" "<<i<<endl;
                 _exit(1);
             }
+            abandon_task_agents.insert(i);
 
             free_tasks.insert(env->curr_task_schedule[i]);
             abandoned_tasks.insert(env->curr_task_schedule[i]);
@@ -100,6 +114,16 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             break;
         }
         int i = *it;
+
+        if (abandon_task_agents.find(i) != abandon_task_agents.end() && rand()%2 == 0)
+        {
+            proposed_schedule[i] = -1;
+            it++;
+            continue;
+        }
+        else if (abandon_task_agents.find(i) != abandon_task_agents.end()){
+            abandon_task_agents.erase(i);
+        }
 
         assert(env->curr_task_schedule[i] == -1);
             
