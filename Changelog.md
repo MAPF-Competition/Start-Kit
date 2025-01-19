@@ -4,6 +4,7 @@ Version 2.1.2 - 2025-01-19
 ----------------------------
 Fixed:
 - Bug: If an entry abandons an agent's task without re-assigning a new task, the task manager does not apply this abandon command.
+- Bug: Upgrade file list missing default planner files.
 
 Version 2.1.1 - 2024-11-18
 ----------------------------
