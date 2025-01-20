@@ -95,12 +95,12 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
     // then set the updated agent_assigned according to new assignments.
     for (int a = 0; a < assignment.size(); a++)
     {
+        int t_id = assignment[a];
+        current_assignment[a] = t_id;
         if (assignment[a] < 0)
         {
             continue;
         }
-        int t_id = assignment[a];
-        current_assignment[a] = t_id;
         ongoing_tasks[t_id]->agent_assigned = a;
     }
 
