@@ -1,3 +1,12 @@
+/**
+ * @file Grid.cpp 
+ * @brief Grid class for loading maps.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "Grid.h"
 #include <boost/tokenizer.hpp>
 

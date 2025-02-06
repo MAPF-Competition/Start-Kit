@@ -1,3 +1,12 @@
+/**
+ * @file Logger.cpp 
+ * @brief Implemtation of Logger class, which responsible for logging during the simulation.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "Logger.h"
 
 namespace logging = boost::log;

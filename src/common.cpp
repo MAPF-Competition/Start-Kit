@@ -1,3 +1,12 @@
+/**
+ * @file common.cpp
+ * @brief Defines utility functinos and operator overloads..
+ * 
+ * @authors Zhe Chen, Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "common.h"
 
 

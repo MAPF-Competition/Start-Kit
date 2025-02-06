@@ -1,3 +1,12 @@
+/**
+ * @file ActionModel.cpp
+ * @brief Action handling and validity checks for the system.
+ * 
+ * @authors Zhe Chen, Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "ActionModel.h"
 
 

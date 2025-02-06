@@ -1,5 +1,13 @@
+/**
+ * @file CompetitionSystem.h
+ * @brief header file for CompetitionSystem.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #pragma once
-// #include "BasicSystem.h"
 #include "SharedEnv.h"
 #include "Grid.h"
 #include "Tasks.h"

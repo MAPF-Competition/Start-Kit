@@ -1,3 +1,12 @@
+/**
+ * @file MAPFPlanner.cpp 
+ * @brief Participant interface entry for path planner in the planning track.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include <random>
 #include <Entry.h>
 

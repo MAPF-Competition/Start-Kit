@@ -1,3 +1,12 @@
+/**
+ * @file States.cpp 
+ * @brief Implementation of the stream output operators for state and path.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "States.h"
 
 

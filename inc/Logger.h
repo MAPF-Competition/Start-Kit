@@ -1,3 +1,12 @@
+/**
+ * @file Logger.h
+ * @brief header file for Logger.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #pragma once
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>

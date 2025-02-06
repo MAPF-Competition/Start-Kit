@@ -1,3 +1,12 @@
+/**
+ * @file Entry.cpp 
+ * @brief Participant interface entry for task scheduler and path planner in the combined track.
+ * 
+ * @authors Zhe Chen, Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "Entry.h"
 #include "Tasks.h"
 #include "utils.h"

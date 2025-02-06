@@ -1,3 +1,12 @@
+/**
+ * @file States.h
+ * @brief header file for States.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #pragma once
 #include "common.h"
 

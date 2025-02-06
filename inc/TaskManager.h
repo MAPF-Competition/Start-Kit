@@ -1,3 +1,12 @@
+/**
+ * @file TaskManager.h
+ * @brief header file for TaskManager.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "SharedEnv.h"
 #include "Tasks.h"
 #include "States.h"

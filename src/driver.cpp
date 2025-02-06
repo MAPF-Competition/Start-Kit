@@ -1,3 +1,12 @@
+/**
+ * @file driver.cpp 
+ * @brief Entry point for the program.
+ * 
+ * @authors Zhe Chen, Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "CompetitionSystem.h"
 #include "Evaluation.h"
 #include <boost/program_options.hpp>

@@ -1,3 +1,12 @@
+/**
+ * @file TaskManager.cpp 
+ * @brief Responsible for monitering task completion, validation and reveals during the system simulation.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "TaskManager.h"
 #include "Tasks.h"
 #include "nlohmann/json.hpp"

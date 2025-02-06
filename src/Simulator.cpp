@@ -1,3 +1,12 @@
+/**
+ * @file Simulator.cpp 
+ * @brief Implementation of simulating agent movement and synchronisation.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "Simulator.h"
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;

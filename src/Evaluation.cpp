@@ -1,3 +1,12 @@
+/**
+ * @file Evaluation.cpp 
+ * @brief Implementation of a evaluatin process when inputing a plan.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "Evaluation.h"
 
 

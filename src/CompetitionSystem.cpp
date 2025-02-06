@@ -1,3 +1,12 @@
+/**
+ * @file CompetitionSystem.cpp
+ * @brief Implementation of the system class for coodinating relevant components and simulating the actions/task assignments.
+ * 
+ * @authors Zhe Chen, Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include <cmath>
 #include "CompetitionSystem.h"
 #include <boost/tokenizer.hpp>
@@ -7,17 +16,6 @@
 #include <Logger.h>
 
 using json = nlohmann::ordered_json;
-
-
-
-
-
-
-// // This function might not work correctly with small map (w or h <=2)
-// bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
-// {
-//   return model->is_valid(prev, action);
-// }
 
 
 void BaseSystem::sync_shared_env() 

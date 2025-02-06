@@ -1,3 +1,12 @@
+/**
+ * @file TaskScheduler.cpp 
+ * @brief Participant interface entry for task scheduler in the scheduling track.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "TaskScheduler.h"
 
 #include "scheduler.h"

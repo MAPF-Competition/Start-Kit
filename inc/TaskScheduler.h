@@ -1,3 +1,12 @@
+/**
+ * @file TaskScheduler.h
+ * @brief header file for TaskScheduler.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #pragma once
 #include "Tasks.h"
 #include "SharedEnv.h"

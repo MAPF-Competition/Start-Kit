@@ -1,12 +1,17 @@
+/**
+ * @file Simulator.h
+ * @brief header file for Simulator.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "ActionModel.h"
 #include "SharedEnv.h"
 #include "States.h"
 #include "nlohmann/json.hpp"
 
-
-//simulator is use for simulating the moves and store the current states
-//has function (1) simulate move (based on the given actions and current states)
-//             (2) sync share env?
 
 class Simulator
 {

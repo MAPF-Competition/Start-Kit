@@ -1,3 +1,12 @@
+/**
+ * @file Entry.h
+ * @brief header file for Entry.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #pragma once
 #include <ctime>
 #include "SharedEnv.h"

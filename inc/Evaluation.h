@@ -1,3 +1,12 @@
+/**
+ * @file Evaluation.h
+ * @brief header file for Evaluation.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #pragma once
 #include "MAPFPlanner.h"
 
