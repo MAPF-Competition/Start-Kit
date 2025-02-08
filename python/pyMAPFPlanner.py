@@ -1,3 +1,6 @@
+# Description: This is a sample python planner for the MAPF problem."""
+# Author: [Teng Guo]
+
 import MAPF
 
 from typing import Dict, List, Tuple,Set

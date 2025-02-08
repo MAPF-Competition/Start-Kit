@@ -1,3 +1,12 @@
+/**
+ * @file MAPFbinding.cpp
+ * @brief header file for ActionModel.cpp.
+ * 
+ * @authors Teng Guo
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>

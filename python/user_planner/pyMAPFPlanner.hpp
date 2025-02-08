@@ -1,3 +1,11 @@
+/**
+ * @file pyMAPFPlanner.hpp
+ * @brief header file for pyMAPFPlanner
+ * 
+ * @authors Teng Guo
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #pragma once
 
 #include <pybind11/pybind11.h>

@@ -1,3 +1,12 @@
+/**
+ * @file Memory.h
+ * @brief header file for memory pool
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #ifndef memory_h
 #define memory_h
 

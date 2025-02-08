@@ -1,4 +1,11 @@
-
+/**
+ * @file utils.h
+ * @brief header file for utility functions
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef utils_hpp
 #define utils_hpp
 

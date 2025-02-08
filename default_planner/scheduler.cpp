@@ -1,3 +1,12 @@
+/**
+ * @file scheduler.h
+ * @brief header file for scheduler
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "scheduler.h"
 
 namespace DefaultPlanner{

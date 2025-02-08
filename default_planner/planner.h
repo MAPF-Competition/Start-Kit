@@ -1,3 +1,11 @@
+/**
+ * @file planner.h
+ * @brief header file for planner 
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef PLANNER
 #define PLANNER
 

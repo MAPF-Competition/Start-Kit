@@ -1,3 +1,11 @@
+/**
+ * @file PYEntry.hpp
+ * @brief header file for PyEntry
+ * 
+ * @authors Teng Guo
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #pragma once
 
 #include <pybind11/pybind11.h>

@@ -1,4 +1,11 @@
-
+/**
+ * @file    heuristics.h
+ * @brief  header file for heuristics functions
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef heuristics_hpp
 #define heuristics_hpp
 

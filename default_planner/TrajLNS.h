@@ -1,3 +1,11 @@
+/**
+ * @file TrajLNS.h
+ * @brief header file for TrajLNS
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef TRAJ_LNS_H
 #define TRAJ_LNS_H
 

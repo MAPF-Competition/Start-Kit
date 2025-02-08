@@ -1,4 +1,11 @@
-
+/**
+ * @file pipt.cpp
+ * @brief Implementation of the PIBT 
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 
 
 #include "pibt.h"

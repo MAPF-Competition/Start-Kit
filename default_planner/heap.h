@@ -1,3 +1,12 @@
+/**
+ * @file ActionModel.h
+ * @brief header file for ActionModel.cpp.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #ifndef WARTHOG_PQUEUE_H
 #define WARTHOG_PQUEUE_H
 

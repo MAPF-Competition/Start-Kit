@@ -1,4 +1,11 @@
-
+/**
+ * @file search.h
+ * @brief header file for search functions
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef search_hpp
 #define search_hpp
 

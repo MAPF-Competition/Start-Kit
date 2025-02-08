@@ -1,4 +1,11 @@
-
+/**
+ * @file heuristics.cpp
+ * @brief Implementation of the heuristics functions.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #include "heuristics.h"
 #include <queue>
 

@@ -1,3 +1,12 @@
+/**
+ * @file search_node.h
+ * @brief header file for search node
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #ifndef SEARCH_NODE_H
 #define SEARCH_NODE_H
 

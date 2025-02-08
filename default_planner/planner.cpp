@@ -1,3 +1,12 @@
+/**
+ * @file planner.cpp
+ * @brief Implementation of the default planner
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
+
 #include "planner.h"
 #include "heuristics.h"
 #include "SharedEnv.h"

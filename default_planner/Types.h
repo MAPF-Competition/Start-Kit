@@ -1,3 +1,11 @@
+/**
+ * @file Types.h
+ * @brief header file for default planner types
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #pragma once
 #include <limits.h>
 

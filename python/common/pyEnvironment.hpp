@@ -1,3 +1,12 @@
+
+/**
+ * @file pyEnvironment.hpp
+ * @brief header file for pyEnvironment
+ * 
+ * @authors Teng Guo
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #pragma once
 
 

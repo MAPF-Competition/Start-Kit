@@ -1,5 +1,12 @@
 
-
+/**
+ * @file flow.cpp
+ * @brief Implementation of the flow functions.
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #include "flow.h"
 
 

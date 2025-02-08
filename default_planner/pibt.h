@@ -1,4 +1,11 @@
-
+/**
+ * @file pibt.h
+ * @brief header file for PIBT functions
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef pibt_hpp
 #define pibt_hpp
 

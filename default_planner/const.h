@@ -1,4 +1,12 @@
 
+/**
+ * @file const.h
+ * @brief header file for default planner constants
+ * 
+ * @authors Zhe Chen Han Zhang, Yue Zhang
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #ifndef CONST_H
 #define CONST_H
 namespace DefaultPlanner
