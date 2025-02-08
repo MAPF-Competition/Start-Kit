@@ -1,3 +1,11 @@
+/**
+ * @file pyTaskScheduler.hpp
+ * @brief header file for pyTaskScheduler
+ *  
+ * @authors Teng Guo
+ * 
+ * @note All authors contributed equally to this work.
+ */
 #pragma once
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
