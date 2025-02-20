@@ -1,6 +1,11 @@
-# Description: This is a sample python planner for the MAPF problem."""
-# Author: [Teng Guo]
+"""
+@file pyTaskScheduler.py
+@brief Python implementation of a task scheduler for MAPF.
 
+@authors Teng Guo
+
+@note All authors contributed equally to this work.
+"""
 import MAPF
 import numpy
 from typing import Dict, List, Tuple,Set

@@ -1,11 +1,11 @@
-/**
- * @file pyMAPFPlanner.cpp
- * @brief header file for pyMAPFPlanner
- * 
- * @authors Teng Guo
- * 
- * @note All authors contributed equally to this work.
- */
+"""
+@file pyTaskScheduler.py
+@brief Python implementation of a task scheduler for MAPF.
+
+@authors Teng Guo
+
+@note All authors contributed equally to this work.
+"""
 
 #include"pyMAPFPlanner.hpp"
 #include <unistd.h>

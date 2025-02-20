@@ -1,5 +1,13 @@
-# Description: This is a sample python planner for the MAPF problem."""
-# Author: [Teng Guo]
+"""
+@file pyTaskScheduler.py
+@brief A sample Python planner for the MAPF problem.
+
+@description This is a sample Python planner for the Multi-Agent Path Finding (MAPF) problem.
+
+@authors Teng Guo
+
+@note All authors contributed equally to this work.
+"""
 
 import MAPF
 

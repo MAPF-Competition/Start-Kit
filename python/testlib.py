@@ -1,3 +1,13 @@
+"""
+@file testlib.py
+@brief test the pytorch library
+
+@description test the pytorch library
+
+@authors Teng Guo
+
+@note All authors contributed equally to this work.
+"""
 import torch
 
 
