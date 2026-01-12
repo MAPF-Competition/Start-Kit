@@ -29,7 +29,6 @@ bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> &
     unordered_map<int, int> vertex_occupied;
     unordered_map<pair<int, int>, int> edge_occupied;
     //TODO: The agents need to be moved to their actual locations by the counter/maxCounter then do the collision checking physically. The agents are treated as sqaures so a bounding box collision checking is needed.
-
     for (int i = 0; i < prev.size(); i ++) 
     {
         
