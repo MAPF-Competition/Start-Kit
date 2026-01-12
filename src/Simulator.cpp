@@ -2,13 +2,25 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;
 
-vector<State> Simulator::move(vector<Action>& actions) 
+vector<State> Simulator::process_new_plan(int sync_time_limit, vector<Action>& plan) 
 {
-    //bool move_valid = true;
+    //call executor to process the new plan and get staged actions
+    std::cout<<"call"<<std::endl;
+    auto states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
+    std::cout<<"returned"<<std::endl;
+    return states;
+}
+
+vector<State> Simulator::move(vector<Action>& actions) //move one single 100ms step 
+{
+    //first call executor to get next execution command for each agent based on current state and staged actions
+    std::vector<ExecutionCommand> agent_command;
+    // reserve space for the executor to write commands
+    agent_command.resize(num_of_agents);
+    executor->next_command(100, curr_states, staged_actions, agent_command);
+
     for (int k = 0; k < num_of_agents; k++)
-    {
-        //move_valid = false;
-        all_valid = false;
+    {    
         if (k >= actions.size()){
             planner_movements[k].push_back(Action::NA);
         }
@@ -18,10 +30,33 @@ vector<State> Simulator::move(vector<Action>& actions)
         }
     }
 
+    //execute the actions based on the execution command
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        if (agent_command[i] == ExecutionCommand::GO)
+        {
+            if (staged_actions[i].empty())
+            {
+                actions[i] = Action::W;
+            }
+            else
+            {
+                actions[i] = staged_actions[i].front();
+            }
+        }
+        else //STOP
+        {
+            actions[i] = Action::W;
+        }
+    }
+
+    //validate the actions with delays
+    validate_actions_with_delay(actions);
+
+    //validate the action with agent models
     if (!model->is_valid(curr_states, actions,timestep))
     {
-        //move_valid = false;
-        all_valid = false;
+       
         actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
@@ -32,14 +67,27 @@ vector<State> Simulator::move(vector<Action>& actions)
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
-    //return move_valid;
+    
     return curr_states;
+}
+
+void Simulator::validate_actions_with_delay(vector<Action>& actions) 
+{
+    //currently no delay model
+    return;
 }
 
 void Simulator::sync_shared_env(SharedEnvironment* env) 
 {
+    // update the shared environment with simulator's current state
     env->curr_states = curr_states;
     env->curr_timestep = timestep;
+
+    // make sure executor uses the same shared environment
+    if (executor != nullptr)
+    {
+        executor->env = env;
+    }
 }
 
 json Simulator::actual_path_to_json() const

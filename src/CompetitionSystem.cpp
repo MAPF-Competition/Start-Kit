@@ -36,11 +36,11 @@ void BaseSystem::sync_shared_env()
                 env->new_freeagents.push_back(i);
             }
         }
-        //update proposed action to all wait
-        proposed_actions.clear();
-        proposed_actions.resize(num_of_agents, Action::W);
-        //update proposed schedule to previous assignment
-        proposed_schedule = env->curr_task_schedule;
+        // //update proposed action to all wait
+        // proposed_actions.clear();
+        // proposed_actions.resize(num_of_agents, Action::W);
+        // //update proposed schedule to previous assignment
+        // proposed_schedule = env->curr_task_schedule;
         
     }
     else
@@ -139,10 +139,10 @@ void BaseSystem::simulate(int simulation_time)
 
     vector<Action> all_wait_actions(num_of_agents, Action::NA);
 
+    sync_shared_env();
+
     for (; simulator.get_curr_timestep() < simulation_time; )
     {
-        // find a plan
-        sync_shared_env();
 
         auto start = std::chrono::steady_clock::now();
 
@@ -152,35 +152,50 @@ void BaseSystem::simulate(int simulation_time)
 
         auto end = std::chrono::steady_clock::now();
 
-        for (int i = 0 ; i< timeout_timesteps; i ++){
-            simulator.move(all_wait_actions);
-            for (int a = 0; a < num_of_agents; a++)
-                {
-                    if (!env->goal_locations[a].empty())
-                        solution_costs[a]++;
-                }
-        }
+        // for (int i = 0 ; i< timeout_timesteps; i ++)
+        // {
+        //     simulator.move(all_wait_actions);
+        //     for (int a = 0; a < num_of_agents; a++)
+        //         {
+        //             if (!env->goal_locations[a].empty())
+        //                 solution_costs[a]++;
+        //         }
+        // }
 
-        total_timetous+=timeout_timesteps;
+        // total_timetous+=timeout_timesteps;
 
-        if (simulator.get_curr_timestep() >= simulation_time){
+        // if (simulator.get_curr_timestep() >= simulation_time){
 
-            auto diff = end-start;
-            planner_times.push_back(std::chrono::duration<double>(diff).count());
-            break;
-        }
+        //     auto diff = end-start;
+        //     planner_times.push_back(std::chrono::duration<double>(diff).count());
+        //     break;
+        // }
 
-        for (int a = 0; a < num_of_agents; a++)
-        {
-            if (!env->goal_locations[a].empty())
-                solution_costs[a]++;
-        }
+        // for (int a = 0; a < num_of_agents; a++)
+        // {
+        //     if (!env->goal_locations[a].empty())
+        //         solution_costs[a]++;
+        // }
+
+
+        sync_shared_env();
+        env->curr_task_schedule = proposed_schedule; //temp use
+        env->curr_states = simulator.process_new_plan(100,proposed_actions); //temp use
 
         // move drives
-        vector<State> curr_states = simulator.move(proposed_actions);
-        int timestep = simulator.get_curr_timestep();
-        // agents do not move
+        vector<State> curr_states = simulator.get_current_state();
+        int start_move_time = 0; //in ms
+        int min_comm_time = 100; //in ms
+        while (start_move_time < min_comm_time)
+        {
+            curr_states = simulator.move(proposed_actions);
+            start_move_time += 100;
+        }
 
+        //to do: if planner does not return, keep moving with previous plan
+
+
+        int timestep = simulator.get_curr_timestep();
 
         auto diff = end-start;
         planner_times.push_back(std::chrono::duration<double>(diff).count());

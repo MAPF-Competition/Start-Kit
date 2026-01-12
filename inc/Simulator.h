@@ -1,6 +1,7 @@
 #include "ActionModel.h"
 #include "SharedEnv.h"
 #include "States.h"
+#include "Executor.h"
 #include "nlohmann/json.hpp"
 
 
@@ -11,8 +12,8 @@
 class Simulator
 {
 public:
-    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model):
-        map(grid), model(model)
+    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr):
+        map(grid), model(model), executor(executor)
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
@@ -32,9 +33,29 @@ public:
 
         actual_movements.resize(num_of_agents);
         planner_movements.resize(num_of_agents);
+        // prepare staged actions container for each agent
+        staged_actions.resize(num_of_agents);
+
+        // if no executor provided, create a default one (its env will be set later via sync_shared_env)
+        if (this->executor == nullptr)
+        {
+            this->executor = new Executor();
+        }
     }
 
+    virtual ~Simulator()
+    {
+        if (executor != nullptr)
+        {
+            delete executor;
+        }
+    };
+
+    vector<State> process_new_plan(int sync_time_limit, vector<Action>& plan);
+
     vector<State> move(vector<Action>& next_actions);
+
+    void validate_actions_with_delay(vector<Action>& actions);
 
     //void sync_shared_env(SharedEnvironment* env);
 
@@ -61,6 +82,8 @@ private:
 
     ActionModelWithRotate* model;
 
+    Executor* executor;
+
 
     // #timesteps for simulation
     int timestep = 0;
@@ -74,6 +97,8 @@ private:
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;
+
+    vector<vector<Action>> staged_actions;
 
     bool all_valid = true;
     

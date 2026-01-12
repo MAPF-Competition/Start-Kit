@@ -16,9 +16,9 @@ class BaseSystem
 public:
     Logger* logger = nullptr;
 
-	BaseSystem(Grid &grid, Entry* planner, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model):
+	BaseSystem(Grid &grid, Entry* planner, Executor* executor, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model):
       map(grid), planner(planner), env(planner->env),
-      task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model)
+      task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor)
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
