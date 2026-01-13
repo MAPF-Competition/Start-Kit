@@ -28,11 +28,12 @@ public:
 
     };
 
-    bool is_valid(vector<State>& prev, const vector<Action> & action, int timestep);
+    bool is_valid(const vector<State>& prev, const vector<Action> & action, int timestep);
     void set_logger(Logger* logger){this->logger = logger;}
 
-    vector<State> result_states(vector<State>& prev, const vector<Action> & action);
-
+    vector<State> result_states(const vector<State>& prev, const vector<Action> & action);
+    list<std::tuple<std::string,int,int,int>> get_errors(){ return errors; }
+    vector<char> get_wait_agents(){ return _wait_agents; }
 
 protected:
     const Grid& grid;
@@ -41,7 +42,7 @@ protected:
     int moves[4];
     Logger* logger = nullptr;
 
-    State result_state(State & prev, Action action);
+    State result_state(const State & prev, Action action);
 
     struct RealLocation
     {
@@ -49,4 +50,7 @@ protected:
         float y;
     };
     vector<RealLocation> get_real_locations(const vector<State>& state); 
+
+private:
+    vector<char> _wait_agents;
 };

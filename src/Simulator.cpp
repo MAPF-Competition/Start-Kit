@@ -14,17 +14,30 @@ vector<State> Simulator::move(vector<Action>& actions)
         }
         else
         {
-            planner_movements[k].push_back(actions[k]);
+            if (curr_states[k].delay.inDelay() && actions[k] != Action::W){
+                //if the agent is in delay, it can only wait. 
+                planner_movements[k].push_back(Action::W);
+                //FIXME: Should we do the tick here? This depends on where we want to call the executor.
+                curr_states[k].delay.tick();
+            }
+            else
+            {
+                planner_movements[k].push_back(actions[k]);
+            }
         }
     }
 
     if (!model->is_valid(curr_states, actions,timestep))
     {
         //move_valid = false;
-        all_valid = false;
-        actions = std::vector<Action>(num_of_agents, Action::W);
-        //TODO: If the actions are invalid, then we propagate the errors to the action model to adjust the actions accordingly. Something similar to the PIBT implementation.
-        // All the agents that are involved in the invalid actions should wait.
+        auto wait_agents = model->get_wait_agents();
+        for (int k = 0; k < num_of_agents; k++)
+        {
+            if (wait_agents[k])
+            {
+                actions[k] = Action::W;
+            }
+        }
     }
 
     curr_states = model->result_states(curr_states, actions);
@@ -34,7 +47,6 @@ vector<State> Simulator::move(vector<Action>& actions)
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
-    //return move_valid;
     return curr_states;
 }
 

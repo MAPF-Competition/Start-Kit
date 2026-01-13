@@ -5,23 +5,22 @@ struct Delay
 {
     int minDelay;
     int maxDelay;
-    //TODO: Do we know the exact delay time?
-    int currentDelay;
+    bool currentDelay;
     int delayCounter;
-    Delay(): minDelay(-1), maxDelay(-1), currentDelay(-1), delayCounter(0) {}
+    Delay(): minDelay(-1), maxDelay(-1), currentDelay(false), delayCounter(0) {}
     void tick()
     {
         delayCounter++;
-        if (currentDelay != -1 && delayCounter > currentDelay)
+        if (currentDelay && delayCounter > maxDelay)
         {
-            currentDelay = -1;
+            currentDelay = false;
             delayCounter = 0;
         }
     }
 
     bool inDelay() const
     {
-        return currentDelay != -1;
+        return currentDelay;
     }
 
     bool operator==(const Delay& other) const{

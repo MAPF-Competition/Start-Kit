@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream &stream, const Action &action)
     return stream;
 }
 
-vector<State> ActionModelWithRotate::result_states(vector<State>& prev, const vector<Action> & action)
+vector<State> ActionModelWithRotate::result_states(const vector<State>& prev, const vector<Action> & action)
 {
         vector<State> next(prev.size());
         for (size_t i = 0 ; i < prev.size(); i ++){
@@ -25,30 +25,25 @@ vector<State> ActionModelWithRotate::result_states(vector<State>& prev, const ve
         return next;
 }
     
-State ActionModelWithRotate::result_state(State & prev, Action action)
+State ActionModelWithRotate::result_state(const State & prev, Action action)
 {
-    if (prev.delay.inDelay())
-    {
-        // If in delay, cannot perform any action other than wait
-        prev.delay.tick();
-        return State(prev.location, prev.timestep + 1, prev.orientation, prev.counter, prev.delay);
-    }
     int new_location = prev.location;
     int new_orientation = prev.orientation;
+    State next = prev;
     if (action == Action::FW)
     {
-        if(prev.counter.tick())
+        if(next.counter.tick())
             new_location = new_location += moves[prev.orientation];
     }
     else if (action == Action::CR)
     {
-        if(prev.counter.tick())
+        if(next.counter.tick())
             new_orientation = (prev.orientation + 1) % 4;
   
     }
     else if (action == Action::CCR)
     {
-        if(prev.counter.tick())
+        if(next.counter.tick())
         {
             new_orientation = (prev.orientation - 1) % 4;
             if (new_orientation == -1)
@@ -56,7 +51,7 @@ State ActionModelWithRotate::result_state(State & prev, Action action)
         }
     }
 
-    return State(new_location, prev.timestep + 1, new_orientation, prev.counter, prev.delay);
+    return next;
 }
 
 vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state)
@@ -94,10 +89,14 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
 
 bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> & actions, int timestep)
 {
-    //TODO: Return all the errors so the simulator can propagate them and adjust the new actions accordingly.
+    // clear previous errors
+    errors.clear();
+    // Track which agents must wait due to invalid actions.
+    _wait_agents.assign(prev.size(), 0);
+    const int time = prev.empty() ? (timestep + 1) : (prev[0].timestep + 1);
     if (prev.size() != actions.size())
     {
-        errors.push_back(make_tuple("incorrect vector size",-1,-1,prev[0].timestep+1));
+        errors.push_back(make_tuple("incorrect vector size",-1,-1,time));
         return false;
     }
     /* The agents need to be moved to their actual locations by the counter/maxCounter then do the collision checking physically. The agents are treated as sqaures so a bounding box collision checking is needed.
@@ -111,7 +110,7 @@ bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> &
 
     vector<State> next = result_states(prev, actions);
     vector<RealLocation> real_loc = get_real_locations(next);
-    const int time = prev.empty() ? (timestep + 1) : (prev[0].timestep + 1);
+    bool valid = true;
     unordered_map<int, vector<int>> grid_agents;
     grid_agents.reserve(next.size() * 2);
 
@@ -140,9 +139,7 @@ bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> &
     {
         unsigned long long key = pair_key(a, b);
         if (!checked_pairs.insert(key).second)
-        {
             return false;
-        }
         if (overlaps(real_loc[a], real_loc[b]))
         {
             errors.push_back(make_tuple("collision", a, b, time));
@@ -172,87 +169,122 @@ bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> &
             const int nr = r + kDr1[k];
             const int nc = c + kDc1[k];
             if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
-            {
                 continue;
-            }
             const int nloc = nr * cols + nc;
             auto it = grid_agents.find(nloc);
             if (it == grid_agents.end())
-            {
                 continue;
-            }
             for (int j : it->second)
             {
                 if (j == i)
-                {
                     continue;
-                }
                 if (check_pair(i, j))
-                {
-                    return false;
-                }
+                    valid = false;
             }
         }
 
         if (!moving_i)
-        {
             continue;
-        }
-
         for (int k = 0; k < 4; k++)
         {
             const int nr = r + kDr2[k];
             const int nc = c + kDc2[k];
             if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
-            {
                 continue;
-            }
             const int nloc = nr * cols + nc;
             auto it = grid_agents.find(nloc);
             if (it == grid_agents.end())
-            {
                 continue;
-            }
             for (int j : it->second)
             {
                 if (j == i)
-                {
                     continue;
-                }
                 const bool moving_j = (next[j].counter.maxCount > 0 && next[j].counter.count > 0);
                 if (!moving_j)
-                {
                     continue;
-                }
                 const int ori_j = next[j].orientation;
                 bool opposite = false;
                 if (kDr2[k] == 0 && kDc2[k] == 2)
-                {
                     opposite = (ori_i == 0 && ori_j == 2);
-                }
                 else if (kDr2[k] == 0 && kDc2[k] == -2)
-                {
                     opposite = (ori_i == 2 && ori_j == 0);
-                }
                 else if (kDr2[k] == 2 && kDc2[k] == 0)
-                {
                     opposite = (ori_i == 1 && ori_j == 3);
-                }
                 else if (kDr2[k] == -2 && kDc2[k] == 0)
-                {
                     opposite = (ori_i == 3 && ori_j == 1);
-                }
                 if (!opposite)
-                {
                     continue;
-                }
                 if (check_pair(i, j))
+                    valid = false;
+            }
+        }
+    }
+
+    if (!errors.empty())
+    {
+        // Seed wait agents with those explicitly involved in errors.
+        for (const auto& error : errors)
+        {
+            const int a = std::get<1>(error);
+            const int b = std::get<2>(error);
+            if (a >= 0 && a < static_cast<int>(_wait_agents.size()))
+                _wait_agents[a] = 1;
+            if (b >= 0 && b < static_cast<int>(_wait_agents.size()))
+                _wait_agents[b] = 1;
+        }
+        // Build dependencies using physical overlaps instead of target grid occupancy.
+        vector<vector<int>> blocked_by(prev.size());
+        blocked_by.reserve(prev.size());
+        for (int i = 0; i < static_cast<int>(prev.size()); i++)
+        {
+            const int r = next[i].location / cols;
+            const int c = next[i].location % cols;
+            for (int k = 0; k < 9; k++)
+            {
+                const int nr = r + kDr1[k];
+                const int nc = c + kDc1[k];
+                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
+                    continue;
+                const int nloc = nr * cols + nc;
+                auto it = grid_agents.find(nloc);
+                if (it == grid_agents.end())
+                    continue;
+                for (int j : it->second)
                 {
-                    return false;
+                    if (j == i)
+                        continue;
+                    if (actions[j] != Action::FW)
+                        continue;
+                    const bool moving_j = (next[j].counter.maxCount > 0 && next[j].counter.count > 0);
+                    if (!moving_j)
+                        continue;
+                    if (overlaps(real_loc[i], real_loc[j]))
+                        blocked_by[i].push_back(j);
+                }
+            }
+        }
+        // Propagate waits along dependency chains.
+        vector<int> queue;
+        queue.reserve(prev.size());
+        for (int k = 0; k < static_cast<int>(prev.size()); k++)
+        {
+            if (_wait_agents[k])
+                queue.push_back(k);
+        }
+        size_t qidx = 0;
+        while (qidx < queue.size())
+        {
+            const int blocked = queue[qidx++];
+            for (int mover : blocked_by[blocked])
+            {
+                if (!_wait_agents[mover])
+                {
+                    _wait_agents[mover] = 1;
+                    queue.push_back(mover);
                 }
             }
         }
     }
 
-    return true;
+    return valid;
 }
