@@ -31,13 +31,7 @@ public:
     bool is_valid(vector<State>& prev, const vector<Action> & action, int timestep);
     void set_logger(Logger* logger){this->logger = logger;}
 
-    vector<State> result_states(vector<State>& prev, const vector<Action> & action){
-        vector<State> next(prev.size());
-        for (size_t i = 0 ; i < prev.size(); i ++){
-            next[i] = result_state(prev[i], action[i]);
-        }
-        return next;
-    };
+    vector<State> result_states(vector<State>& prev, const vector<Action> & action);
 
 
 protected:
@@ -47,37 +41,12 @@ protected:
     int moves[4];
     Logger* logger = nullptr;
 
-    State result_state(State & prev, Action action)
-    {
-        if (prev.delay.inDelay())
-        {
-            // If in delay, cannot perform any action other than wait
-            prev.delay.tick();
-            return State(prev.location, prev.timestep + 1, prev.orientation, prev.counter, prev.delay);
-        }
-        int new_location = prev.location;
-        int new_orientation = prev.orientation;
-        if (action == Action::FW)
-        {
-            if(prev.counter.tick())
-                new_location = new_location += moves[prev.orientation];
-        }
-        else if (action == Action::CR)
-        {
-            if(prev.counter.tick())
-                new_orientation = (prev.orientation + 1) % 4;
-      
-        }
-        else if (action == Action::CCR)
-        {
-            if(prev.counter.tick())
-            {
-                new_orientation = (prev.orientation - 1) % 4;
-                if (new_orientation == -1)
-                    new_orientation = 3;
-            }
-        }
+    State result_state(State & prev, Action action);
 
-        return State(new_location, prev.timestep + 1, new_orientation, prev.counter, prev.delay);
-    }
+    struct RealLocation
+    {
+        float x;
+        float y;
+    };
+    vector<RealLocation> get_real_locations(const vector<State>& state); 
 };
