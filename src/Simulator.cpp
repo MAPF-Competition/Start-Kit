@@ -23,6 +23,8 @@ vector<State> Simulator::move(vector<Action>& actions)
         //move_valid = false;
         all_valid = false;
         actions = std::vector<Action>(num_of_agents, Action::W);
+        //TODO: If the actions are invalid, then we propagate the errors to the action model to adjust the actions accordingly. Something similar to the PIBT implementation.
+        // All the agents that are involved in the invalid actions should wait.
     }
 
     curr_states = model->result_states(curr_states, actions);

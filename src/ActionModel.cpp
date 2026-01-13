@@ -94,6 +94,7 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
 
 bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> & actions, int timestep)
 {
+    //TODO: Return all the errors so the simulator can propagate them and adjust the new actions accordingly.
     if (prev.size() != actions.size())
     {
         errors.push_back(make_tuple("incorrect vector size",-1,-1,prev[0].timestep+1));
