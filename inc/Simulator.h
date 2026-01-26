@@ -94,6 +94,9 @@ private:
     int num_of_agents;
 
     vector<State> curr_states;
+    
+    //TODO: We need a list of delay durations for each agent. Need to populate this vector when we got the problem generator.
+    vector<int> delays;
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;

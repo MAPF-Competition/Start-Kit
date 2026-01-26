@@ -26,7 +26,16 @@ vector<State> Simulator::move(vector<Action>& actions) //move one single 100ms s
         }
         else
         {
-            planner_movements[k].push_back(actions[k]);
+            if (curr_states[k].delay.inDelay() && actions[k] != Action::W){
+                //if the agent is in delay, it can only wait. 
+                planner_movements[k].push_back(Action::W);
+                //FIXME: Should we do the tick here? This depends on where we want to call the executor.
+                curr_states[k].delay.tick();
+            }
+            else
+            {
+                planner_movements[k].push_back(actions[k]);
+            }
         }
     }
 
@@ -56,7 +65,8 @@ vector<State> Simulator::move(vector<Action>& actions) //move one single 100ms s
     //validate the action with agent models
     if (!model->is_valid(curr_states, actions,timestep))
     {
-       
+        //move_valid = false;
+        all_valid = false;
         actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
@@ -67,7 +77,7 @@ vector<State> Simulator::move(vector<Action>& actions) //move one single 100ms s
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
     }
-    
+    //return move_valid;
     return curr_states;
 }
 
