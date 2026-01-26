@@ -189,7 +189,9 @@ void BaseSystem::simulate(int simulation_time)
         while (start_move_time < min_comm_time)
         {
             curr_states = simulator.move(proposed_actions);
+            task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
             start_move_time += 100;
+
         }
 
         //to do: if planner does not return, keep moving with previous plan
@@ -200,8 +202,8 @@ void BaseSystem::simulate(int simulation_time)
         auto diff = end-start;
         planner_times.push_back(std::chrono::duration<double>(diff).count());
 
-        // update tasks
-        task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
+        // // update tasks
+        // task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
     }
 }
 
