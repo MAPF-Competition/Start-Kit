@@ -11,7 +11,7 @@ vector<State> Simulator::process_new_plan(int sync_time_limit, vector<Action>& p
     return states;
 }
 
-vector<State> Simulator::move(vector<Action>& actions) //move one single 100ms step 
+vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //move one single 100ms step 
 {
     //first call executor to get next execution command for each agent based on current state and staged actions
     std::vector<ExecutionCommand> agent_command;

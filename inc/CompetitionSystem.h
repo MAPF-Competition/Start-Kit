@@ -71,7 +71,7 @@ public:
     }
 
     void simulate(int simulation_time);
-    void plan(int & timeout_timesteps);
+    void plan(int time_limit);
     bool planner_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
@@ -98,6 +98,10 @@ protected:
     int preprocess_time_limit=10;
 
     int plan_time_limit = 3;
+
+    int initial_plan_time_limit = 3000;
+    int min_comm_time = 3000;
+    int simulator_time_limit = 100;
 
 
     vector<State> starts;

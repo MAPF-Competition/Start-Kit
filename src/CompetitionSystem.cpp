@@ -9,17 +9,6 @@
 using json = nlohmann::ordered_json;
 
 
-
-
-
-
-// // This function might not work correctly with small map (w or h <=2)
-// bool BaseSystem::valid_moves(vector<State>& prev, vector<Action>& action)
-// {
-//   return model->is_valid(prev, action);
-// }
-
-
 void BaseSystem::sync_shared_env() 
 {
     if (!started)
@@ -57,38 +46,79 @@ bool BaseSystem::planner_wrapper()
 }
 
 
-void BaseSystem::plan(int & timeout_timesteps)
+void BaseSystem::plan(int time_limit)
 {
 
     using namespace std::placeholders;
+
     int timestep = simulator.get_curr_timestep();
+
+    //previouly timeouted, check if finished
+    if (started && future.wait_for(std::chrono::microseconds(0)) != std::future_status::ready)
+    {
+        std::cout << started << "     " << (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) << std::endl;
+        if(logger)
+        {
+            logger->log_info("planner cannot run because the previous run is still running", timestep);
+        }
+
+        if (future.wait_for(std::chrono::microseconds(plan_time_limit)) == std::future_status::ready)
+        {
+            task_td.join();
+            started = false;
+            auto res = future.get();
+            logger->log_info("planner returns", timestep);
+            return;
+        }
+        logger->log_info("planner timeout", timestep);
+        return;
+    }
+
+    //launch new planning task and check if finished within time limit
 
     std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
 
-
     future = task.get_future();
-    if (task_td.joinable()){
+    if (task_td.joinable())
+    {
         task_td.join();
     }
-    env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
-
     started = true;
-
-    while (timestep + timeout_timesteps < simulation_time){
-
-        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
-            {
-                task_td.join();
-                started = false;
-                auto res = future.get();
-
-                logger->log_info("planner returns", timestep + timeout_timesteps);
-                return;
-            }
-        logger->log_info("planner timeout", timestep + timeout_timesteps);
-        timeout_timesteps += 1;
+    if (future.wait_for(std::chrono::microseconds(plan_time_limit)) == std::future_status::ready)
+    {
+        task_td.join();
+        started = false;
+        auto res = future.get();
+        logger->log_info("planner returns", timestep);
+        return;
     }
+    logger->log_info("planner timeout", timestep);
+    return;
+
+    // future = task.get_future();
+    // if (task_td.joinable()){
+    //     task_td.join();
+    // }
+    // env->plan_start_time = std::chrono::steady_clock::now();
+    // task_td = std::thread(std::move(task));
+
+    // started = true;
+
+    // while (timestep + timeout_timesteps < simulation_time){
+
+    //     if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
+    //         {
+    //             task_td.join();
+    //             started = false;
+    //             auto res = future.get();
+
+    //             logger->log_info("planner returns", timestep + timeout_timesteps);
+    //             return;
+    //         }
+    //     logger->log_info("planner timeout", timestep + timeout_timesteps);
+    //     timeout_timesteps += 1;
+    // }
 
     //
 }
@@ -131,79 +161,113 @@ void BaseSystem::log_preprocessing(bool succ)
 
 void BaseSystem::simulate(int simulation_time)
 {
-    //init logger
-    //Logger* log = new Logger();
     initialize();
 
     this->simulation_time = simulation_time;
 
-    vector<Action> all_wait_actions(num_of_agents, Action::NA);
-
     sync_shared_env();
 
-    for (; simulator.get_curr_timestep() < simulation_time; )
+    vector<State> curr_states = simulator.get_current_state();
+
+    int timestep = simulator.get_curr_timestep();
+
+    //start initial planning
+    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
+    future = task.get_future();
+    task_td = std::thread(std::move(task));
+    started = true;
+
+    if (future.wait_for(std::chrono::milliseconds(initial_plan_time_limit)) == std::future_status::ready)
+    {
+        task_td.join();
+        started = false;
+        auto res = future.get();
+        logger->log_info("planner returns", timestep);
+    }
+    else
+    {
+        logger->log_info("planner timeout", timestep);
+    }
+
+    //initial planning timeout
+    while (started)
+    {
+        //wait for initial planning to finish and at the same time move all wait
+        logger->log_info("planner cannot run because the previous run is still running", timestep);
+        auto deadline   = std::chrono::steady_clock::now() + std::chrono::microseconds(simulator_time_limit);
+        //main thread move drives by calling simulator.move
+        simulator.move(simulator_time_limit, proposed_actions);
+        auto move_end = std::chrono::steady_clock::now();
+        while(deadline < move_end)
+        {
+            //move takes more time than simulator_time_limit, extend deadline
+            deadline += std::chrono::milliseconds(simulator_time_limit);
+        }
+        // wait until deadline OR planner finishes early
+        const auto st = future.wait_until(deadline);
+
+        if (st == std::future_status::ready) 
+        {
+            task_td.join();
+            started = false;
+            auto res = future.get();
+            logger->log_info("planner returns", timestep);
+        } 
+        else 
+        {
+            logger->log_info("planner timeout", timestep);
+        }
+    }
+
+    std::chrono::steady_clock::time_point plan_start = std::chrono::steady_clock::now();
+
+    int remain_communication_time = 0;
+
+    while (simulator.get_curr_timestep() < simulation_time)
     {
 
-        auto start = std::chrono::steady_clock::now();
-
-        int timeout_timesteps = 0;
-
-        plan(timeout_timesteps);
-
-        auto end = std::chrono::steady_clock::now();
-
-        // for (int i = 0 ; i< timeout_timesteps; i ++)
-        // {
-        //     simulator.move(all_wait_actions);
-        //     for (int a = 0; a < num_of_agents; a++)
-        //         {
-        //             if (!env->goal_locations[a].empty())
-        //                 solution_costs[a]++;
-        //         }
-        // }
-
-        // total_timetous+=timeout_timesteps;
-
-        // if (simulator.get_curr_timestep() >= simulation_time){
-
-        //     auto diff = end-start;
-        //     planner_times.push_back(std::chrono::duration<double>(diff).count());
-        //     break;
-        // }
-
-        // for (int a = 0; a < num_of_agents; a++)
-        // {
-        //     if (!env->goal_locations[a].empty())
-        //         solution_costs[a]++;
-        // }
-
-
-        sync_shared_env();
-        env->curr_task_schedule = proposed_schedule; //temp use
-        env->curr_states = simulator.process_new_plan(100,proposed_actions); //temp use
-
-        // move drives
-        vector<State> curr_states = simulator.get_current_state();
-        int start_move_time = 0; //in ms
-        int min_comm_time = 100; //in ms
-        while (start_move_time < min_comm_time)
+        //check if planenr finished
+        if (remain_communication_time <= 0 && started)
         {
-            curr_states = simulator.move(proposed_actions);
-            task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
-            start_move_time += 100;
-
+            auto deadline = plan_start + std::chrono::milliseconds(min_comm_time - remain_communication_time);
+            const auto st = future.wait_until(deadline);
+            if (st == std::future_status::ready) 
+            {
+                task_td.join();
+                started = false;
+                auto res = future.get();
+                logger->log_info("planner returns", timestep);
+            } 
+            else 
+            {
+                logger->log_info("planner timeout", timestep);
+            }
         }
 
-        //to do: if planner does not return, keep moving with previous plan
+        //planner finished and min communication time reached, launch new planning
+        if (!started && remain_communication_time <= 0)
+        {
+            //process new plan in simulator
+            simulator.process_new_plan(simulator_time_limit,proposed_actions);
 
+            //launch new planning task
+            std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
+            future = task.get_future();
+            task_td = std::thread(std::move(task));
+            started = true;
+            plan_start = std::chrono::steady_clock::now();
+            remain_communication_time = min_comm_time;
+        }
 
-        int timestep = simulator.get_curr_timestep();
+        //while the planner is running, move from previous plans
+        auto move_start = std::chrono::steady_clock::now();
+        simulator.move(simulator_time_limit, proposed_actions);
+        auto move_end = std::chrono::steady_clock::now();
 
-        auto diff = end-start;
-        planner_times.push_back(std::chrono::duration<double>(diff).count());
+        int elapsed_tick = ((int)std::chrono::duration_cast<std::chrono::milliseconds>(move_end - move_start).count() + simulator_time_limit - 1) / simulator_time_limit;
+        remain_communication_time -= elapsed_tick*simulator_time_limit;
 
-        // // update tasks
-        // task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
+        task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
     }
 }
 
