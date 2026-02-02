@@ -12,15 +12,9 @@ vector<State> Simulator::process_new_plan(int sync_time_limit,int overtime_runti
     //timeout execute all wait
     while (diff > 0)
     {
-        timestep++; //all agents wait for one timestep
+        auto dummy_actions = std::vector<Action>(num_of_agents, Action::W);
+        move(overtime_runtime, dummy_actions);
         diff -= overtime_runtime;
-        for (int k = 0; k < num_of_agents; k++)
-        {
-            if (curr_states[k].delay.inDelay())
-            {
-                curr_states[k].delay.tick();
-            }
-        }
     }   
     return predict_states;
 }
@@ -49,26 +43,6 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         }
     } 
 
-    // for (int k = 0; k < num_of_agents; k++)
-    // {    
-    //     if (k >= actions.size()){
-    //         planner_movements[k].push_back(Action::NA);
-    //     }
-    //     else
-    //     {
-    //         if (curr_states[k].delay.inDelay() && actions[k] != Action::W){
-    //             //if the agent is in delay, it can only wait. 
-    //             planner_movements[k].push_back(Action::W);
-    //             //FIXME: Should we do the tick here? This depends on where we want to call the executor.
-    //             curr_states[k].delay.tick();
-    //         }
-    //         else
-    //         {
-    //             planner_movements[k].push_back(actions[k]);
-    //         }
-    //     }
-    // }
-
     //process the actions based on the execution command
     for (int i = 0; i < num_of_agents; i++)
     {
@@ -88,11 +62,6 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
             actions[i] = Action::W;
         }
     }
-    execute_actions(actions);
-}
-
-vector<State> Simulator::execute_actions(vector<Action>& actions) //execute all wait
-{
     //validate the actions with delays
     validate_actions_with_delay(actions);
 

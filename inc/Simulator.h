@@ -55,8 +55,6 @@ public:
 
     vector<State> move(int move_time_limit, vector<Action>& next_actions);
 
-    vector<State> execute_actions(vector<Action>& actions);
-
     void validate_actions_with_delay(vector<Action>& actions);
 
     //void sync_shared_env(SharedEnvironment* env);
