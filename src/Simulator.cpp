@@ -2,13 +2,27 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;
 
-vector<State> Simulator::process_new_plan(int sync_time_limit, vector<Action>& plan) 
+vector<State> Simulator::process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) 
 {
     //call executor to process the new plan and get staged actions
-    std::cout<<"call"<<std::endl;
-    auto states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
-    std::cout<<"returned"<<std::endl;
-    return states;
+    auto process_start = std::chrono::steady_clock::now();
+    auto predict_states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
+    auto process_end = std::chrono::steady_clock::now();
+    int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - overtime_runtime;
+    //timeout execute all wait
+    while (diff > 0)
+    {
+        timestep++; //all agents wait for one timestep
+        diff -= overtime_runtime;
+        for (int k = 0; k < num_of_agents; k++)
+        {
+            if (curr_states[k].delay.inDelay())
+            {
+                curr_states[k].delay.tick();
+            }
+        }
+    }   
+    return predict_states;
 }
 
 vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //move one single 100ms step 
@@ -17,29 +31,45 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     std::vector<ExecutionCommand> agent_command;
     // reserve space for the executor to write commands
     agent_command.resize(num_of_agents);
-    executor->next_command(100, curr_states, staged_actions, agent_command);
+    auto process_start = std::chrono::steady_clock::now();
+    executor->next_command(move_time_limit, curr_states, staged_actions, agent_command);
+    auto process_end = std::chrono::steady_clock::now();
+    int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
 
-    for (int k = 0; k < num_of_agents; k++)
-    {    
-        if (k >= actions.size()){
-            planner_movements[k].push_back(Action::NA);
-        }
-        else
+    while (diff > 0)
+    {
+        timestep++; //all agents wait for one timestep
+        diff -= move_time_limit;
+        for (int k = 0; k < num_of_agents; k++)
         {
-            if (curr_states[k].delay.inDelay() && actions[k] != Action::W){
-                //if the agent is in delay, it can only wait. 
-                planner_movements[k].push_back(Action::W);
-                //FIXME: Should we do the tick here? This depends on where we want to call the executor.
+            if (curr_states[k].delay.inDelay())
+            {
                 curr_states[k].delay.tick();
             }
-            else
-            {
-                planner_movements[k].push_back(actions[k]);
-            }
         }
-    }
+    } 
 
-    //execute the actions based on the execution command
+    // for (int k = 0; k < num_of_agents; k++)
+    // {    
+    //     if (k >= actions.size()){
+    //         planner_movements[k].push_back(Action::NA);
+    //     }
+    //     else
+    //     {
+    //         if (curr_states[k].delay.inDelay() && actions[k] != Action::W){
+    //             //if the agent is in delay, it can only wait. 
+    //             planner_movements[k].push_back(Action::W);
+    //             //FIXME: Should we do the tick here? This depends on where we want to call the executor.
+    //             curr_states[k].delay.tick();
+    //         }
+    //         else
+    //         {
+    //             planner_movements[k].push_back(actions[k]);
+    //         }
+    //     }
+    // }
+
+    //process the actions based on the execution command
     for (int i = 0; i < num_of_agents; i++)
     {
         if (agent_command[i] == ExecutionCommand::GO)
@@ -58,15 +88,17 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
             actions[i] = Action::W;
         }
     }
+    execute_actions(actions);
+}
 
+vector<State> Simulator::execute_actions(vector<Action>& actions) //execute all wait
+{
     //validate the actions with delays
     validate_actions_with_delay(actions);
 
     //validate the action with agent models
     if (!model->is_valid(curr_states, actions,timestep))
     {
-        //move_valid = false;
-        all_valid = false;
         actions = std::vector<Action>(num_of_agents, Action::W);
     }
 
@@ -83,8 +115,16 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
 
 void Simulator::validate_actions_with_delay(vector<Action>& actions) 
 {
-    //currently no delay model
-    return;
+    for (int k = 0; k < num_of_agents; k++)
+    {
+        if (curr_states[k].delay.inDelay())
+        {
+            //if the agent is in delay, it can only wait. 
+            actions[k] = Action::W;
+            //tick the delay counter
+            curr_states[k].delay.tick();
+        }
+    }
 }
 
 void Simulator::sync_shared_env(SharedEnvironment* env) 

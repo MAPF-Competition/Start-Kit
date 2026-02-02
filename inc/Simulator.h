@@ -51,9 +51,11 @@ public:
         }
     };
 
-    vector<State> process_new_plan(int sync_time_limit, vector<Action>& plan);
+    vector<State> process_new_plan(int sync_time_limit, int overtime_runtime, vector<Action>& plan);
 
     vector<State> move(int move_time_limit, vector<Action>& next_actions);
+
+    vector<State> execute_actions(vector<Action>& actions);
 
     void validate_actions_with_delay(vector<Action>& actions);
 
