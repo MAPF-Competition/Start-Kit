@@ -54,7 +54,7 @@ void BaseSystem::plan(int time_limit)
     int timestep = simulator.get_curr_timestep();
 
     //previouly timeouted, check if finished
-    if (started && future.wait_for(std::chrono::microseconds(0)) != std::future_status::ready)
+    if (started && future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
     {
         std::cout << started << "     " << (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) << std::endl;
         if(logger)
@@ -62,7 +62,7 @@ void BaseSystem::plan(int time_limit)
             logger->log_info("planner cannot run because the previous run is still running", timestep);
         }
 
-        if (future.wait_for(std::chrono::microseconds(plan_time_limit)) == std::future_status::ready)
+        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
         {
             task_td.join();
             started = false;
@@ -85,7 +85,7 @@ void BaseSystem::plan(int time_limit)
     }
     task_td = std::thread(std::move(task));
     started = true;
-    if (future.wait_for(std::chrono::microseconds(plan_time_limit)) == std::future_status::ready)
+    if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
     {
         task_td.join();
         started = false;
@@ -194,7 +194,7 @@ void BaseSystem::simulate(int simulation_time)
     {
         //wait for initial planning to finish and at the same time move all wait
         logger->log_info("planner cannot run because the previous run is still running", timestep);
-        auto deadline   = std::chrono::steady_clock::now() + std::chrono::microseconds(simulator_time_limit);
+        auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
         simulator.move(simulator_time_limit, proposed_actions);
         auto move_end = std::chrono::steady_clock::now();
@@ -225,7 +225,7 @@ void BaseSystem::simulate(int simulation_time)
 
     while (simulator.get_curr_timestep() < simulation_time)
     {
-
+        timestep = simulator.get_curr_timestep();
         //check if planenr finished
         if (remain_communication_time <= 0 && started)
         {
@@ -264,9 +264,10 @@ void BaseSystem::simulate(int simulation_time)
         simulator.move(simulator_time_limit, proposed_actions);
         auto move_end = std::chrono::steady_clock::now();
 
-        int elapsed_tick = ((int)std::chrono::duration_cast<std::chrono::milliseconds>(move_end - move_start).count() + simulator_time_limit - 1) / simulator_time_limit;
+        int elapsed_tick =std::max(1, ((int)std::chrono::duration_cast<std::chrono::milliseconds>(move_end - move_start).count() + simulator_time_limit - 1) / simulator_time_limit);
         remain_communication_time -= elapsed_tick*simulator_time_limit;
 
+        //update tasks
         task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
     }
 }
