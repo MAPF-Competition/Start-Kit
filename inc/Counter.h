@@ -5,7 +5,7 @@ struct Counter
 {
     int count;
     int maxCount;
-    Counter(): count(0), maxCount(0) {}
+    Counter(): count(0), maxCount(10) {}
     bool tick()
     {
         // Returns true if reaches maxCount and resets. The agent moves to the next location when this function returns true. Otherwise the agent is on the edge.

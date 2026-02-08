@@ -97,11 +97,12 @@ protected:
 
     int preprocess_time_limit=10;
 
-    int plan_time_limit = 3;
+    int plan_time_limit = 0;
 
-    int initial_plan_time_limit = 3000;
-    int min_comm_time = 3000;
+    int initial_plan_time_limit = 1000;
+    int min_comm_time = 1000;
     int simulator_time_limit = 100;
+    int process_new_plan_time_limit = 100;
 
 
     vector<State> starts;

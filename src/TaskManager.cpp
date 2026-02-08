@@ -124,7 +124,7 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
  */
 list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
 { 
-    list<int> finished_tasks_this_timestep; // <agent_id, task_id, timestep>
+    list<int> finished_agents_this_timestep; // task id
     new_freeagents.clear(); //prepare to push all new free agents to the shared environment
     for (int k = 0; k < num_of_agents; k++)
     {
@@ -139,7 +139,7 @@ list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
                 ongoing_tasks.erase(task->task_id);
                 task->t_completed = timestep;
 
-                finished_tasks_this_timestep.push_back(task->task_id);
+                finished_agents_this_timestep.push_back(k);
                 finished_tasks[task->agent_assigned].emplace_back(task);
                 num_of_task_finish++;
                 new_freeagents.push_back(k); // record the new free agent
@@ -149,7 +149,7 @@ list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
             events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
         }
     }
-    return finished_tasks_this_timestep;
+    return finished_agents_this_timestep;
 }
 
 /**
@@ -207,7 +207,11 @@ void TaskManager::update_tasks(vector<State>& states, vector<int>& assignment, i
 {
     curr_timestep = timestep;
     set_task_assignment(assignment);
-    check_finished_tasks(states,timestep);
+    list<int> finsihed_agents = check_finished_tasks(states,timestep);
+    for (int agent_id: finsihed_agents)
+    {
+        assignment[agent_id] = -1; //reset the assignment of finished agents
+    }
     reveal_tasks(timestep);
 }
 

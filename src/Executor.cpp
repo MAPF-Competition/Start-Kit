@@ -6,14 +6,12 @@ void Executor::initialize(int preprocess_time_limit)
 }
 vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> plan, vector<vector<Action>> & staged_actions)
 {
-    std::cout<<"start process_new_plan"<<std::endl;
     // Default implementation: always append, update the predicted states based on moves
     vector<State> curr_states = env->curr_states;
     vector<State> predicted_states(env->num_of_agents);
     int moves[4] = {1, env->cols, -1, -env->cols};
     for (int i = 0; i < plan.size(); i++)
     {
-        std::cout<<"agent "<<i<<" plan: "<<plan[i]<<std::endl;
         int new_location = curr_states[i].location;
         int new_orientation = curr_states[i].orientation;
         if (plan[i] == Action::FW)
@@ -35,9 +33,14 @@ vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> pla
         {
             staged_actions[i].push_back(plan[i]);
         }
-        std::cout<<"agent "<<i<<" predicted state: loc "<<predicted_states[i].location<<" time "<<predicted_states[i].timestep<<" ori "<<predicted_states[i].orientation<<std::endl;
+        // else
+        // {
+        //     for (int count = 0; count < 10; count++)
+        //     {
+        //         staged_actions[i].push_back(Action::W);
+        //     }
+        // }
     }
-    std::cout<<"end process_new_plan"<<std::endl;
     return predicted_states;
 }
 

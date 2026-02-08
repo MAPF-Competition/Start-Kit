@@ -51,7 +51,7 @@ public:
         }
     };
 
-    vector<State> process_new_plan(int sync_time_limit, int overtime_runtime, vector<Action>& plan);
+    void process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) ;
 
     vector<State> move(int move_time_limit, vector<Action>& next_actions);
 
@@ -94,6 +94,7 @@ private:
     int num_of_agents;
 
     vector<State> curr_states;
+    vector<State> predict_states;
     
     //TODO: We need a list of delay durations for each agent. Need to populate this vector when we got the problem generator.
     vector<int> delays;

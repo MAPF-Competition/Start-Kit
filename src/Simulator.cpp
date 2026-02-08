@@ -2,10 +2,11 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;
 
-vector<State> Simulator::process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) 
+void Simulator::process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) 
 {
     //call executor to process the new plan and get staged actions
     auto process_start = std::chrono::steady_clock::now();
+    //todo: change plan to vector<vector<Action>>
     auto predict_states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - overtime_runtime;
@@ -16,7 +17,6 @@ vector<State> Simulator::process_new_plan(int sync_time_limit,int overtime_runti
         move(overtime_runtime, dummy_actions);
         diff -= overtime_runtime;
     }   
-    return predict_states;
 }
 
 vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //move one single 100ms step 
@@ -74,9 +74,27 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     curr_states = model->result_states(curr_states, actions);
     timestep++;
 
-    for (int k = 0; k < num_of_agents; k++){
+    //clear staged actions if the action is executed (either wait or the actual action) and update the staged actions for the next tick
+    for (int k = 0; k < num_of_agents; k++)
+    {
+        //record the actual path and actions
         paths[k].push_back(curr_states[k]);
         actual_movements[k].push_back(actions[k]);
+
+        if (staged_actions[k].empty())
+        {
+            continue;
+        }
+        //staged action is wait and the agent actually wait
+        if (staged_actions[k].front() == Action::W && actions[k] == Action::W) //staged action is wait and the agent actually wait
+        {
+            staged_actions[k].erase(staged_actions[k].begin());
+        }
+         //staged action is the same as actual action and the agent has finished the move (counter is 0 after the tick in result_state)
+        else if (actions[k] != Action::W && staged_actions[k].front() == actions[k] && curr_states[k].counter.count == 0)
+        {
+            staged_actions[k].erase(staged_actions[k].begin());
+        }
     }
     //return move_valid;
     return curr_states;
