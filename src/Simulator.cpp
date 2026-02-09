@@ -26,8 +26,11 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     std::vector<ExecutionCommand> agent_command;
     // reserve space for the executor to write commands
     agent_command.resize(num_of_agents);
+
+    simulate_delay();
+
     auto process_start = std::chrono::steady_clock::now();
-    executor->next_command(move_time_limit, curr_states, staged_actions, agent_command);
+    executor->next_command(move_time_limit, staged_actions, agent_command);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
 
@@ -101,6 +104,28 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     return curr_states;
 }
 
+void Simulator::simulate_delay()
+{
+    for (int k = 0; k < num_of_agents; k++)
+    {
+        if (!curr_states[k].delay.inDelay() && delay_event_(MT))
+        {
+            curr_states[k].delay.currentDelay = true;
+            //curr_states[k].delay.maxDelay = delay_len_(MT);
+            delays[k] = delay_len_(MT);
+            cout<<"agent "<<k<<" starts delay for "<<delays[k]<<" timesteps"<<endl;
+        }
+        else if (curr_states[k].delay.inDelay())
+        {
+            delays[k]--;
+            if (delays[k] <= 0)
+            {
+                curr_states[k].delay.currentDelay = false;
+            }
+        }
+    }
+}
+
 void Simulator::validate_actions_with_delay(vector<Action>& actions) 
 {
     for (int k = 0; k < num_of_agents; k++)
@@ -109,8 +134,6 @@ void Simulator::validate_actions_with_delay(vector<Action>& actions)
         {
             //if the agent is in delay, it can only wait. 
             actions[k] = Action::W;
-            //tick the delay counter
-            curr_states[k].delay.tick();
         }
     }
 }

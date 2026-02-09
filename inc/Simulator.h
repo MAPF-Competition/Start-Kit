@@ -35,6 +35,7 @@ public:
         planner_movements.resize(num_of_agents);
         // prepare staged actions container for each agent
         staged_actions.resize(num_of_agents);
+        delays.resize(num_of_agents, 0);
 
         // if no executor provided, create a default one (its env will be set later via sync_shared_env)
         if (this->executor == nullptr)
@@ -55,9 +56,9 @@ public:
 
     vector<State> move(int move_time_limit, vector<Action>& next_actions);
 
-    void validate_actions_with_delay(vector<Action>& actions);
+    void simulate_delay();
 
-    //void sync_shared_env(SharedEnvironment* env);
+    void validate_actions_with_delay(vector<Action>& actions);
 
     vector<State> get_current_state(){ return curr_states; }
 
@@ -88,8 +89,9 @@ public:
         MT.seed(seed); 
         this->min_delay = min_delay;
         this->max_delay = max_delay;
-        this->delay_prob = delay_prob;
-        delay_event_ = std::bernoulli_distribution(delay_prob);
+        this->delay_p = std::clamp(delay_prob, 0.0, 1.0);
+
+        delay_event_ = std::bernoulli_distribution(delay_p);
         delay_len_ = std::uniform_int_distribution<int>(min_delay, max_delay);
     }
 
@@ -111,8 +113,6 @@ private:
 
     vector<State> curr_states;
     vector<State> predict_states;
-    
-    //TODO: We need a list of delay durations for each agent. Need to populate this vector when we got the problem generator.
     vector<int> delays;
 
     vector<list<Action>> actual_movements;
@@ -123,7 +123,7 @@ private:
     // delay configurations
     std::mt19937 MT;
     int min_delay, max_delay = 0;
-    double delay_prob = 0.0;
+    double delay_p = 0.0;
     std::bernoulli_distribution delay_event_{0.0};
     std::uniform_int_distribution<int> delay_len_{0, 0};
 };

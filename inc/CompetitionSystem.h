@@ -20,8 +20,6 @@ public:
       map(grid), planner(planner), env(planner->env),
       task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor)
     {
-        simulator.set_delay_seed(0,2,5,0.1);
-
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
 
@@ -56,6 +54,11 @@ public:
     void set_logger(Logger* logger){
         this->logger = logger;
         task_manager.set_logger(logger);
+    }
+
+    void set_delay_seed(int seed, int min_delay, int max_delay, double prob_delay)
+    {
+        simulator.set_delay_seed(seed, min_delay, max_delay, prob_delay);
     }
 
     void simulate(int simulation_time);

@@ -44,10 +44,10 @@ vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> pla
     return predicted_states;
 }
 
-void Executor::next_command(int exec_time_limit, vector<State> current_state, std::vector<vector<Action>> staged_actions, std::vector<ExecutionCommand> & agent_command)
+void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> staged_actions, std::vector<ExecutionCommand> & agent_command)
 {
     // Default implementation: always GO if there are staged actions
-    for (int i = 0; i < current_state.size(); i++)
+    for (int i = 0; i < env->curr_states.size(); i++)
     {
         if (staged_actions[i].empty())
         {
