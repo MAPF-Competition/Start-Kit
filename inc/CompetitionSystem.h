@@ -20,6 +20,8 @@ public:
       map(grid), planner(planner), env(planner->env),
       task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor)
     {
+        simulator.set_delay_seed(0,2,5,0.1);
+
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
 
@@ -32,20 +34,6 @@ public:
                     }
                 starts[i] = State(start_locs[i], 0, 0);
             }
-
- //        int task_id = 0;
- // for (auto& task_location: tasks)
- //        {
- //            all_tasks.emplace_back(task_id++, task_location);
- //            task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().locations.front());
- //            //task_queue.emplace_back(task_id++, task_location);
- //        }
- //        num_of_agents = start_locs.size();
- //        starts.resize(num_of_agents);
- //        for (size_t i = 0; i < start_locs.size(); i++)
- //        {
- //            starts[i] = State(start_locs[i], 0, 0);
- //        }
     };
 
 	virtual ~BaseSystem()

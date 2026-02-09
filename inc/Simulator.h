@@ -12,7 +12,7 @@
 class Simulator
 {
 public:
-    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr):
+    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr, std::mt19937* MT = nullptr):
         map(grid), model(model), executor(executor)
     {
         num_of_agents = start_locs.size();
@@ -63,8 +63,6 @@ public:
 
     int get_curr_timestep() {return timestep;}
 
-    bool get_all_valid(){ return all_valid;}
-
     void sync_shared_env(SharedEnvironment* env);
 
     nlohmann::ordered_json actual_path_to_json() const;
@@ -76,6 +74,24 @@ public:
     nlohmann::ordered_json action_errors_to_json() const;
 
     int get_number_errors() const {return model->errors.size();}
+
+    void set_delay_seed(int seed, int min_delay = 0, int max_delay = 0, double delay_prob = 0.0) 
+    { 
+        if (min_delay < 0 || max_delay < 0 || delay_prob < 0.0 || delay_prob > 1.0)
+        {
+            throw std::invalid_argument("Invalid delay configuration: min_delay, max_delay should be non-negative and delay_prob should be in [0,1]");
+        }
+        if (max_delay < min_delay)
+        {
+            std::swap(max_delay, min_delay);
+        }
+        MT.seed(seed); 
+        this->min_delay = min_delay;
+        this->max_delay = max_delay;
+        this->delay_prob = delay_prob;
+        delay_event_ = std::bernoulli_distribution(delay_prob);
+        delay_len_ = std::uniform_int_distribution<int>(min_delay, max_delay);
+    }
 
 private:
     Grid map;
@@ -104,6 +120,10 @@ private:
 
     vector<vector<Action>> staged_actions;
 
-    bool all_valid = true;
-    
+    // delay configurations
+    std::mt19937 MT;
+    int min_delay, max_delay = 0;
+    double delay_prob = 0.0;
+    std::bernoulli_distribution delay_event_{0.0};
+    std::uniform_int_distribution<int> delay_len_{0, 0};
 };

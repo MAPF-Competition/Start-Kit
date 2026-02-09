@@ -147,7 +147,6 @@ int main(int argc, char **argv)
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-
     system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model);
 
     system_ptr->set_logger(logger);
