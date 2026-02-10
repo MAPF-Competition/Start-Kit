@@ -305,7 +305,7 @@ void BaseSystem::initialize()
         solution_costs[a] = 0;
     }
 
-    proposed_actions.resize(num_of_agents, Action::W);
+    // proposed_actions.resize(num_of_agents, Action::W);
     proposed_schedule.resize(num_of_agents, -1);
 }
 

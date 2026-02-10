@@ -1,0 +1,107 @@
+[
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/flow.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/flow.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/flow.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/heuristics.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/heuristics.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/heuristics.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/pibt.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/pibt.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/pibt.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/planner.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/planner.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/planner.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/scheduler.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/scheduler.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/scheduler.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/search.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/search.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/search.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/default_planner/utils.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/utils.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner/utils.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/ActionModel.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/ActionModel.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/ActionModel.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/CompetitionSystem.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/CompetitionSystem.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/CompetitionSystem.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/Entry.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/Entry.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/Entry.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/Evaluation.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/Evaluation.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/Evaluation.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/Executor.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/Executor.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/Executor.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/Grid.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/Grid.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/Grid.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/Logger.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/Logger.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/Logger.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/MAPFPlanner.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/MAPFPlanner.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/MAPFPlanner.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/Simulator.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/Simulator.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/Simulator.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/States.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/States.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/States.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/TaskManager.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/TaskManager.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/TaskManager.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/TaskScheduler.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/TaskScheduler.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/TaskScheduler.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/common.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/common.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/common.cpp"
+},
+{
+  "directory": "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Release-vscode",
+  "command": "/usr/bin/g++ -DBOOST_ALL_NO_LIB -DBOOST_ATOMIC_DYN_LINK -DBOOST_CHRONO_DYN_LINK -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_LOG_DYN_LINK -DBOOST_LOG_SETUP_DYN_LINK -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_REGEX_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DBOOST_THREAD_DYN_LINK -DPYTHON=0 -I/home/duo/Rutgers/ARC/LORR/Start-Kit/inc -I/home/duo/Rutgers/ARC/LORR/Start-Kit/default_planner -O3 -DNDEBUG -o CMakeFiles/lifelong.dir/src/driver.cpp.o -c /home/duo/Rutgers/ARC/LORR/Start-Kit/src/driver.cpp",
+  "file": "/home/duo/Rutgers/ARC/LORR/Start-Kit/src/driver.cpp"
+}
+]
