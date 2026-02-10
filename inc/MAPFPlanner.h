@@ -2,6 +2,7 @@
 #include <ctime>
 #include "SharedEnv.h"
 #include "ActionModel.h"
+#include "Plan.h"
 
 
 class MAPFPlanner
@@ -17,6 +18,6 @@ public:
     virtual void initialize(int preprocess_time_limit);
 
     // return next states for all agents
-    virtual void plan(int time_limit, std::vector<Action> & plan);
+    virtual void plan(int time_limit, Plan & plan);
 
 };
