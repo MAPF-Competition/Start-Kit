@@ -33,12 +33,16 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     if (action == Action::FW)
     {
         if(next.counter.tick())
+        {
             new_location = new_location += moves[prev.orientation];
+        }
     }
     else if (action == Action::CR)
     {
         if(next.counter.tick())
+        {
             new_orientation = (prev.orientation + 1) % 4;
+        }
   
     }
     else if (action == Action::CCR)
@@ -48,6 +52,7 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
             new_orientation = (prev.orientation - 1) % 4;
             if (new_orientation == -1)
                 new_orientation = 3;
+                
         }
     }
 
@@ -87,7 +92,7 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
     return locations;
 }
 
-bool ActionModelWithRotate::is_valid(vector<State>& prev, const vector<Action> & actions, int timestep)
+bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Action> & actions, int timestep)
 {
     // clear previous errors
     errors.clear();

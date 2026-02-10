@@ -26,6 +26,8 @@ public:
 
     int curr_timestep = 0;
     vector<State> curr_states;
+    vector<State> start_states;
+    vector<State> system_states;
 
     TaskPool task_pool; // task_id -> Task
     vector<int> new_tasks; // task ids of tasks that are newly revealed in the current timestep

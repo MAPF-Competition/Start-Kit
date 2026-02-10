@@ -33,20 +33,6 @@ public:
                     }
                 starts[i] = State(start_locs[i], 0, 0);
             }
-
- //        int task_id = 0;
- // for (auto& task_location: tasks)
- //        {
- //            all_tasks.emplace_back(task_id++, task_location);
- //            task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().locations.front());
- //            //task_queue.emplace_back(task_id++, task_location);
- //        }
- //        num_of_agents = start_locs.size();
- //        starts.resize(num_of_agents);
- //        for (size_t i = 0; i < start_locs.size(); i++)
- //        {
- //            starts[i] = State(start_locs[i], 0, 0);
- //        }
     };
 
 	virtual ~BaseSystem()
@@ -69,6 +55,11 @@ public:
     void set_logger(Logger* logger){
         this->logger = logger;
         task_manager.set_logger(logger);
+    }
+
+    void set_delay_seed(int seed, int min_delay, int max_delay, double prob_delay)
+    {
+        simulator.set_delay_seed(seed, min_delay, max_delay, prob_delay);
     }
 
     void simulate(int simulation_time);
@@ -98,11 +89,12 @@ protected:
 
     int preprocess_time_limit=10;
 
-    int plan_time_limit = 3;
+    int plan_time_limit = 0;
 
-    int initial_plan_time_limit = 3000;
-    int min_comm_time = 3000;
+    int initial_plan_time_limit = 1000;
+    int min_comm_time = 1000;
     int simulator_time_limit = 100;
+    int process_new_plan_time_limit = 100;
 
 
     vector<State> starts;

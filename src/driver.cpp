@@ -147,7 +147,6 @@ int main(int argc, char **argv)
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-
     system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model);
 
     system_ptr->set_logger(logger);
@@ -155,6 +154,8 @@ int main(int argc, char **argv)
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
+
+    system_ptr->set_delay_seed(read_param_json<int>(data, "delaySeed", 0), read_param_json<int>(data, "minDelay", 0), read_param_json<int>(data, "maxDelay", 0), read_param_json<double>(data, "probDelay", 0.0));
 
     signal(SIGINT, sigint_handler);
 
