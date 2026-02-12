@@ -74,7 +74,7 @@ protected:
     Grid map;
     int simulation_time;
 
-    Plan proposed_actions;
+    Plan proposed_plan;
     vector<int> proposed_schedule;
 
     int total_timetous = 0;

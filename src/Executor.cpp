@@ -4,12 +4,13 @@ void Executor::initialize(int preprocess_time_limit)
 {
     // Default implementation does nothing
 }
-vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> plan, vector<vector<Action>> & staged_actions)
+vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct, vector<vector<Action>> & staged_actions)
 {
     // Default implementation: always append, update the predicted states based on moves
     vector<State> curr_states = env->curr_states;
     vector<State> predicted_states(env->num_of_agents);
     int moves[4] = {1, env->cols, -1, -env->cols};
+    std::vector<Action> plan = plan_struct.actions;
     for (int i = 0; i < plan.size(); i++)
     {
         int new_location = curr_states[i].location;
