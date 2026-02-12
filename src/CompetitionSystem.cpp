@@ -196,7 +196,7 @@ void BaseSystem::simulate(int simulation_time)
         logger->log_info("planner cannot run because the previous run is still running", timestep);
         auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
-        simulator.move(simulator_time_limit, proposed_actions);
+        simulator.move(simulator_time_limit, proposed_plan.actions);
         auto move_end = std::chrono::steady_clock::now();
         while(deadline < move_end)
         {
@@ -249,7 +249,7 @@ void BaseSystem::simulate(int simulation_time)
         {
             //process new plan in simulator
             //TODO: fix this
-            simulator.process_new_plan(simulator_time_limit, proposed_plan);
+            simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
@@ -262,7 +262,7 @@ void BaseSystem::simulate(int simulation_time)
 
         //while the planner is running, move from previous plans
         auto move_start = std::chrono::steady_clock::now();
-        simulator.move(simulator_time_limit, proposed_actions);
+        simulator.move(simulator_time_limit, proposed_plan.actions);
         auto move_end = std::chrono::steady_clock::now();
 
         int elapsed_tick =std::max(1, ((int)std::chrono::duration_cast<std::chrono::milliseconds>(move_end - move_start).count() + simulator_time_limit - 1) / simulator_time_limit);
