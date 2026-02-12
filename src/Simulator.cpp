@@ -2,7 +2,7 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;
 
-void Simulator::process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) 
+void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) 
 {
     //call executor to process the new plan and get staged actions
     auto process_start = std::chrono::steady_clock::now();

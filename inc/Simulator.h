@@ -52,7 +52,7 @@ public:
         }
     };
 
-    void process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) ;
+    void process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) ;
 
     vector<State> move(int move_time_limit, vector<Action>& next_actions);
 
