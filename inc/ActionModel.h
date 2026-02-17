@@ -30,7 +30,7 @@ public:
 
     };
 
-    bool is_valid(const vector<State>& prev, const vector<Action> & action, int timestep);
+    vector<State> step(const vector<State>& prev, const vector<Action> & action, int timestep);
     void set_logger(Logger* logger){this->logger = logger;}
 
     vector<State> result_states(const vector<State>& prev, const vector<Action> & action);
