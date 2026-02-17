@@ -127,10 +127,10 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vecto
     unordered_set<unsigned long long> checked_pairs;
     checked_pairs.reserve(next.size() * 4);
 
-    auto overlaps = [](const RealLocation& a, const RealLocation& b) -> bool
+    const float size = _agent_size;
+    auto overlaps = [size](const RealLocation& a, const RealLocation& b) -> bool
     {
-        //TODO: the size of the agent can be changed to other values, currently it is 1*1
-        return (a.x < b.x + 1.0f && a.x + 1.0f > b.x && a.y < b.y + 1.0f && a.y + 1.0f > b.y);
+        return (a.x < b.x + size && a.x + size > b.x && a.y < b.y + size && a.y + size > b.y);
     };
 
     auto pair_key = [](int a, int b) -> unsigned long long
