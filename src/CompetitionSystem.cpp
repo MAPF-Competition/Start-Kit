@@ -127,6 +127,7 @@ void BaseSystem::plan(int time_limit)
 bool BaseSystem::planner_initialize()
 {
     //todo: add executor initialise
+    simulator.initialise_executor(preprocess_time_limit);
 
     using namespace std::placeholders;
     std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, _1));
@@ -262,6 +263,7 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         //while the planner is running, move from previous plans
+        simulator.sync_shared_env(env);
         auto move_start = std::chrono::steady_clock::now();
         simulator.move(simulator_time_limit, proposed_actions);
         auto move_end = std::chrono::steady_clock::now();
@@ -292,6 +294,8 @@ void BaseSystem::initialize()
 
     //planner initilise before knowing the first goals
     bool planner_initialize_success= planner_initialize();
+
+    
     
     log_preprocessing(planner_initialize_success);
     if (!planner_initialize_success)

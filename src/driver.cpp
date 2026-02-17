@@ -56,6 +56,11 @@ int main(int argc, char **argv)
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
+    //time per tick 
+    // max counter 
+    // initial planning time 
+    // min communication tick 
+
     if (vm.count("help"))
     {
         std::cout << desc << std::endl;

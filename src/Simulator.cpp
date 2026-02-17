@@ -2,6 +2,16 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;
 
+bool Simulator::initialise_executor(int preprocess_time_limit)
+{
+    if (executor == nullptr)
+    {
+        return false;
+    }
+    executor->initialize(preprocess_time_limit);
+    return true;
+}
+
 void Simulator::process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) 
 {
     //call executor to process the new plan and get staged actions
@@ -143,10 +153,10 @@ void Simulator::sync_shared_env(SharedEnvironment* env)
 {
     // update the shared environment with simulator's current state
     env->curr_states = predict_states;
-    // env->system_states = curr_states;
-    // env->start_states = predict_states;
+    env->system_states = curr_states;
+    env->start_states = predict_states;
     env->curr_states = curr_states;
-    env->curr_timestep = timestep;
+    env->system_timestep = timestep;
 
     // make sure executor uses the same shared environment
     if (executor != nullptr)
