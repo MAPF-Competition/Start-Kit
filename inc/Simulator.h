@@ -30,6 +30,7 @@ public:
         }
 
         curr_states = starts;
+        predict_states = starts;
 
         actual_movements.resize(num_of_agents);
         planner_movements.resize(num_of_agents);
