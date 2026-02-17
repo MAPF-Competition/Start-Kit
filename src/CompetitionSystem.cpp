@@ -9,7 +9,7 @@
 using json = nlohmann::ordered_json;
 
 
-void BaseSystem::d() 
+void BaseSystem::sync_shared_env() 
 {
     if (!started)
     {

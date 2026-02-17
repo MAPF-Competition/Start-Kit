@@ -27,12 +27,12 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     // reserve space for the executor to write commands
     agent_command.resize(num_of_agents);
 
-    simulate_delay();
-
     auto process_start = std::chrono::steady_clock::now();
     executor->next_command(move_time_limit, staged_actions, agent_command);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
+
+    simulate_delay();
 
     while (diff > 0)
     {
@@ -65,6 +65,7 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         {
             actions[i] = Action::W;
         }
+        planner_movements[i].push_back(actions[i]);
     }
     //validate the actions with delays
     validate_actions_with_delay(actions);
@@ -141,6 +142,9 @@ void Simulator::validate_actions_with_delay(vector<Action>& actions)
 void Simulator::sync_shared_env(SharedEnvironment* env) 
 {
     // update the shared environment with simulator's current state
+    env->curr_states = predict_states;
+    // env->system_states = curr_states;
+    // env->start_states = predict_states;
     env->curr_states = curr_states;
     env->curr_timestep = timestep;
 
