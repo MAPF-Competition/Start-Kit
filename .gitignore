@@ -9,3 +9,4 @@ python/tmp
 python/__pycache__
 output.json
 *-build/
+cmake-build-*/
