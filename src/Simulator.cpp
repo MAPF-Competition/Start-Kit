@@ -69,13 +69,7 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     //validate the actions with delays
     validate_actions_with_delay(actions);
 
-    //validate the action with agent models
-    if (!model->is_valid(curr_states, actions,timestep))
-    {
-        actions = std::vector<Action>(num_of_agents, Action::W);
-    }
-
-    curr_states = model->result_states(curr_states, actions);
+    curr_states = model->step(curr_states, actions,timestep);
     timestep++;
 
     //clear staged actions if the action is executed (either wait or the actual action) and update the staged actions for the next tick
