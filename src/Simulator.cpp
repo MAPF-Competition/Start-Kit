@@ -39,6 +39,10 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
 
     auto process_start = std::chrono::steady_clock::now();
     executor->next_command(move_time_limit, staged_actions, agent_command);
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        cout<<"agent "<<i<<" command "<<(agent_command[i] == ExecutionCommand::GO ? "GO" : "STOP")<<" staged action size "<<staged_actions[i].size()<<endl;
+    }
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
 
@@ -48,6 +52,7 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     {
         timestep++; //all agents wait for one timestep
         diff -= move_time_limit;
+        simulate_delay();
     } 
 
     //process the actions based on the execution command
@@ -65,6 +70,10 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
             }
         }
         else //STOP
+        {
+            actions[i] = Action::W;
+        }
+        if (curr_states[i].delay.inDelay)
         {
             actions[i] = Action::W;
         }
