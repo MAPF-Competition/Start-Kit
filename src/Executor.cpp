@@ -30,7 +30,8 @@ vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> pla
         if (plan[i] == Action::FW)
         {
             new_location = new_location + moves[curr_states[i].orientation];
-            //tpg[new_location].push_back(i);
+            tpg[new_location].push_back(i);
+            cout<<"agent "<<i<<" move from "<<curr_states[i].location<<" to "<<new_location<<" with orientation "<<curr_states[i].orientation<<endl;
         }
         else if (plan[i] == Action::CR)
         {
