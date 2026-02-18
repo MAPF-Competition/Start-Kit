@@ -15,7 +15,7 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
     if (env->system_timestep == 0)
     {
         //insert start locations to tpg
-        for (int i = 0; i < plan.size(); i++)
+        for (int i = 0; i < env->num_of_agents; i++)
         {
             tpg[env->curr_states[i].location].push_back(i);
             previous_locations[i] = env->system_states[i].location;
