@@ -25,6 +25,7 @@ public:
     vector< vector<pair<int, int> > > goal_locations;
 
     int curr_timestep = 0;
+    int system_timestep = 0;
     vector<State> curr_states;
     vector<State> start_states;
     vector<State> system_states;

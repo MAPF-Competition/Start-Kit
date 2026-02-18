@@ -30,6 +30,7 @@ public:
         }
 
         curr_states = starts;
+        predict_states = starts;
 
         actual_movements.resize(num_of_agents);
         planner_movements.resize(num_of_agents);
@@ -51,6 +52,8 @@ public:
             delete executor;
         }
     };
+
+    bool initialise_executor(int preprocess_time_limit);
 
     void process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) ;
 

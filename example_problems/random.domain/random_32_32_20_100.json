@@ -7,6 +7,6 @@
     "delaySeed": 0,
     "minDelay": 2,
     "maxDelay": 5,
-    "probDelay": 0.1,
+    "probDelay": 0.2,
     "version": "2026 LoRR"
 }
