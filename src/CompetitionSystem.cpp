@@ -252,6 +252,7 @@ void BaseSystem::simulate(int simulation_time)
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
+            sync_shared_env();
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
             future = task.get_future();
             task_td = std::thread(std::move(task));
