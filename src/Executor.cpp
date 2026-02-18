@@ -2,8 +2,8 @@
 
 void Executor::initialize(int preprocess_time_limit)
 {
-   tpg.resize(env->map.size());
-   previous_locations.resize(env->num_of_agents, -1);
+    tpg.resize(env->map.size());
+    previous_locations.resize(env->num_of_agents, -1);
 }
 
 vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> plan, vector<vector<Action>> & staged_actions)
@@ -30,7 +30,7 @@ vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> pla
         if (plan[i] == Action::FW)
         {
             new_location = new_location + moves[curr_states[i].orientation];
-            tpg[new_location].push_back(i);
+            //tpg[new_location].push_back(i);
         }
         else if (plan[i] == Action::CR)
         {
@@ -53,6 +53,18 @@ vector<State> Executor::process_new_plan(int sync_time_limit, vector<Action> pla
 
 void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> staged_actions, std::vector<ExecutionCommand> & agent_command)
 {
+    // //always go if there are staged actions
+    // for (int i = 0; i < env->curr_states.size(); i++)
+    // {
+    //     if (!staged_actions[i].empty())
+    //     {
+    //         agent_command[i] = ExecutionCommand::GO;
+    //     }
+    //     else
+    //     {
+    //         agent_command[i] = ExecutionCommand::STOP;
+    //     }
+    // }
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
     {

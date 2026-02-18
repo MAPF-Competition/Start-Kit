@@ -103,6 +103,7 @@ int main(int argc, char **argv)
         planner = new PyEntry();
 #else
         planner = new Entry();
+        executor = new Executor(planner->env);
 #endif
 #endif
 

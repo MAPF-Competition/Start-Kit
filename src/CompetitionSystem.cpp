@@ -126,8 +126,6 @@ void BaseSystem::plan(int time_limit)
 
 bool BaseSystem::planner_initialize()
 {
-    //todo: add executor initialise
-    simulator.initialise_executor(preprocess_time_limit);
 
     using namespace std::placeholders;
     std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, _1));
@@ -284,6 +282,7 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
+    cout<<"map size "<<env->map.size()<<" map rows "<<env->rows<<" map cols "<<env->cols<<endl;
 
     
     // // bool succ = load_records(); // continue simulating from the records
@@ -294,6 +293,9 @@ void BaseSystem::initialize()
 
     //planner initilise before knowing the first goals
     bool planner_initialize_success= planner_initialize();
+
+    //todo: add executor initialise
+    simulator.initialise_executor(preprocess_time_limit);
 
     
     
