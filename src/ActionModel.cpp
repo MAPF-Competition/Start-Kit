@@ -59,20 +59,22 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     return next;
 }
 
-vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state)
+vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state, const vector<Action>& actions)
 {
     vector<RealLocation> locations;
     locations.reserve(state.size());
 
-    for (const auto& s : state)
+    for (size_t i = 0; i < state.size(); i++)
     {
+        const auto& s = state[i];
         RealLocation loc;
         const int row = s.location / cols;
         const int col = s.location % cols;
         float x = static_cast<float>(col);
         float y = static_cast<float>(row);
 
-        if (s.counter.maxCount > 0 && s.counter.count > 0)
+        // Only forward motion produces translational offset; rotations keep the agent in its grid cell.
+        if (actions[i] == Action::FW && s.counter.maxCount > 0 && s.counter.count > 0)
         {
             const float frac = static_cast<float>(s.counter.count) / static_cast<float>(s.counter.maxCount);
             switch (s.orientation)
@@ -114,7 +116,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
     */
 
     vector<State> next = result_states(prev, actions);
-    vector<RealLocation> real_loc = get_real_locations(next);
+    vector<RealLocation> real_loc = get_real_locations(next, actions);
     bool valid = true;
     unordered_map<int, vector<int>> grid_agents;
     grid_agents.reserve(next.size() * 2);
