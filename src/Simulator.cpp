@@ -2,6 +2,16 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::ordered_json;
 
+bool Simulator::initialise_executor(int preprocess_time_limit)
+{
+    if (executor == nullptr)
+    {
+        return false;
+    }
+    executor->initialize(preprocess_time_limit);
+    return true;
+}
+
 void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) 
 {
     //call executor to process the new plan and get staged actions
@@ -27,17 +37,22 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     // reserve space for the executor to write commands
     agent_command.resize(num_of_agents);
 
-    simulate_delay();
-
     auto process_start = std::chrono::steady_clock::now();
     executor->next_command(move_time_limit, staged_actions, agent_command);
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        cout<<"agent "<<i<<" command "<<(agent_command[i] == ExecutionCommand::GO ? "GO" : "STOP")<<" staged action size "<<staged_actions[i].size()<<endl;
+    }
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
+
+    simulate_delay();
 
     while (diff > 0)
     {
         timestep++; //all agents wait for one timestep
         diff -= move_time_limit;
+        simulate_delay();
     } 
 
     //process the actions based on the execution command
@@ -58,6 +73,11 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         {
             actions[i] = Action::W;
         }
+        if (curr_states[i].delay.inDelay)
+        {
+            actions[i] = Action::W;
+        }
+        planner_movements[i].push_back(actions[i]);
     }
 
     curr_states = model->step(curr_states, actions,timestep);
@@ -126,8 +146,11 @@ void Simulator::validate_actions_with_delay(vector<Action>& actions)
 void Simulator::sync_shared_env(SharedEnvironment* env) 
 {
     // update the shared environment with simulator's current state
+    env->curr_states = predict_states;
+    env->system_states = curr_states;
+    env->start_states = predict_states;
     env->curr_states = curr_states;
-    env->curr_timestep = timestep;
+    env->system_timestep = timestep;
 
     // make sure executor uses the same shared environment
     if (executor != nullptr)

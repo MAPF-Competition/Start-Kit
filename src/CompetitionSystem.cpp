@@ -252,6 +252,7 @@ void BaseSystem::simulate(int simulation_time)
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
+            sync_shared_env();
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
             future = task.get_future();
             task_td = std::thread(std::move(task));
@@ -261,6 +262,7 @@ void BaseSystem::simulate(int simulation_time)
         }
 
         //while the planner is running, move from previous plans
+        simulator.sync_shared_env(env);
         auto move_start = std::chrono::steady_clock::now();
         simulator.move(simulator_time_limit, proposed_plan.actions);
         auto move_end = std::chrono::steady_clock::now();
@@ -280,6 +282,7 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
+    cout<<"map size "<<env->map.size()<<" map rows "<<env->rows<<" map cols "<<env->cols<<endl;
 
     
     // // bool succ = load_records(); // continue simulating from the records
@@ -290,6 +293,11 @@ void BaseSystem::initialize()
 
     //planner initilise before knowing the first goals
     bool planner_initialize_success= planner_initialize();
+
+    //todo: add executor initialise
+    simulator.initialise_executor(preprocess_time_limit);
+
+    
     
     log_preprocessing(planner_initialize_success);
     if (!planner_initialize_success)
