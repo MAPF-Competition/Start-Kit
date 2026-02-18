@@ -52,7 +52,7 @@ protected:
         float x;
         float y;
     };
-    vector<RealLocation> get_real_locations(const vector<State>& state); 
+    vector<RealLocation> get_real_locations(const vector<State>& state, const vector<Action>& actions); 
 
 private:
     float _agent_size;
