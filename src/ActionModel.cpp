@@ -92,7 +92,7 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
     return locations;
 }
 
-vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vector<Action> & actions, int timestep)
+vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Action> & actions, int timestep)
 {
     // clear previous errors
     errors.clear();
@@ -226,8 +226,6 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vecto
         }
     }
 
-    vector<Action> resolved_actions = actions;
-
     if (!errors.empty())
     {
         // Seed wait agents with those explicitly involved in errors.
@@ -296,10 +294,10 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vecto
         for (int i = 0; i < static_cast<int>(_wait_agents.size()); i++)
         {
             if (_wait_agents[i])
-                resolved_actions[i] = Action::W;
+                actions[i] = Action::W;
         }
 
-        next = result_states(prev, resolved_actions);
+        next = result_states(prev, actions);
     }
 
     return next;
