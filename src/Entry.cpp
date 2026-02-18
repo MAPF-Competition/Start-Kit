@@ -18,7 +18,7 @@ void Entry::initialize(int preprocess_time_limit)
 //  1. a schedule that specifies which agent complete which task.
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
-void Entry::compute(int time_limit, std::vector<Action> & plan, std::vector<int> & proposed_schedule)
+void Entry::compute(int time_limit, Plan & plan, std::vector<int> & proposed_schedule)
 {
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit,proposed_schedule);

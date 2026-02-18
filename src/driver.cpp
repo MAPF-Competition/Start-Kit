@@ -143,7 +143,13 @@ int main(int argc, char **argv)
     }
     planner->env->file_storage_path = file_storage_path;
 
-    ActionModelWithRotate *model = new ActionModelWithRotate(grid);
+    float agent_size = read_param_json<float>(data, "agentSize", 1.0f);
+    if (agent_size <= 0.0f)
+    {
+        throw std::invalid_argument("agentSize should be a positive number");
+    }
+
+    ActionModelWithRotate *model = new ActionModelWithRotate(grid, agent_size);
     model->set_logger(logger);
 
     int team_size = read_param_json<int>(data, "teamSize");

@@ -35,7 +35,7 @@ struct State
 
     bool operator == (const State& other) const
     {
-        return timestep == other.timestep && location == other.location && orientation == other.orientation && counter.count == other.counter.count && delay.currentDelay == other.delay.currentDelay;
+        return timestep == other.timestep && location == other.location && orientation == other.orientation && counter.count == other.counter.count && delay.inDelay == other.delay.inDelay;
     }
 
     bool operator != (const State& other) const

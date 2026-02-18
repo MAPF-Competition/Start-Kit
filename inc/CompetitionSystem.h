@@ -4,6 +4,7 @@
 #include "Grid.h"
 #include "Tasks.h"
 #include "ActionModel.h"
+#include "Plan.h"
 #include "Entry.h"
 #include "Logger.h"
 #include "TaskManager.h"
@@ -73,7 +74,7 @@ protected:
     Grid map;
     int simulation_time;
 
-    vector<Action> proposed_actions;
+    Plan proposed_plan;
     vector<int> proposed_schedule;
 
     int total_timetous = 0;

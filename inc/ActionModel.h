@@ -22,7 +22,8 @@ class ActionModelWithRotate
 public:
     list<std::tuple<std::string,int,int,int>> errors;
 
-    ActionModelWithRotate(Grid & grid): grid(grid), rows(grid.rows), cols(grid.cols){
+    ActionModelWithRotate(Grid & grid, float agent_size):
+        grid(grid), rows(grid.rows), cols(grid.cols), _agent_size(agent_size){
         moves[0] = 1;
         moves[1] = cols;
         moves[2] = -1;
@@ -30,7 +31,7 @@ public:
 
     };
 
-    bool is_valid(const vector<State>& prev, const vector<Action> & action, int timestep);
+    vector<State> step(const vector<State>& prev, const vector<Action> & action, int timestep);
     void set_logger(Logger* logger){this->logger = logger;}
 
     vector<State> result_states(const vector<State>& prev, const vector<Action> & action);
@@ -54,5 +55,6 @@ protected:
     vector<RealLocation> get_real_locations(const vector<State>& state); 
 
 private:
+    float _agent_size;
     vector<char> _wait_agents;
 };
