@@ -92,7 +92,7 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
     return locations;
 }
 
-bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Action> & actions, int timestep)
+vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vector<Action> & actions, int timestep)
 {
     // clear previous errors
     errors.clear();
@@ -102,7 +102,7 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
     if (prev.size() != actions.size())
     {
         errors.push_back(make_tuple("incorrect vector size",-1,-1,time));
-        return false;
+        throw std::invalid_argument("Size of state and action vectors must match.");
     }
     /* The agents need to be moved to their actual locations by the counter/maxCounter then do the collision checking physically. The agents are treated as sqaures so a bounding box collision checking is needed.
      We need a buffer to store whether the two agents have already been checked.
@@ -127,9 +127,10 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
     unordered_set<unsigned long long> checked_pairs;
     checked_pairs.reserve(next.size() * 4);
 
-    auto overlaps = [](const RealLocation& a, const RealLocation& b) -> bool
+    const float size = _agent_size;
+    auto overlaps = [size](const RealLocation& a, const RealLocation& b) -> bool
     {
-        return (a.x < b.x + 1.0f && a.x + 1.0f > b.x && a.y < b.y + 1.0f && a.y + 1.0f > b.y);
+        return (a.x < b.x + size && a.x + size > b.x && a.y < b.y + size && a.y + size > b.y);
     };
 
     auto pair_key = [](int a, int b) -> unsigned long long
@@ -225,6 +226,8 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
         }
     }
 
+    vector<Action> resolved_actions = actions;
+
     if (!errors.empty())
     {
         // Seed wait agents with those explicitly involved in errors.
@@ -289,7 +292,15 @@ bool ActionModelWithRotate::is_valid(const vector<State>& prev, const vector<Act
                 }
             }
         }
+
+        for (int i = 0; i < static_cast<int>(_wait_agents.size()); i++)
+        {
+            if (_wait_agents[i])
+                resolved_actions[i] = Action::W;
+        }
+
+        next = result_states(prev, resolved_actions);
     }
 
-    return valid;
+    return next;
 }

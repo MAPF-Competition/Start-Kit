@@ -12,7 +12,7 @@ bool Simulator::initialise_executor(int preprocess_time_limit)
     return true;
 }
 
-void Simulator::process_new_plan(int sync_time_limit,int overtime_runtime, vector<Action>& plan) 
+void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) 
 {
     //call executor to process the new plan and get staged actions
     auto process_start = std::chrono::steady_clock::now();
@@ -48,13 +48,6 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     {
         timestep++; //all agents wait for one timestep
         diff -= move_time_limit;
-        for (int k = 0; k < num_of_agents; k++)
-        {
-            if (curr_states[k].delay.inDelay())
-            {
-                curr_states[k].delay.tick();
-            }
-        }
     } 
 
     //process the actions based on the execution command
@@ -77,16 +70,8 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         }
         planner_movements[i].push_back(actions[i]);
     }
-    //validate the actions with delays
-    validate_actions_with_delay(actions);
 
-    //validate the action with agent models
-    if (!model->is_valid(curr_states, actions,timestep))
-    {
-        actions = std::vector<Action>(num_of_agents, Action::W);
-    }
-
-    curr_states = model->result_states(curr_states, actions);
+    curr_states = model->step(curr_states, actions,timestep);
     timestep++;
 
     //clear staged actions if the action is executed (either wait or the actual action) and update the staged actions for the next tick
@@ -119,19 +104,19 @@ void Simulator::simulate_delay()
 {
     for (int k = 0; k < num_of_agents; k++)
     {
-        if (!curr_states[k].delay.inDelay() && delay_event_(MT))
+        if (!curr_states[k].delay.inDelay && delay_event_(MT))
         {
-            curr_states[k].delay.currentDelay = true;
+            curr_states[k].delay.inDelay = true;
             //curr_states[k].delay.maxDelay = delay_len_(MT);
             delays[k] = delay_len_(MT);
             cout<<"agent "<<k<<" starts delay for "<<delays[k]<<" timesteps"<<endl;
         }
-        else if (curr_states[k].delay.inDelay())
+        else if (curr_states[k].delay.inDelay)
         {
             delays[k]--;
             if (delays[k] <= 0)
             {
-                curr_states[k].delay.currentDelay = false;
+                curr_states[k].delay.inDelay = false;
             }
         }
     }
@@ -141,7 +126,7 @@ void Simulator::validate_actions_with_delay(vector<Action>& actions)
 {
     for (int k = 0; k < num_of_agents; k++)
     {
-        if (curr_states[k].delay.inDelay())
+        if (curr_states[k].delay.inDelay)
         {
             //if the agent is in delay, it can only wait. 
             actions[k] = Action::W;
