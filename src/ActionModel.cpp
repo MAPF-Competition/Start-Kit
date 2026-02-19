@@ -59,20 +59,22 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     return next;
 }
 
-vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state)
+vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state, const vector<Action>& actions)
 {
     vector<RealLocation> locations;
     locations.reserve(state.size());
 
-    for (const auto& s : state)
+    for (size_t i = 0; i < state.size(); i++)
     {
+        const auto& s = state[i];
         RealLocation loc;
         const int row = s.location / cols;
         const int col = s.location % cols;
         float x = static_cast<float>(col);
         float y = static_cast<float>(row);
 
-        if (s.counter.maxCount > 0 && s.counter.count > 0)
+        // Only forward motion produces translational offset; rotations keep the agent in its grid cell.
+        if (actions[i] == Action::FW && s.counter.maxCount > 0 && s.counter.count > 0)
         {
             const float frac = static_cast<float>(s.counter.count) / static_cast<float>(s.counter.maxCount);
             switch (s.orientation)
@@ -92,7 +94,7 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
     return locations;
 }
 
-vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vector<Action> & actions, int timestep)
+vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Action> & actions, int timestep)
 {
     // clear previous errors
     errors.clear();
@@ -114,7 +116,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vecto
     */
 
     vector<State> next = result_states(prev, actions);
-    vector<RealLocation> real_loc = get_real_locations(next);
+    vector<RealLocation> real_loc = get_real_locations(next, actions);
     bool valid = true;
     unordered_map<int, vector<int>> grid_agents;
     grid_agents.reserve(next.size() * 2);
@@ -226,8 +228,6 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vecto
         }
     }
 
-    vector<Action> resolved_actions = actions;
-
     if (!errors.empty())
     {
         // Seed wait agents with those explicitly involved in errors.
@@ -296,10 +296,10 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, const vecto
         for (int i = 0; i < static_cast<int>(_wait_agents.size()); i++)
         {
             if (_wait_agents[i])
-                resolved_actions[i] = Action::W;
+                actions[i] = Action::W;
         }
 
-        next = result_states(prev, resolved_actions);
+        next = result_states(prev, actions);
     }
 
     return next;
