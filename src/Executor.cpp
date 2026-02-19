@@ -32,17 +32,14 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
         {
             new_location = new_location + moves[curr_states[i].orientation];
             tpg[new_location].push_back(i);
-            cout<<"agent "<<i<<" move from "<<curr_states[i].location<<" to "<<new_location<<" with orientation "<<curr_states[i].orientation<<endl;
         }
         else if (plan[i] == Action::CR)
         {
             new_orientation = (curr_states[i].orientation + 1) % 4;
-            cout << "agent "<<i<<" rotate from orientation "<<curr_states[i].orientation<<" to "<<new_orientation<<endl;
         }
         else if (plan[i] == Action::CCR)
         {
             new_orientation = (curr_states[i].orientation - 1) % 4;
-            cout << "agent "<<i<<" rotate from orientation "<<curr_states[i].orientation<<" to "<<new_orientation<<endl;
             if (new_orientation == -1)
                 new_orientation = 3;
         }
