@@ -12,7 +12,7 @@
 class Simulator
 {
 public:
-    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr, std::mt19937* MT = nullptr):
+    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr):
         map(grid), model(model), executor(executor)
     {
         num_of_agents = start_locs.size();
@@ -79,23 +79,35 @@ public:
 
     int get_number_errors() const {return model->errors.size();}
 
-    void set_delay_seed(int seed, int min_delay = 0, int max_delay = 0, double delay_prob = 0.0) 
-    { 
-        if (min_delay < 0 || max_delay < 0 || delay_prob < 0.0 || delay_prob > 1.0)
+    void set_delay_profile(const vector<pair<int, int>>& delay_ranges,
+                           const vector<vector<pair<int, int>>>& delay_schedule)
+    {
+        if (!delay_ranges.empty() && static_cast<int>(delay_ranges.size()) != num_of_agents)
         {
-            throw std::invalid_argument("Invalid delay configuration: min_delay, max_delay should be non-negative and delay_prob should be in [0,1]");
+            throw std::invalid_argument("Invalid delay profile: delay_ranges size must match number of agents");
         }
-        if (max_delay < min_delay)
-        {
-            std::swap(max_delay, min_delay);
-        }
-        MT.seed(seed); 
-        this->min_delay = min_delay;
-        this->max_delay = max_delay;
-        this->delay_p = std::clamp(delay_prob, 0.0, 1.0);
 
-        delay_event_ = std::bernoulli_distribution(delay_p);
-        delay_len_ = std::uniform_int_distribution<int>(min_delay, max_delay);
+        this->delay_schedule = delay_schedule;
+
+        if (!delay_ranges.empty())
+        {
+            for (int i = 0; i < num_of_agents; i++)
+            {
+                int min_d = std::max(0, delay_ranges[i].first);
+                int max_d = std::max(0, delay_ranges[i].second);
+                if (max_d < min_d)
+                {
+                    std::swap(min_d, max_d);
+                }
+
+                starts[i].delay.minDelay = min_d;
+                starts[i].delay.maxDelay = max_d;
+                curr_states[i].delay.minDelay = min_d;
+                curr_states[i].delay.maxDelay = max_d;
+                predict_states[i].delay.minDelay = min_d;
+                predict_states[i].delay.maxDelay = max_d;
+            }
+        }
     }
 
 private:
@@ -123,10 +135,5 @@ private:
 
     vector<vector<Action>> staged_actions;
 
-    // delay configurations
-    std::mt19937 MT;
-    int min_delay, max_delay = 0;
-    double delay_p = 0.0;
-    std::bernoulli_distribution delay_event_{0.0};
-    std::uniform_int_distribution<int> delay_len_{0, 0};
+    vector<vector<pair<int, int>>> delay_schedule;
 };
