@@ -29,6 +29,7 @@ include_directories("inc")
 include_directories("default_planner")
 
 file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp")
+file(GLOB DEFAULT_PLANNER_SOURCES "default_planner/*.cpp")
 
 
 # Find Boost
@@ -91,6 +92,18 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
      ${CMAKE_BINARY_DIR}/build;
      ${CMAKE_BINARY_DIR}/*.so"
 )
+
+
+option(BUILD_TESTS "Build planner tests" ON)
+if(BUILD_TESTS)
+    enable_testing()
+    add_executable(multi_step_plan_test
+        tests/multi_step_plan_test.cpp
+        ${DEFAULT_PLANNER_SOURCES}
+    )
+    target_link_libraries(multi_step_plan_test ${Boost_LIBRARIES})
+    add_test(NAME multi_step_plan_test COMMAND multi_step_plan_test)
+endif()
 
 
 
