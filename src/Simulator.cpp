@@ -39,10 +39,6 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
 
     auto process_start = std::chrono::steady_clock::now();
     executor->next_command(move_time_limit, staged_actions, agent_command);
-    for (int i = 0; i < num_of_agents; i++)
-    {
-        cout<<"agent "<<i<<" command "<<(agent_command[i] == ExecutionCommand::GO ? "GO" : "STOP")<<" staged action size "<<staged_actions[i].size()<<endl;
-    }
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
 
@@ -50,6 +46,7 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
 
     while (diff > 0)
     {
+        cout<<"time out wait"<<endl;
         timestep++; //all agents wait for one timestep
         diff -= move_time_limit;
         simulate_delay();
@@ -80,6 +77,8 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         planner_movements[i].push_back(actions[i]);
     }
 
+    auto pre_states = curr_states;
+
     curr_states = model->step(curr_states, actions,timestep);
     timestep++;
 
@@ -99,9 +98,14 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         {
             staged_actions[k].erase(staged_actions[k].begin());
         }
-         //staged action is the same as actual action and the agent has finished the move (counter is 0 after the tick in result_state)
-        else if (actions[k] != Action::W && staged_actions[k].front() == actions[k] && curr_states[k].counter.count == 0)
+        //  //staged action is the same as actual action and the agent has finished the move (counter is 0 after the tick in result_state)
+        // else if (actions[k] != Action::W && staged_actions[k].front() == actions[k] && curr_states[k].counter.count == 0)
+        // {
+        //     staged_actions[k].erase(staged_actions[k].begin());
+        // }
+        else if (pre_states[k].location != curr_states[k].location || pre_states[k].orientation != curr_states[k].orientation)
         {
+            //the agent has moved to the next location or move to next orientation, so we can remove the staged action
             staged_actions[k].erase(staged_actions[k].begin());
         }
     }
