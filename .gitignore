@@ -8,10 +8,5 @@ test.txt
 python/tmp
 python/__pycache__
 output.json
-<<<<<<< HEAD
 *-build/
 cmake-build-*/
-=======
-
-build*
->>>>>>> origin/mike_dev
