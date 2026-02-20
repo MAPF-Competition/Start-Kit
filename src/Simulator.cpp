@@ -111,16 +111,36 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
 
 void Simulator::simulate_delay()
 {
+    std::vector<bool> started_this_tick(num_of_agents, false);
+
+    if (timestep >= 0 && timestep < static_cast<int>(delay_schedule.size()))
+    {
+        for (const auto& scheduled_delay : delay_schedule[timestep])
+        {
+            int agent = scheduled_delay.first;
+            int duration = scheduled_delay.second;
+            if (agent < 0 || agent >= num_of_agents || duration <= 0)
+            {
+                continue;
+            }
+
+            if (!curr_states[agent].delay.inDelay)
+            {
+                curr_states[agent].delay.inDelay = true;
+                delays[agent] = duration;
+                started_this_tick[agent] = true;
+                cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
+            }
+            else
+            {
+                delays[agent] = std::max(delays[agent], duration);
+            }
+        }
+    }
+
     for (int k = 0; k < num_of_agents; k++)
     {
-        if (!curr_states[k].delay.inDelay && delay_event_(MT))
-        {
-            curr_states[k].delay.inDelay = true;
-            //curr_states[k].delay.maxDelay = delay_len_(MT);
-            delays[k] = delay_len_(MT);
-            cout<<"agent "<<k<<" starts delay for "<<delays[k]<<" timesteps"<<endl;
-        }
-        else if (curr_states[k].delay.inDelay)
+        if (curr_states[k].delay.inDelay && !started_this_tick[k])
         {
             delays[k]--;
             if (delays[k] <= 0)

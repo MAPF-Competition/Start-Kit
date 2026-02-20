@@ -57,9 +57,10 @@ public:
         task_manager.set_logger(logger);
     }
 
-    void set_delay_seed(int seed, int min_delay, int max_delay, double prob_delay)
+    void set_delay_profile(const vector<pair<int, int>>& delay_ranges,
+                           const vector<vector<pair<int, int>>>& delay_schedule)
     {
-        simulator.set_delay_seed(seed, min_delay, max_delay, prob_delay);
+        simulator.set_delay_profile(delay_ranges, delay_schedule);
     }
 
     void simulate(int simulation_time);
@@ -160,5 +161,3 @@ protected:
 
 // 	void update_tasks();
 // };
-
-

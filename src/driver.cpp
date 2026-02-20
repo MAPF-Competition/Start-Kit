@@ -167,7 +167,16 @@ int main(int argc, char **argv)
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
-    system_ptr->set_delay_seed(read_param_json<int>(data, "delaySeed", 0), read_param_json<int>(data, "minDelay", 0), read_param_json<int>(data, "maxDelay", 0), read_param_json<double>(data, "probDelay", 0.0));
+    auto delay_file = read_param_json<std::string>(data, "delayFile", "");
+    if (delay_file.empty())
+    {
+        logger->log_fatal("Missing required property delayFile in the input JSON", 0);
+        _exit(1);
+    }
+    std::vector<std::pair<int, int>> delay_ranges(team_size, {0, 0});
+    std::vector<std::vector<std::pair<int, int>>> delay_schedule;
+    load_delay_profile(base_folder + delay_file, team_size, delay_ranges, delay_schedule);
+    system_ptr->set_delay_profile(delay_ranges, delay_schedule);
 
     signal(SIGINT, sigint_handler);
 
