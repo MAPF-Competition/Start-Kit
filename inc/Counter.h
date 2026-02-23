@@ -13,7 +13,7 @@ struct Counter
             throw std::runtime_error("Error: Invalid maxCount value = " + std::to_string(maxCount));
         }
         count++;
-        if (count > maxCount)
+        if (count >= maxCount)
         {
             count = 0;
             return true;

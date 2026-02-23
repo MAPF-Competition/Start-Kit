@@ -21,6 +21,7 @@ public:
     vector<list<int>> tpg; //dependency graph for location visiting orders
     vector<list<int>> temp_tpg; //temporary dependency graph for current timestep, used for mcp
     vector<int> previous_locations; //record the previous locations of agents for tpg update
+    vector<State> predicted_states;
 
     bool mcp(std::vector<vector<Action>> staged_actions, int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command);
 

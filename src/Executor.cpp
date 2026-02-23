@@ -9,8 +9,14 @@ void Executor::initialize(int preprocess_time_limit)
 vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct, vector<vector<Action>> & staged_actions)
 {
     // Default implementation: always append, update the predicted states based on moves
-    vector<State> curr_states = env->system_states;
-    vector<State> predicted_states(env->num_of_agents);
+    // vector<State> curr_states = env->system_states;
+    // vector<State> predicted_states(env->num_of_agents);
+    if (predicted_states.size() != env->num_of_agents)
+    {
+        predicted_states = env->system_states;
+    }
+
+    auto curr_states = predicted_states;
 
     if (env->system_timestep == 0)
     {
@@ -32,6 +38,8 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
         {
             new_location = new_location + moves[curr_states[i].orientation];
             tpg[new_location].push_back(i);
+            if (i == 22 || i == 84)
+                cout<<"agent "<<i<<" tries to move from "<<curr_states[i].location<<" to "<<new_location<<endl;
         }
         else if (plan[i] == Action::CR)
         {
@@ -43,7 +51,12 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
             if (new_orientation == -1)
                 new_orientation = 3;
         }
-        predicted_states[i] = State(new_location, curr_states[i].timestep + 1, new_orientation);
+        // predicted_states[i] = State(new_location, curr_states[i].timestep + 1, new_orientation);
+        predicted_states[i].location = new_location;
+        predicted_states[i].orientation = new_orientation;
+        predicted_states[i].timestep+=1;
+        if (i == 22 || i == 84)
+            cout<<"predicted state for agent "<<i<<" after processing new plan: location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
         if (plan[i] != Action::NA && plan[i] != Action::W)
         {
             staged_actions[i].push_back(plan[i]);
