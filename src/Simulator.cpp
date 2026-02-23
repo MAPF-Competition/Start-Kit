@@ -70,6 +70,11 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
         {
             actions[i] = Action::W;
         }
+        if (i == 22 || i == 84)
+        {
+            cout<<"agent "<<i<<" command "<<(agent_command[i] == ExecutionCommand::GO ? "GO" : "STOP")<<" action "<<(actions[i] == Action::FW ? "FW" : (actions[i] == Action::CR ? "CR" : (actions[i] == Action::CCR ? "CCR" : (actions[i] == Action::NA ? "NA" : "W"))))<<endl;
+            cout<<"current states"<<curr_states[i].location<<" orientation "<<curr_states[i].orientation<<" counter "<<curr_states[i].counter.count<<endl;
+        }
         if (curr_states[i].delay.inDelay)
         {
             actions[i] = Action::W;
