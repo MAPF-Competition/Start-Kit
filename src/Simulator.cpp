@@ -24,12 +24,12 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
     while (diff > 0)
     {
         auto dummy_actions = std::vector<Action>(num_of_agents, Action::W);
-        move(overtime_runtime, dummy_actions);
+        move(overtime_runtime);
         diff -= overtime_runtime;
     }   
 }
 
-vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //move one single 100ms step 
+vector<State> Simulator::move(int move_time_limit) //move one single 100ms step 
 {
     cout<<"timestep "<<timestep<<endl;
     //first call executor to get next execution command for each agent based on current state and staged actions
@@ -41,6 +41,7 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     executor->next_command(move_time_limit, staged_actions, agent_command);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
+    std::vector<Action> actions(num_of_agents, Action::W); //default action is wait
 
     simulate_delay();
 

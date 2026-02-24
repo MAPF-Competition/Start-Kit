@@ -29,37 +29,39 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
     }
 
     int moves[4] = {1, env->cols, -1, -env->cols};
-    std::vector<Action> plan = plan_struct.actions;
-    for (int i = 0; i < plan.size(); i++)
-    {
-        int new_location = curr_states[i].location;
-        int new_orientation = curr_states[i].orientation;
-        if (plan[i] == Action::FW)
+    std::vector<std::vector<Action>> plan = plan_struct.actions;
+    for (int timestep = 0; timestep < plan[0].size(); timestep++){
+        for (int i = 0; i < plan.size(); i++)
         {
-            new_location = new_location + moves[curr_states[i].orientation];
-            tpg[new_location].push_back(i);
+            int new_location = curr_states[i].location;
+            int new_orientation = curr_states[i].orientation;
+            if (plan[i][timestep] == Action::FW)
+            {
+                new_location = new_location + moves[curr_states[i].orientation];
+                tpg[new_location].push_back(i);
+                if (i == 22 || i == 84)
+                    cout<<"agent "<<i<<" tries to move from "<<curr_states[i].location<<" to "<<new_location<<endl;
+            }
+            else if (plan[i][timestep] == Action::CR)
+            {
+                new_orientation = (curr_states[i].orientation + 1) % 4;
+            }
+            else if (plan[i][timestep] == Action::CCR)
+            {
+                new_orientation = (curr_states[i].orientation - 1) % 4;
+                if (new_orientation == -1)
+                    new_orientation = 3;
+            }
+            // predicted_states[i] = State(new_location, curr_states[i].timestep + 1, new_orientation);
+            predicted_states[i].location = new_location;
+            predicted_states[i].orientation = new_orientation;
+            predicted_states[i].timestep+=1;
             if (i == 22 || i == 84)
-                cout<<"agent "<<i<<" tries to move from "<<curr_states[i].location<<" to "<<new_location<<endl;
-        }
-        else if (plan[i] == Action::CR)
-        {
-            new_orientation = (curr_states[i].orientation + 1) % 4;
-        }
-        else if (plan[i] == Action::CCR)
-        {
-            new_orientation = (curr_states[i].orientation - 1) % 4;
-            if (new_orientation == -1)
-                new_orientation = 3;
-        }
-        // predicted_states[i] = State(new_location, curr_states[i].timestep + 1, new_orientation);
-        predicted_states[i].location = new_location;
-        predicted_states[i].orientation = new_orientation;
-        predicted_states[i].timestep+=1;
-        if (i == 22 || i == 84)
-            cout<<"predicted state for agent "<<i<<" after processing new plan: location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
-        if (plan[i] != Action::NA && plan[i] != Action::W)
-        {
-            staged_actions[i].push_back(plan[i]);
+                cout<<"predicted state for agent "<<i<<" after processing new plan: location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
+            if (plan[i][timestep] != Action::NA && plan[i][timestep] != Action::W)
+            {
+                staged_actions[i].push_back(plan[i][timestep]);
+            }
         }
     }
     return predicted_states;
