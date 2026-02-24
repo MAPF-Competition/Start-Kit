@@ -132,6 +132,30 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
     */
 
     vector<State> next = result_states(prev, actions);
+    vector<char> invalid_next(next.size(), 0);
+    for (int i = 0; i < static_cast<int>(next.size()); i++)
+    {
+        const int loc = next[i].location;
+        if (loc < 0 || loc >= rows * cols)
+        {
+            invalid_next[i] = 1;
+            errors.push_back(make_tuple("out_of_bounds", i, -1, time));
+            if (logger != nullptr)
+            {
+                logger->log_warning("Agent " + std::to_string(i) + " moved out of bounds", time);
+            }
+            continue;
+        }
+        if (grid.map[loc] == 1)
+        {
+            invalid_next[i] = 1;
+            errors.push_back(make_tuple("obstacle_collision", i, -1, time));
+            if (logger != nullptr)
+            {
+                logger->log_warning("Agent " + std::to_string(i) + " moved into a hard obstacle", time);
+            }
+        }
+    }
     vector<RealLocation> real_loc = get_real_locations(next, actions);
     bool valid = true;
     unordered_map<int, vector<int>> grid_agents;
@@ -139,6 +163,8 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
 
     for (int i = 0; i < static_cast<int>(next.size()); i++)
     {
+        if (invalid_next[i])
+            continue;
         grid_agents[next[i].location].push_back(i);
     }
 
@@ -183,6 +209,8 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
 
     for (int i = 0; i < static_cast<int>(next.size()); i++)
     {
+        if (invalid_next[i])
+            continue;
         const int r = next[i].location / cols;
         const int c = next[i].location % cols;
         const bool moving_i = (next[i].counter.maxCount > 0 && next[i].counter.count > 0);
@@ -261,6 +289,8 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
         blocked_by.reserve(prev.size());
         for (int i = 0; i < static_cast<int>(prev.size()); i++)
         {
+            if (invalid_next[i])
+                continue;
             const int r = next[i].location / cols;
             const int c = next[i].location % cols;
             for (int k = 0; k < 9; k++)
@@ -275,6 +305,8 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
                     continue;
                 for (int j : it->second)
                 {
+                    if (invalid_next[j])
+                        continue;
                     if (j == i)
                         continue;
                     if (actions[j] != Action::FW)
