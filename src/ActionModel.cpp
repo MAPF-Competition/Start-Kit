@@ -3,51 +3,350 @@
 
 namespace
 {
-bool boxes_overlap(float ax, float ay, float asize, float bx, float by, float bsize)
+struct BoxMotion
 {
-    return (ax < bx + bsize && ax + asize > bx && ay < by + bsize && ay + asize > by);
+    float x0 = 0.0f;
+    float y0 = 0.0f;
+    float x1 = 0.0f;
+    float y1 = 0.0f;
+    float size = 0.0f;
+};
+
+struct Rect
+{
+    float min_x = 0.0f;
+    float min_y = 0.0f;
+    float max_x = 0.0f;
+    float max_y = 0.0f;
+};
+
+enum ResolveStatus : char
+{
+    UNSEEN = 0,
+    VISITING = 1,
+    DONE = 2
+};
+
+struct StepResolveContext
+{
+    const Grid& grid;
+    int rows;
+    int cols;
+    int n;
+    const vector<Action>& requested_actions;
+    const vector<State>& requested_states;
+    const vector<State>& wait_states;
+    const vector<char>& requested_valid;
+    const vector<char>& wait_valid;
+    const vector<BoxMotion>& requested_motions;
+    const vector<BoxMotion>& wait_motions;
+    const unordered_map<int, vector<int>>& current_bins;
+    float neighbor_margin;
+
+    vector<char>& status;
+    vector<char>& has_decision;
+    vector<char>& chose_requested;
+    vector<Action>& decided_actions;
+    vector<State>& decided_states;
+    vector<BoxMotion>& decided_motions;
+    vector<string>& requested_fail_reasons;
+
+    vector<int>& seen_agents;
+    int& seen_token;
+};
+
+void set_reason_if_empty(vector<string>& reasons, int agent_id, const string& reason)
+{
+    if (reasons[agent_id].empty())
+        reasons[agent_id] = reason;
 }
 
-bool obstacle_box_overlap(float ax, float ay, float asize, int cell_r, int cell_c)
+Rect make_swept_rect(const BoxMotion& m)
 {
-    const float ox = static_cast<float>(cell_c);
-    const float oy = static_cast<float>(cell_r);
-    const float obstacle_size = 1.0f;
-    return boxes_overlap(ax, ay, asize, ox, oy, obstacle_size);
+    Rect r;
+    r.min_x = std::min(m.x0, m.x1);
+    r.min_y = std::min(m.y0, m.y1);
+    r.max_x = std::max(m.x0, m.x1) + m.size;
+    r.max_y = std::max(m.y0, m.y1) + m.size;
+    return r;
 }
 
-unsigned long long make_agent_pair_key(int a, int b)
+bool rects_overlap(const Rect& a, const Rect& b)
 {
-    int lo = a < b ? a : b;
-    int hi = a < b ? b : a;
-    return (static_cast<unsigned long long>(static_cast<unsigned int>(lo)) << 32) |
-           static_cast<unsigned long long>(static_cast<unsigned int>(hi));
+    return (a.min_x < b.max_x && a.max_x > b.min_x && a.min_y < b.max_y && a.max_y > b.min_y);
 }
 
-template <typename RealLocationT>
-bool check_agent_pair_collision(
-    int a,
-    int b,
-    const vector<RealLocationT>& real_loc,
-    float agent_size,
-    unordered_set<unsigned long long>& checked_pairs,
-    list<std::tuple<std::string, int, int, int>>& errors,
-    Logger* logger,
-    int time)
+bool motion_swept_bounds_valid(const BoxMotion& m, int rows, int cols)
 {
-    const unsigned long long key = make_agent_pair_key(a, b);
-    if (!checked_pairs.insert(key).second)
-        return false;
+    const Rect r = make_swept_rect(m);
+    return r.min_x >= 0.0f && r.min_y >= 0.0f &&
+           r.max_x <= static_cast<float>(cols) &&
+           r.max_y <= static_cast<float>(rows);
+}
 
-    if (!boxes_overlap(real_loc[a].x, real_loc[a].y, agent_size, real_loc[b].x, real_loc[b].y, agent_size))
-        return false;
-
-    errors.push_back(make_tuple("collision", a, b, time));
-    if (logger != nullptr)
+bool intersect_open_linear_interval(float d0, float dv, float lower, float upper, float& out_t0, float& out_t1)
+{
+    const float eps = 1e-6f;
+    if (dv > -eps && dv < eps)
     {
-        logger->log_warning("Agent collision between " + std::to_string(a) + " and " + std::to_string(b), time);
+        if (d0 > lower + eps && d0 < upper - eps)
+        {
+            out_t0 = 0.0f;
+            out_t1 = 1.0f;
+            return true;
+        }
+        return false;
     }
+
+    float t0 = (lower - d0) / dv;
+    float t1 = (upper - d0) / dv;
+    if (t0 > t1)
+        std::swap(t0, t1);
+
+    const float teps = eps / std::fabs(dv);
+    t0 += teps;
+    t1 -= teps;
+
+    out_t0 = std::max(0.0f, t0);
+    out_t1 = std::min(1.0f, t1);
+    return out_t0 <= out_t1;
+}
+
+bool moving_boxes_collide(const BoxMotion& a, const BoxMotion& b)
+{
+    const Rect ra = make_swept_rect(a);
+    const Rect rb = make_swept_rect(b);
+    if (!rects_overlap(ra, rb))
+        return false;
+
+    const float d0x = a.x0 - b.x0;
+    const float d0y = a.y0 - b.y0;
+    const float dvx = (a.x1 - a.x0) - (b.x1 - b.x0);
+    const float dvy = (a.y1 - a.y0) - (b.y1 - b.y0);
+
+    float tx0 = 0.0f, tx1 = 1.0f;
+    float ty0 = 0.0f, ty1 = 1.0f;
+    if (!intersect_open_linear_interval(d0x, dvx, -a.size, b.size, tx0, tx1))
+        return false;
+    if (!intersect_open_linear_interval(d0y, dvy, -a.size, b.size, ty0, ty1))
+        return false;
+
+    return std::max(tx0, ty0) <= std::min(tx1, ty1);
+}
+
+bool motion_hits_hard_obstacle(const BoxMotion& motion, const Grid& grid, int rows, int cols)
+{
+    const Rect sweep = make_swept_rect(motion);
+    int c0 = std::max(0, static_cast<int>(std::floor(sweep.min_x)));
+    int r0 = std::max(0, static_cast<int>(std::floor(sweep.min_y)));
+    int c1 = std::min(cols - 1, static_cast<int>(std::ceil(sweep.max_x) - 1));
+    int r1 = std::min(rows - 1, static_cast<int>(std::ceil(sweep.max_y) - 1));
+
+    for (int r = r0; r <= r1; r++)
+    {
+        for (int c = c0; c <= c1; c++)
+        {
+            const int loc = r * cols + c;
+            if (grid.map[loc] != 1)
+                continue;
+
+            BoxMotion obstacle;
+            obstacle.x0 = obstacle.x1 = static_cast<float>(c);
+            obstacle.y0 = obstacle.y1 = static_cast<float>(r);
+            obstacle.size = 1.0f;
+            if (moving_boxes_collide(motion, obstacle))
+                return true;
+        }
+    }
+    return false;
+}
+
+string action_to_string(Action action)
+{
+    switch (action)
+    {
+        case Action::FW: return "F";
+        case Action::CR: return "R";
+        case Action::CCR: return "C";
+        case Action::W: return "W";
+        case Action::NA: return "NA";
+        default: return "?";
+    }
+}
+
+void add_current_box_to_bins(const BoxMotion& box, int agent_id, int rows, int cols, unordered_map<int, vector<int>>& bins)
+{
+    Rect r;
+    r.min_x = box.x0;
+    r.min_y = box.y0;
+    r.max_x = box.x0 + box.size;
+    r.max_y = box.y0 + box.size;
+
+    const int c0 = std::max(0, static_cast<int>(std::floor(r.min_x)));
+    const int r0 = std::max(0, static_cast<int>(std::floor(r.min_y)));
+    const int c1 = std::min(cols - 1, static_cast<int>(std::ceil(r.max_x) - 1));
+    const int r1 = std::min(rows - 1, static_cast<int>(std::ceil(r.max_y) - 1));
+    for (int rr = r0; rr <= r1; rr++)
+    {
+        for (int cc = c0; cc <= c1; cc++)
+        {
+            bins[rr * cols + cc].push_back(agent_id);
+        }
+    }
+}
+
+void collect_neighbor_agents(int agent_id, const BoxMotion& motion, StepResolveContext& ctx, vector<int>& out)
+{
+    out.clear();
+    Rect q = make_swept_rect(motion);
+    q.min_x -= ctx.neighbor_margin;
+    q.min_y -= ctx.neighbor_margin;
+    q.max_x += ctx.neighbor_margin;
+    q.max_y += ctx.neighbor_margin;
+
+    const int c0 = std::max(0, static_cast<int>(std::floor(q.min_x)));
+    const int r0 = std::max(0, static_cast<int>(std::floor(q.min_y)));
+    const int c1 = std::min(ctx.cols - 1, static_cast<int>(std::ceil(q.max_x) - 1));
+    const int r1 = std::min(ctx.rows - 1, static_cast<int>(std::ceil(q.max_y) - 1));
+
+    ++ctx.seen_token;
+    for (int r = r0; r <= r1; r++)
+    {
+        for (int c = c0; c <= c1; c++)
+        {
+            const int key = r * ctx.cols + c;
+            auto it = ctx.current_bins.find(key);
+            if (it == ctx.current_bins.end())
+                continue;
+            for (int j : it->second)
+            {
+                if (j == agent_id)
+                    continue;
+                if (ctx.seen_agents[j] == ctx.seen_token)
+                    continue;
+                ctx.seen_agents[j] = ctx.seen_token;
+                out.push_back(j);
+            }
+        }
+    }
+}
+
+bool resolve_agent_recursive(int agent_id, StepResolveContext& ctx);
+
+bool try_commit_candidate(int agent_id,
+                          bool use_requested,
+                          StepResolveContext& ctx,
+                          vector<int>& neighbors)
+{
+    const vector<char>& validity = use_requested ? ctx.requested_valid : ctx.wait_valid;
+    if (!validity[agent_id])
+    {
+        if (use_requested)
+            set_reason_if_empty(ctx.requested_fail_reasons, agent_id, "requested motion is invalid (boundary or hard obstacle)");
+        return false;
+    }
+
+    const BoxMotion& motion_i = use_requested ? ctx.requested_motions[agent_id] : ctx.wait_motions[agent_id];
+    collect_neighbor_agents(agent_id, motion_i, ctx, neighbors);
+
+    for (int j : neighbors)
+    {
+        if (ctx.has_decision[j])
+        {
+            if (moving_boxes_collide(motion_i, ctx.decided_motions[j]))
+            {
+                if (use_requested)
+                {
+                    set_reason_if_empty(
+                        ctx.requested_fail_reasons,
+                        agent_id,
+                        "requested motion conflicts with resolved agent " + std::to_string(j));
+                }
+                return false;
+            }
+            continue;
+        }
+
+        bool might_depend = false;
+        if (ctx.requested_valid[j] && moving_boxes_collide(motion_i, ctx.requested_motions[j]))
+            might_depend = true;
+        if (!might_depend && ctx.wait_valid[j] && moving_boxes_collide(motion_i, ctx.wait_motions[j]))
+            might_depend = true;
+        if (!might_depend)
+            continue;
+
+        if (ctx.status[j] == VISITING)
+        {
+            if (use_requested)
+            {
+                set_reason_if_empty(
+                    ctx.requested_fail_reasons,
+                    agent_id,
+                    "dependency cycle with agent " + std::to_string(j));
+            }
+            return false;
+        }
+
+        const bool dep_moved = resolve_agent_recursive(j, ctx);
+        if (!ctx.has_decision[j])
+        {
+            if (use_requested)
+            {
+                set_reason_if_empty(
+                    ctx.requested_fail_reasons,
+                    agent_id,
+                    "dependency on agent " + std::to_string(j) + " could not be resolved");
+            }
+            return false;
+        }
+        if (moving_boxes_collide(motion_i, ctx.decided_motions[j]))
+        {
+            if (use_requested)
+            {
+                string reason = "requested motion blocked by agent " + std::to_string(j);
+                if (!dep_moved)
+                    reason += " (agent waited)";
+                set_reason_if_empty(ctx.requested_fail_reasons, agent_id, reason);
+            }
+            return false;
+        }
+    }
+
+    ctx.has_decision[agent_id] = 1;
+    ctx.chose_requested[agent_id] = use_requested ? 1 : 0;
+    ctx.decided_actions[agent_id] = use_requested ? ctx.requested_actions[agent_id] : Action::W;
+    ctx.decided_states[agent_id] = use_requested ? ctx.requested_states[agent_id] : ctx.wait_states[agent_id];
+    ctx.decided_motions[agent_id] = motion_i;
     return true;
+}
+
+bool resolve_agent_recursive(int agent_id, StepResolveContext& ctx)
+{
+    if (ctx.has_decision[agent_id])
+        return ctx.chose_requested[agent_id] != 0;
+    if (ctx.status[agent_id] == VISITING)
+        return false;
+
+    ctx.status[agent_id] = VISITING;
+    vector<int> neighbors;
+    neighbors.reserve(16);
+
+    bool moved = try_commit_candidate(agent_id, true, ctx, neighbors);
+    if (!moved)
+        (void)try_commit_candidate(agent_id, false, ctx, neighbors);
+
+    // Fallback safety: current state should always be valid, but never leave agent unresolved.
+    if (!ctx.has_decision[agent_id])
+    {
+        ctx.has_decision[agent_id] = 1;
+        ctx.chose_requested[agent_id] = 0;
+        ctx.decided_actions[agent_id] = Action::W;
+        ctx.decided_states[agent_id] = ctx.wait_states[agent_id];
+        ctx.decided_motions[agent_id] = ctx.wait_motions[agent_id];
+    }
+
+    ctx.status[agent_id] = DONE;
+    return ctx.chose_requested[agent_id] != 0;
 }
 }
 
@@ -126,7 +425,7 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     return next;
 }
 
-vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state, const vector<Action>& actions)
+vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_locations(const vector<State>& state)
 {
     vector<RealLocation> locations;
     locations.reserve(state.size());
@@ -161,250 +460,218 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
     return locations;
 }
 
-vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Action> & actions, int timestep)
+void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
 {
-    // clear previous errors
-    errors.clear();
-    // Track which agents must wait due to invalid actions.
-    _wait_agents.assign(prev.size(), 0);
-    const int time = prev.empty() ? (timestep + 1) : (prev[0].timestep + 1);
-    if (prev.size() != actions.size())
-    {
-        errors.push_back(make_tuple("incorrect vector size",-1,-1,time));
-        throw std::invalid_argument("Size of state and action vectors must match.");
-    }
-    /* The agents need to be moved to their actual locations by the counter/maxCounter then do the collision checking physically. The agents are treated as sqaures so a bounding box collision checking is needed.
-     We need a buffer to store whether the two agents have already been checked.
-     For each agent, based on its state, we will get its grid from next, and get its real location from real_loc. 
-     We firstly need to build a dictionary from grid location to agent id. Then for each agent, we check its neighboring grids {{r, c}, {r-1, c}, {r+1, c}, {r, c-1}, {r, c+1}, {r-1, c-1}, {r-1, c+1}, {r+1, c-1}, {r+1, c+1}} 
-    (including its own grid) 
-     to see if there is any other agent in those grids. If yes, we do a bounding box collision checking based on their real locations. Moreover, {{r-2, c}, {r+2, c}, {r, c-2}, {r, c+2}} also need to be checked 
-     if the agents are moving in the opposite direction in which case they can end up in the same grid.
-    */
+    const int n = static_cast<int>(states.size());
+    vector<RealLocation> real = get_real_locations(states);
+    unordered_map<int, vector<int>> grid_agents;
+    grid_agents.reserve(states.size() * 2 + 1);
 
-    vector<State> next = result_states(prev, actions);
-    vector<char> invalid_next(next.size(), 0);
-    for (int i = 0; i < static_cast<int>(next.size()); i++)
+    for (int i = 0; i < n; i++)
     {
-        const int loc = next[i].location;
+        const int loc = states[i].location;
         if (loc < 0 || loc >= rows * cols)
         {
-            invalid_next[i] = 1;
-            errors.push_back(make_tuple("out_of_bounds", i, -1, time));
-            if (logger != nullptr)
-            {
-                logger->log_warning("Agent " + std::to_string(i) + " moved out of bounds", time);
-            }
-            continue;
-        }
-    }
-    vector<RealLocation> real_loc = get_real_locations(next, actions);
-    bool valid = true;
-    unordered_map<int, vector<int>> grid_agents;
-    grid_agents.reserve(next.size() * 2);
-
-    for (int i = 0; i < static_cast<int>(next.size()); i++)
-    {
-        if (invalid_next[i])
-            continue;
-        grid_agents[next[i].location].push_back(i);
-    }
-
-    unordered_set<unsigned long long> checked_pairs;
-    checked_pairs.reserve(next.size() * 4);
-
-    const float size = _agent_size;
-
-    for (int i = 0; i < static_cast<int>(next.size()); i++)
-    {
-        if (invalid_next[i])
-            continue;
-
-        const RealLocation& a = real_loc[i];
-        if (a.x < 0.0f || a.y < 0.0f || a.x + size > static_cast<float>(cols) || a.y + size > static_cast<float>(rows))
-        {
-            invalid_next[i] = 1;
-            errors.push_back(make_tuple("out_of_bounds", i, -1, time));
-            if (logger != nullptr)
-            {
-                logger->log_warning("Agent " + std::to_string(i) + " collided with map boundary", time);
-            }
-            continue;
+            throw std::runtime_error(
+                "Sanity check failed: agent " + std::to_string(i) + " has invalid grid location");
         }
 
-        const int c0 = std::max(0, static_cast<int>(std::floor(a.x)));
-        const int r0 = std::max(0, static_cast<int>(std::floor(a.y)));
-        const int c1 = std::min(cols - 1, static_cast<int>(std::ceil(a.x + size) - 1));
-        const int r1 = std::min(rows - 1, static_cast<int>(std::ceil(a.y + size) - 1));
+        Rect r;
+        r.min_x = real[i].x;
+        r.min_y = real[i].y;
+        r.max_x = real[i].x + _agent_size;
+        r.max_y = real[i].y + _agent_size;
 
-        for (int r = r0; r <= r1 && !invalid_next[i]; r++)
+        if (r.min_x < 0.0f || r.min_y < 0.0f ||
+            r.max_x > static_cast<float>(cols) || r.max_y > static_cast<float>(rows))
         {
-            for (int c = c0; c <= c1; c++)
-            {
-                const int loc = r * cols + c;
-                if (grid.map[loc] != 1)
-                    continue;
-                if (!obstacle_box_overlap(a.x, a.y, size, r, c))
-                    continue;
+            throw std::runtime_error(
+                "Sanity check failed: agent " + std::to_string(i) + " overlaps map boundary");
+        }
 
-                invalid_next[i] = 1;
-                errors.push_back(make_tuple("obstacle_collision", i, -1, time));
-                if (logger != nullptr)
+        const int c0 = std::max(0, static_cast<int>(std::floor(r.min_x)));
+        const int r0 = std::max(0, static_cast<int>(std::floor(r.min_y)));
+        const int c1 = std::min(cols - 1, static_cast<int>(std::ceil(r.max_x) - 1));
+        const int r1 = std::min(rows - 1, static_cast<int>(std::ceil(r.max_y) - 1));
+        for (int rr = r0; rr <= r1; rr++)
+        {
+            for (int cc = c0; cc <= c1; cc++)
+            {
+                const int cell = rr * cols + cc;
+                if (grid.map[cell] != 1)
+                    continue;
+                Rect obstacle;
+                obstacle.min_x = static_cast<float>(cc);
+                obstacle.min_y = static_cast<float>(rr);
+                obstacle.max_x = obstacle.min_x + 1.0f;
+                obstacle.max_y = obstacle.min_y + 1.0f;
+                if (rects_overlap(r, obstacle))
                 {
-                    logger->log_warning("Agent " + std::to_string(i) + " collided with a hard obstacle", time);
+                    throw std::runtime_error(
+                        "Sanity check failed: agent " + std::to_string(i) + " overlaps hard obstacle");
                 }
-                break;
             }
         }
+
+        grid_agents[loc].push_back(i);
     }
 
-    static const int kDr1[9] = {0, -1, 1, 0, 0, -1, -1, 1, 1};
-    static const int kDc1[9] = {0, 0, 0, -1, 1, -1, 1, -1, 1};
-    static const int kDr2[4] = {-2, 2, 0, 0};
-    static const int kDc2[4] = {0, 0, -2, 2};
+    static const int kDr[9] = {0, -1, 1, 0, 0, -1, -1, 1, 1};
+    static const int kDc[9] = {0, 0, 0, -1, 1, -1, 1, -1, 1};
+    unordered_set<unsigned long long> checked_pairs;
+    checked_pairs.reserve(states.size() * 4 + 1);
 
-    for (int i = 0; i < static_cast<int>(next.size()); i++)
+    for (int i = 0; i < n; i++)
     {
-        if (invalid_next[i])
-            continue;
-        const int r = next[i].location / cols;
-        const int c = next[i].location % cols;
-        const bool moving_i = (next[i].counter.maxCount > 0 && next[i].counter.count > 0);
-        const int ori_i = next[i].orientation;
+        Rect ri;
+        ri.min_x = real[i].x;
+        ri.min_y = real[i].y;
+        ri.max_x = real[i].x + _agent_size;
+        ri.max_y = real[i].y + _agent_size;
 
+        const int row = states[i].location / cols;
+        const int col = states[i].location % cols;
         for (int k = 0; k < 9; k++)
         {
-            const int nr = r + kDr1[k];
-            const int nc = c + kDc1[k];
+            const int nr = row + kDr[k];
+            const int nc = col + kDc[k];
             if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
                 continue;
-            const int nloc = nr * cols + nc;
-            auto it = grid_agents.find(nloc);
+            auto it = grid_agents.find(nr * cols + nc);
             if (it == grid_agents.end())
                 continue;
             for (int j : it->second)
             {
                 if (j == i)
                     continue;
-                if (check_agent_pair_collision(i, j, real_loc, size, checked_pairs, errors, logger, time))
-                    valid = false;
-            }
-        }
+                const unsigned long long key = (static_cast<unsigned long long>(std::min(i, j)) << 32) |
+                                               static_cast<unsigned long long>(std::max(i, j));
+                if (!checked_pairs.insert(key).second)
+                    continue;
 
-        if (!moving_i)
-            continue;
-        for (int k = 0; k < 4; k++)
-        {
-            const int nr = r + kDr2[k];
-            const int nc = c + kDc2[k];
-            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
-                continue;
-            const int nloc = nr * cols + nc;
-            auto it = grid_agents.find(nloc);
-            if (it == grid_agents.end())
-                continue;
-            for (int j : it->second)
-            {
-                if (j == i)
-                    continue;
-                const bool moving_j = (next[j].counter.maxCount > 0 && next[j].counter.count > 0);
-                if (!moving_j)
-                    continue;
-                const int ori_j = next[j].orientation;
-                bool opposite = false;
-                if (kDr2[k] == 0 && kDc2[k] == 2)
-                    opposite = (ori_i == 0 && ori_j == 2);
-                else if (kDr2[k] == 0 && kDc2[k] == -2)
-                    opposite = (ori_i == 2 && ori_j == 0);
-                else if (kDr2[k] == 2 && kDc2[k] == 0)
-                    opposite = (ori_i == 1 && ori_j == 3);
-                else if (kDr2[k] == -2 && kDc2[k] == 0)
-                    opposite = (ori_i == 3 && ori_j == 1);
-                if (!opposite)
-                    continue;
-                if (check_agent_pair_collision(i, j, real_loc, size, checked_pairs, errors, logger, time))
-                    valid = false;
+                Rect rj;
+                rj.min_x = real[j].x;
+                rj.min_y = real[j].y;
+                rj.max_x = real[j].x + _agent_size;
+                rj.max_y = real[j].y + _agent_size;
+                if (rects_overlap(ri, rj))
+                {
+                    throw std::runtime_error(
+                        "Sanity check failed after dependency resolution: agent " + std::to_string(i) +
+                        " overlaps agent " + std::to_string(j));
+                }
             }
         }
     }
+}
 
-    if (!errors.empty())
+vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Action> & actions, int timestep)
+{
+    (void)timestep;
+    errors.clear();
+    _wait_agents.assign(prev.size(), 0);
+    if (prev.size() != actions.size())
     {
-        // Seed wait agents with those explicitly involved in errors.
-        for (const auto& error : errors)
-        {
-            const int a = std::get<1>(error);
-            const int b = std::get<2>(error);
-            if (a >= 0 && a < static_cast<int>(_wait_agents.size()))
-                _wait_agents[a] = 1;
-            if (b >= 0 && b < static_cast<int>(_wait_agents.size()))
-                _wait_agents[b] = 1;
-        }
-        // Build dependencies using physical overlaps instead of target grid occupancy.
-        vector<vector<int>> blocked_by(prev.size());
-        blocked_by.reserve(prev.size());
-        for (int i = 0; i < static_cast<int>(prev.size()); i++)
-        {
-            if (invalid_next[i])
-                continue;
-            const int r = next[i].location / cols;
-            const int c = next[i].location % cols;
-            for (int k = 0; k < 9; k++)
-            {
-                const int nr = r + kDr1[k];
-                const int nc = c + kDc1[k];
-                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
-                    continue;
-                const int nloc = nr * cols + nc;
-                auto it = grid_agents.find(nloc);
-                if (it == grid_agents.end())
-                    continue;
-                for (int j : it->second)
-                {
-                    if (invalid_next[j])
-                        continue;
-                    if (j == i)
-                        continue;
-                    if (actions[j] != Action::FW)
-                        continue;
-                    const bool moving_j = (next[j].counter.maxCount > 0 && next[j].counter.count > 0);
-                    if (!moving_j)
-                        continue;
-                    if (boxes_overlap(real_loc[i].x, real_loc[i].y, size, real_loc[j].x, real_loc[j].y, size))
-                        blocked_by[i].push_back(j);
-                }
-            }
-        }
-        // Propagate waits along dependency chains.
-        vector<int> queue;
-        queue.reserve(prev.size());
-        for (int k = 0; k < static_cast<int>(prev.size()); k++)
-        {
-            if (_wait_agents[k])
-                queue.push_back(k);
-        }
-        size_t qidx = 0;
-        while (qidx < queue.size())
-        {
-            const int blocked = queue[qidx++];
-            for (int mover : blocked_by[blocked])
-            {
-                if (!_wait_agents[mover])
-                {
-                    _wait_agents[mover] = 1;
-                    queue.push_back(mover);
-                }
-            }
-        }
-
-        for (int i = 0; i < static_cast<int>(_wait_agents.size()); i++)
-        {
-            if (_wait_agents[i])
-                actions[i] = Action::W;
-        }
-
-        next = result_states(prev, actions);
+        throw std::invalid_argument("Size of state and action vectors must match.");
     }
 
-    return next;
+    const int n = static_cast<int>(prev.size());
+    const vector<Action> requested_actions = actions;
+    vector<Action> wait_actions(prev.size(), Action::W);
+
+    vector<State> requested_states = result_states(prev, actions);
+    vector<State> wait_states = result_states(prev, wait_actions);
+
+    vector<RealLocation> prev_real = get_real_locations(prev);
+    vector<RealLocation> requested_real = get_real_locations(requested_states);
+    vector<RealLocation> wait_real = get_real_locations(wait_states);
+
+    vector<BoxMotion> current_boxes(n);
+    vector<BoxMotion> requested_motions(n);
+    vector<BoxMotion> wait_motions(n);
+    vector<char> requested_valid(n, 1);
+    vector<char> wait_valid(n, 1);
+
+    for (int i = 0; i < n; i++)
+    {
+        current_boxes[i] = BoxMotion{prev_real[i].x, prev_real[i].y, prev_real[i].x, prev_real[i].y, _agent_size};
+        requested_motions[i] = BoxMotion{prev_real[i].x, prev_real[i].y, requested_real[i].x, requested_real[i].y, _agent_size};
+        wait_motions[i] = BoxMotion{prev_real[i].x, prev_real[i].y, wait_real[i].x, wait_real[i].y, _agent_size};
+
+        if (requested_states[i].location < 0 || requested_states[i].location >= rows * cols)
+            requested_valid[i] = 0;
+        if (wait_states[i].location < 0 || wait_states[i].location >= rows * cols)
+            wait_valid[i] = 0;
+
+        if (requested_valid[i] &&
+            (!motion_swept_bounds_valid(requested_motions[i], rows, cols) ||
+             motion_hits_hard_obstacle(requested_motions[i], grid, rows, cols)))
+            requested_valid[i] = 0;
+
+        if (wait_valid[i] &&
+            (!motion_swept_bounds_valid(wait_motions[i], rows, cols) ||
+             motion_hits_hard_obstacle(wait_motions[i], grid, rows, cols)))
+            wait_valid[i] = 0;
+    }
+
+    unordered_map<int, vector<int>> current_bins;
+    current_bins.reserve(prev.size() * 4 + 1);
+    for (int i = 0; i < n; i++)
+        add_current_box_to_bins(current_boxes[i], i, rows, cols, current_bins);
+
+    vector<char> status(n, UNSEEN);
+    vector<char> has_decision(n, 0);
+    vector<char> chose_requested(n, 0);
+    vector<Action> decided_actions = actions;
+    vector<State> decided_states = wait_states;
+    vector<BoxMotion> decided_motions = wait_motions;
+    vector<string> requested_fail_reasons(n);
+    vector<int> seen_agents(n, -1);
+    int seen_token = 0;
+
+    StepResolveContext ctx{
+        grid,
+        rows,
+        cols,
+        n,
+        requested_actions,
+        requested_states,
+        wait_states,
+        requested_valid,
+        wait_valid,
+        requested_motions,
+        wait_motions,
+        current_bins,
+        1.0f + _agent_size,
+        status,
+        has_decision,
+        chose_requested,
+        decided_actions,
+        decided_states,
+        decided_motions,
+        requested_fail_reasons,
+        seen_agents,
+        seen_token
+    };
+
+    for (int i = 0; i < n; i++)
+        resolve_agent_recursive(i, ctx);
+
+    for (int i = 0; i < n; i++)
+    {
+        actions[i] = decided_actions[i];
+        if (actions[i] == Action::W && requested_actions[i] != Action::W)
+        {
+            _wait_agents[i] = 1;
+            string reason = requested_fail_reasons[i].empty() ? "requested motion rejected by recursive dependency resolution" : requested_fail_reasons[i];
+            const int time = prev.empty() ? (timestep + 1) : (prev[0].timestep + 1);
+            if (logger != nullptr)
+                logger->log_warning("Agent " + std::to_string(i) + " waits instead of " + action_to_string(requested_actions[i]) + ": " + reason, time);
+            cout << "[ActionModel] t=" << time << " agent " << i << " waits instead of " << action_to_string(requested_actions[i]) << ": " << reason << endl;
+        }
+    }
+
+    vector<State> next_states = result_states(prev, actions);
+    sanity_check_states(next_states);
+    return next_states;
 }
