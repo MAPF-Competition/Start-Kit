@@ -30,11 +30,17 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     int new_location = prev.location;
     int new_orientation = prev.orientation;
     State next = prev;
+    next.timestep = prev.timestep + 1;
     if (action == Action::FW)
     {
         if(next.counter.tick())
         {
             new_location = new_location += moves[prev.orientation];
+            next.moveType = State::None;
+        }
+        else
+        {
+            next.moveType = State::Transition;
         }
     }
     else if (action == Action::CR)
@@ -42,6 +48,11 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
         if(next.counter.tick())
         {
             new_orientation = (prev.orientation + 1) % 4;
+            next.moveType = State::None;
+        }
+        else
+        {
+            next.moveType = State::Rotation;
         }
   
     }
@@ -52,10 +63,15 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
             new_orientation = (prev.orientation - 1) % 4;
             if (new_orientation == -1)
                 new_orientation = 3;
-                
+            next.moveType = State::None;
+        }
+        else
+        {
+            next.moveType = State::Rotation;
         }
     }
-
+    next.location = new_location;
+    next.orientation = new_orientation;
     return next;
 }
 
@@ -73,8 +89,8 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
         float x = static_cast<float>(col);
         float y = static_cast<float>(row);
 
-        // Only forward motion produces translational offset; rotations keep the agent in its grid cell.
-        if (actions[i] == Action::FW && s.counter.maxCount > 0 && s.counter.count > 0)
+        // Only Transition states produce translational offset; rotations keep the agent in its grid cell.
+        if (s.moveType == State::Transition && s.counter.maxCount > 0 && s.counter.count > 0)
         {
             const float frac = static_cast<float>(s.counter.count) / static_cast<float>(s.counter.maxCount);
             switch (s.orientation)
