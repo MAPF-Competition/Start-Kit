@@ -89,10 +89,10 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
             planner_schedule[a].push_back(make_pair(curr_timestep,assignment[a]));
         }
     }
-    if (! validate_task_assignment(assignment))
-    {
-        return false;
-    }
+    // if (! validate_task_assignment(assignment))
+    // {
+    //     return false;
+    // }
 
     //reset all the agent_assigned to -1, so that any droped task->agent_assignment will be -1
     for (int a = 0; a < assignment.size(); a++)
@@ -135,7 +135,7 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
 list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
 { 
     list<int> finished_agents_this_timestep; // task id
-    new_freeagents.clear(); //prepare to push all new free agents to the shared environment
+    //new_freeagents.clear(); //prepare to push all new free agents to the shared environment
     for (int k = 0; k < num_of_agents; k++)
     {
         if (current_assignment[k] != -1 && states[k].location == ongoing_tasks[current_assignment[k]]->get_next_loc())
@@ -157,6 +157,7 @@ list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
                 logger->flush();
             }
             events.push_back(make_tuple(timestep,k,task->task_id,task->idx_next_loc));
+            cout<<"open or finished"<<endl;
         }
     }
     return finished_agents_this_timestep;
@@ -189,7 +190,7 @@ void TaskManager::sync_shared_env(SharedEnvironment* env)
  */
 void TaskManager::reveal_tasks(int timestep)
 {
-    new_tasks.clear(); //prepare to push all new revealed tasks to the shared environment
+    //new_tasks.clear(); //prepare to push all new revealed tasks to the shared environment
     while (ongoing_tasks.size() < num_tasks_reveal)
     {
         int i = task_id%tasks.size();

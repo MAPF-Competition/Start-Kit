@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 
     signal(SIGINT, sigint_handler);
 
-    system_ptr->simulate(vm["simulationTime"].as<int>(),vm["chunkSize"].as<int>());
+    system_ptr->simulate(vm["simulationTime"].as<int>(),100);
 
 
     system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());

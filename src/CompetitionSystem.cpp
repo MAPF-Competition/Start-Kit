@@ -17,14 +17,14 @@ void BaseSystem::sync_shared_env()
         task_manager.sync_shared_env(env);
         simulator.sync_shared_env(env);
 
-        if (simulator.get_curr_timestep() == 0)
-        {
-            env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
-            for (int i = 0; i < num_of_agents; i++)
-            {
-                env->new_freeagents.push_back(i);
-            }
-        }
+        // if (simulator.get_curr_timestep() == 0)
+        // {
+        //     env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
+        //     for (int i = 0; i < num_of_agents; i++)
+        //     {
+        //         env->new_freeagents.push_back(i);
+        //     }
+        // }
         // //update proposed action to all wait
         // proposed_actions.clear();
         // proposed_actions.resize(num_of_agents, Action::W);
@@ -166,7 +166,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     this->simulation_time = simulation_time;
 
-    sync_shared_env();
+    // sync_shared_env();
 
     vector<State> curr_states = simulator.get_current_state();
 
@@ -178,6 +178,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
     env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
     started = true;
+    task_manager.clear_new_agents_tasks();
 
     if (future.wait_for(std::chrono::milliseconds(initial_plan_time_limit)) == std::future_status::ready)
     {
@@ -260,6 +261,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
             task_td = std::thread(std::move(task));
             started = true;
             plan_start = std::chrono::steady_clock::now();
+            task_manager.clear_new_agents_tasks();
             remain_communication_time = min_comm_time;
         }
 
@@ -308,6 +310,12 @@ void BaseSystem::initialize()
     task_manager.reveal_tasks(timestep); //this also intialize env->new_tasks
 
     sync_shared_env();
+
+    env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        env->new_freeagents.push_back(i);
+    }
 
     solution_costs.resize(num_of_agents);
     for (int a = 0; a < num_of_agents; a++)
