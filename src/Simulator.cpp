@@ -17,7 +17,7 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
     //call executor to process the new plan and get staged actions
     auto process_start = std::chrono::steady_clock::now();
     //todo: change plan to vector<vector<Action>>
-    auto predict_states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
+    predict_states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - overtime_runtime;
     //timeout execute all wait
@@ -189,7 +189,7 @@ void Simulator::sync_shared_env(SharedEnvironment* env)
     env->curr_states = predict_states;
     env->system_states = curr_states;
     env->start_states = predict_states;
-    env->curr_states = curr_states;
+    // env->curr_states = curr_states;
     env->system_timestep = timestep;
 
     // make sure executor uses the same shared environment
