@@ -25,14 +25,14 @@ public:
         starts.resize(num_of_agents);
 
         for (size_t i = 0; i < start_locs.size(); i++)
-            {
-                if (grid.map[start_locs[i]] == 1)
-                    {
-                        cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
-                        exit(0);
-                    }
-                starts[i] = State(start_locs[i], 0, 0);
-            }
+        {
+            if (grid.map[start_locs[i]] == 1)
+                {
+                    cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
+                    exit(0);
+                }
+            starts[i] = State(start_locs[i], 0, 0);
+        }
     };
 
 	virtual ~BaseSystem()
@@ -49,7 +49,13 @@ public:
     };
 
     void set_num_tasks_reveal(float num){task_manager.set_num_tasks_reveal(num);};
-    void set_plan_time_limit(int limit){plan_time_limit = limit;};
+    void set_plan_time_limit(int initial, int comm, int move, int process_new_plan){
+        initial_plan_time_limit = initial;
+        min_comm_time = comm;
+        simulator_time_limit = move;
+        process_new_plan_time_limit = process_new_plan;
+        plan_time_limit = comm; // for backward compatibility, plan_time_limit is the communication time limit for planner
+    };
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
     void set_log_level(int level){log_level = level;};
     void set_logger(Logger* logger){
@@ -63,7 +69,7 @@ public:
         simulator.set_delay_profile(delay_ranges, delay_schedule);
     }
 
-    void simulate(int simulation_time);
+    void simulate(int simulation_time,int chunk_size);
     void plan(int time_limit);
     bool planner_wrapper();
 
