@@ -1,4 +1,55 @@
 #include "ActionModel.h"
+#include <cmath>
+
+namespace
+{
+bool boxes_overlap(float ax, float ay, float asize, float bx, float by, float bsize)
+{
+    return (ax < bx + bsize && ax + asize > bx && ay < by + bsize && ay + asize > by);
+}
+
+bool obstacle_box_overlap(float ax, float ay, float asize, int cell_r, int cell_c)
+{
+    const float ox = static_cast<float>(cell_c);
+    const float oy = static_cast<float>(cell_r);
+    const float obstacle_size = 1.0f;
+    return boxes_overlap(ax, ay, asize, ox, oy, obstacle_size);
+}
+
+unsigned long long make_agent_pair_key(int a, int b)
+{
+    int lo = a < b ? a : b;
+    int hi = a < b ? b : a;
+    return (static_cast<unsigned long long>(static_cast<unsigned int>(lo)) << 32) |
+           static_cast<unsigned long long>(static_cast<unsigned int>(hi));
+}
+
+template <typename RealLocationT>
+bool check_agent_pair_collision(
+    int a,
+    int b,
+    const vector<RealLocationT>& real_loc,
+    float agent_size,
+    unordered_set<unsigned long long>& checked_pairs,
+    list<std::tuple<std::string, int, int, int>>& errors,
+    Logger* logger,
+    int time)
+{
+    const unsigned long long key = make_agent_pair_key(a, b);
+    if (!checked_pairs.insert(key).second)
+        return false;
+
+    if (!boxes_overlap(real_loc[a].x, real_loc[a].y, agent_size, real_loc[b].x, real_loc[b].y, agent_size))
+        return false;
+
+    errors.push_back(make_tuple("collision", a, b, time));
+    if (logger != nullptr)
+    {
+        logger->log_warning("Agent collision between " + std::to_string(a) + " and " + std::to_string(b), time);
+    }
+    return true;
+}
+}
 
 
 std::ostream& operator<<(std::ostream &stream, const Action &action)
@@ -18,11 +69,11 @@ std::ostream& operator<<(std::ostream &stream, const Action &action)
 
 vector<State> ActionModelWithRotate::result_states(const vector<State>& prev, const vector<Action> & action)
 {
-        vector<State> next(prev.size());
-        for (size_t i = 0 ; i < prev.size(); i ++){
-            next[i] = result_state(prev[i], action[i]);
-        }
-        return next;
+    vector<State> next(prev.size());
+    for (size_t i = 0 ; i < prev.size(); i ++){
+        next[i] = result_state(prev[i], action[i]);
+    }
+    return next;
 }
     
 State ActionModelWithRotate::result_state(const State & prev, Action action)
@@ -146,15 +197,6 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
             }
             continue;
         }
-        if (grid.map[loc] == 1)
-        {
-            invalid_next[i] = 1;
-            errors.push_back(make_tuple("obstacle_collision", i, -1, time));
-            if (logger != nullptr)
-            {
-                logger->log_warning("Agent " + std::to_string(i) + " moved into a hard obstacle", time);
-            }
-        }
     }
     vector<RealLocation> real_loc = get_real_locations(next, actions);
     bool valid = true;
@@ -172,35 +214,49 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
     checked_pairs.reserve(next.size() * 4);
 
     const float size = _agent_size;
-    auto overlaps = [size](const RealLocation& a, const RealLocation& b) -> bool
-    {
-        return (a.x < b.x + size && a.x + size > b.x && a.y < b.y + size && a.y + size > b.y);
-    };
 
-    auto pair_key = [](int a, int b) -> unsigned long long
+    for (int i = 0; i < static_cast<int>(next.size()); i++)
     {
-        int lo = a < b ? a : b;
-        int hi = a < b ? b : a;
-        return (static_cast<unsigned long long>(static_cast<unsigned int>(lo)) << 32) |
-               static_cast<unsigned long long>(static_cast<unsigned int>(hi));
-    };
+        if (invalid_next[i])
+            continue;
 
-    auto check_pair = [&](int a, int b) -> bool
-    {
-        unsigned long long key = pair_key(a, b);
-        if (!checked_pairs.insert(key).second)
-            return false;
-        if (overlaps(real_loc[a], real_loc[b]))
+        const RealLocation& a = real_loc[i];
+        if (a.x < 0.0f || a.y < 0.0f || a.x + size > static_cast<float>(cols) || a.y + size > static_cast<float>(rows))
         {
-            errors.push_back(make_tuple("collision", a, b, time));
+            invalid_next[i] = 1;
+            errors.push_back(make_tuple("out_of_bounds", i, -1, time));
             if (logger != nullptr)
             {
-                logger->log_warning("Agent collision between " + std::to_string(a) + " and " + std::to_string(b), time);
+                logger->log_warning("Agent " + std::to_string(i) + " collided with map boundary", time);
             }
-            return true;
+            continue;
         }
-        return false;
-    };
+
+        const int c0 = std::max(0, static_cast<int>(std::floor(a.x)));
+        const int r0 = std::max(0, static_cast<int>(std::floor(a.y)));
+        const int c1 = std::min(cols - 1, static_cast<int>(std::ceil(a.x + size) - 1));
+        const int r1 = std::min(rows - 1, static_cast<int>(std::ceil(a.y + size) - 1));
+
+        for (int r = r0; r <= r1 && !invalid_next[i]; r++)
+        {
+            for (int c = c0; c <= c1; c++)
+            {
+                const int loc = r * cols + c;
+                if (grid.map[loc] != 1)
+                    continue;
+                if (!obstacle_box_overlap(a.x, a.y, size, r, c))
+                    continue;
+
+                invalid_next[i] = 1;
+                errors.push_back(make_tuple("obstacle_collision", i, -1, time));
+                if (logger != nullptr)
+                {
+                    logger->log_warning("Agent " + std::to_string(i) + " collided with a hard obstacle", time);
+                }
+                break;
+            }
+        }
+    }
 
     static const int kDr1[9] = {0, -1, 1, 0, 0, -1, -1, 1, 1};
     static const int kDc1[9] = {0, 0, 0, -1, 1, -1, 1, -1, 1};
@@ -230,7 +286,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
             {
                 if (j == i)
                     continue;
-                if (check_pair(i, j))
+                if (check_agent_pair_collision(i, j, real_loc, size, checked_pairs, errors, logger, time))
                     valid = false;
             }
         }
@@ -266,7 +322,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
                     opposite = (ori_i == 3 && ori_j == 1);
                 if (!opposite)
                     continue;
-                if (check_pair(i, j))
+                if (check_agent_pair_collision(i, j, real_loc, size, checked_pairs, errors, logger, time))
                     valid = false;
             }
         }
@@ -314,7 +370,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
                     const bool moving_j = (next[j].counter.maxCount > 0 && next[j].counter.count > 0);
                     if (!moving_j)
                         continue;
-                    if (overlaps(real_loc[i], real_loc[j]))
+                    if (boxes_overlap(real_loc[i].x, real_loc[i].y, size, real_loc[j].x, real_loc[j].y, size))
                         blocked_by[i].push_back(j);
                 }
             }
