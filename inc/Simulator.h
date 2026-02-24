@@ -34,6 +34,9 @@ public:
 
         actual_movements.resize(num_of_agents);
         planner_movements.resize(num_of_agents);
+        // chunked_actual_movements.resize(num_of_agents);
+        // chunked_planner_movements.resize(num_of_agents);
+        // chunked_snapshot_states.resize(num_of_agents);
         // prepare staged actions container for each agent
         staged_actions.resize(num_of_agents);
         delays.resize(num_of_agents, 0);
@@ -110,6 +113,18 @@ public:
         }
     }
 
+    void record_planned_movements(Action action, int agent_id);
+    void record_actual_movements(Action action, int agent_id);
+
+    void set_chunk(int size, int max_simulation)
+    {
+        chunk_size = size;
+        int num_chunks = (max_simulation + chunk_size - 1) / chunk_size; // calculate the number of chunks needed
+        chunked_actual_movements.resize(num_of_agents, vector<list<pair<int, int>>>(num_chunks));
+        chunked_planner_movements.resize(num_of_agents, vector<list<pair<int, int>>>(num_chunks));
+        chunked_snapshot_states.resize(num_of_agents, vector<State>(num_chunks));   
+    }
+
 private:
     Grid map;
 
@@ -132,6 +147,11 @@ private:
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;
+    vector<vector<list<pair<int, int>>>> chunked_actual_movements;
+    vector<vector<list<pair<int, int>>>> chunked_planner_movements;
+    vector<vector<State>> chunked_snapshot_states;
+
+    int chunk_size = 100; // the size of each chunk for chunked movements and states
 
     vector<vector<Action>> staged_actions;
 
