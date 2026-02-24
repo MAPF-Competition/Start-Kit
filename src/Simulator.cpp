@@ -47,6 +47,11 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     while (diff > 0)
     {
         cout<<"time out wait"<<endl;
+        for (int i = 0; i < num_of_agents; i++)
+        {
+            planner_movements[i].push_back(Action::NA);
+            actual_movements[i].push_back(Action::W);
+        }
         timestep++; //all agents wait for one timestep
         diff -= move_time_limit;
         simulate_delay();
@@ -116,6 +121,12 @@ vector<State> Simulator::move(int move_time_limit, vector<Action>& actions) //mo
     }
     //return move_valid;
     return curr_states;
+}
+
+void Simulator::record_planned_movements(Action action, int agent_id)
+{
+    
+    
 }
 
 void Simulator::simulate_delay()

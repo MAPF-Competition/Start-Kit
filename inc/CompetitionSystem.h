@@ -25,14 +25,14 @@ public:
         starts.resize(num_of_agents);
 
         for (size_t i = 0; i < start_locs.size(); i++)
-            {
-                if (grid.map[start_locs[i]] == 1)
-                    {
-                        cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
-                        exit(0);
-                    }
-                starts[i] = State(start_locs[i], 0, 0);
-            }
+        {
+            if (grid.map[start_locs[i]] == 1)
+                {
+                    cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
+                    exit(0);
+                }
+            starts[i] = State(start_locs[i], 0, 0);
+        }
     };
 
 	virtual ~BaseSystem()
@@ -69,7 +69,7 @@ public:
         simulator.set_delay_profile(delay_ranges, delay_schedule);
     }
 
-    void simulate(int simulation_time);
+    void simulate(int simulation_time,int chunk_size);
     void plan(int time_limit);
     bool planner_wrapper();
 

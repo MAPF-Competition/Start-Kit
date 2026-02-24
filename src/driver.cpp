@@ -45,6 +45,7 @@ int main(int argc, char **argv)
     desc.add_options()("help", "produce help message")
         ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
+        ("outputActionWindow,w", po::value<int>()->default_value(100), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
         ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
         ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
 
     signal(SIGINT, sigint_handler);
 
-    system_ptr->simulate(vm["simulationTime"].as<int>());
+    system_ptr->simulate(vm["simulationTime"].as<int>(),vm["chunkSize"].as<int>());
 
 
     system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
