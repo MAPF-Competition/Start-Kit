@@ -159,8 +159,9 @@ void BaseSystem::log_preprocessing(bool succ)
 }
 
 
-void BaseSystem::simulate(int simulation_time)
+void BaseSystem::simulate(int simulation_time, int chunk_size)
 {
+    simulator.set_chunk(chunk_size, simulation_time);
     initialize();
 
     this->simulation_time = simulation_time;
