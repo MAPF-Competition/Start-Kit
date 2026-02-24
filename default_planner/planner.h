@@ -11,11 +11,8 @@ namespace DefaultPlanner{
     
     void initialize(int preprocess_time_limit, SharedEnvironment* env);
 
-    void plan(int time_limit,vector<Action> & actions,  SharedEnvironment* env);
-
-    void multi_step_plan(int time_limit, std::vector<std::vector<Action>> & actions,
-                        SharedEnvironment* env, int num_steps);
-
+    void plan(int time_limit, std::vector<std::vector<Action>> & actions,
+                        SharedEnvironment* env, int num_steps=1);
 
 }
 #endif

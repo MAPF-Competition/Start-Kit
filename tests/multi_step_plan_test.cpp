@@ -67,7 +67,7 @@ int main()
 
     std::vector<std::vector<Action>> multi_actions;
     const int num_steps = 6;
-    DefaultPlanner::multi_step_plan(200, multi_actions, &env, num_steps);
+    DefaultPlanner::plan(200, multi_actions, &env, num_steps);
 
     assert(static_cast<int>(multi_actions.size()) == env.num_of_agents);
     for (int i = 0; i < env.num_of_agents; i++)
