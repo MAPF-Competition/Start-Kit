@@ -67,18 +67,20 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
 
 void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> staged_actions, std::vector<ExecutionCommand> & agent_command)
 {
-    // //always go if there are staged actions
-    // for (int i = 0; i < env->curr_states.size(); i++)
-    // {
-    //     if (!staged_actions[i].empty())
-    //     {
-    //         agent_command[i] = ExecutionCommand::GO;
-    //     }
-    //     else
-    //     {
-    //         agent_command[i] = ExecutionCommand::STOP;
-    //     }
-    // }
+    // // //always go if there are staged actions
+    for (int i = 0; i < env->curr_states.size(); i++)
+    {
+        if (!staged_actions[i].empty())
+        {
+            agent_command[i] = ExecutionCommand::GO;
+        }
+        else
+        {
+            agent_command[i] = ExecutionCommand::STOP;
+        }
+    }
+    // return;
+
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
     {
@@ -104,6 +106,7 @@ void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> sta
 
 bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
 {
+    cout<<"mcp for agent "<<agent_id<<endl;
     if (staged_actions[agent_id].empty())
     {
         //no action, just stop and wait for the next plan, no tpg order clear
@@ -147,6 +150,7 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
                 curr_decision[agent_id] = true;
                 return false;       
             }
+            curr_decision[agent_id] = true;
             if (mcp(staged_actions, blocking_agent_id, curr_decision, agent_command))
             {
 
@@ -154,7 +158,7 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
                 {
                     //still more agents on the order, has to wait for the next tick 
                     agent_command[agent_id] = ExecutionCommand::STOP;
-                    curr_decision[agent_id] = true;
+                    // curr_decision[agent_id] = true;
                     return false;
                 }
 
@@ -164,14 +168,14 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
 
                 temp_tpg[curr_location].pop_front();
 
-                curr_decision[agent_id] = true;
+                // curr_decision[agent_id] = true;
                 return true;
             }
             else
             {
                 //the blocking agent cannot go, so we cannot go
                 agent_command[agent_id] = ExecutionCommand::STOP;
-                curr_decision[agent_id] = true;
+                // curr_decision[agent_id] = true;
                 return false;
             }
         }
