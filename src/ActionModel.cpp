@@ -3,6 +3,8 @@
 
 namespace
 {
+string action_to_string(Action action);
+
 struct BoxMotion
 {
     float x0 = 0.0f;
@@ -33,6 +35,7 @@ struct StepResolveContext
     int rows;
     int cols;
     int n;
+    const vector<State>& prev_states;
     const vector<Action>& requested_actions;
     const vector<State>& requested_states;
     const vector<State>& wait_states;
@@ -53,12 +56,75 @@ struct StepResolveContext
 
     vector<int>& seen_agents;
     int& seen_token;
+    vector<int>& recursion_stack;
+    vector<int>& stack_pos;
+    Logger* logger;
+    int time;
 };
+
+bool moving_boxes_collide(const BoxMotion& a, const BoxMotion& b);
 
 void set_reason_if_empty(vector<string>& reasons, int agent_id, const string& reason)
 {
     if (reasons[agent_id].empty())
         reasons[agent_id] = reason;
+}
+
+bool is_occupancy_dependency_edge(int from_agent, int to_agent, const StepResolveContext& ctx)
+{
+    return ctx.requested_states[from_agent].location == ctx.prev_states[to_agent].location;
+}
+
+bool is_directional_physical_dependency_edge(int from_agent, int to_agent, const StepResolveContext& ctx)
+{
+    if (!ctx.requested_valid[from_agent] || !ctx.wait_valid[to_agent])
+        return false;
+    return moving_boxes_collide(ctx.requested_motions[from_agent], ctx.wait_motions[to_agent]);
+}
+
+string format_cycle_description(int current_agent, int cycle_agent, const StepResolveContext& ctx)
+{
+    int start = 0;
+    if (cycle_agent >= 0 && cycle_agent < static_cast<int>(ctx.stack_pos.size()) && ctx.stack_pos[cycle_agent] >= 0)
+        start = ctx.stack_pos[cycle_agent];
+
+    bool occupancy_chain = true;
+    for (int idx = start; idx + 1 < static_cast<int>(ctx.recursion_stack.size()); idx++)
+    {
+        const int from = ctx.recursion_stack[idx];
+        const int to = ctx.recursion_stack[idx + 1];
+        if (!is_occupancy_dependency_edge(from, to, ctx))
+        {
+            occupancy_chain = false;
+            break;
+        }
+    }
+    if (occupancy_chain && !is_occupancy_dependency_edge(current_agent, cycle_agent, ctx))
+        occupancy_chain = false;
+
+    string msg = occupancy_chain ? "occupancy-chain cycle" : "directed physical-dependency cycle";
+    msg += ": ";
+    for (int idx = start; idx < static_cast<int>(ctx.recursion_stack.size()); idx++)
+    {
+        const int a = ctx.recursion_stack[idx];
+        msg += "a" + std::to_string(a) +
+               "(loc=" + std::to_string(ctx.prev_states[a].location) +
+               ", act=" + action_to_string(ctx.requested_actions[a]) +
+               ", next=" + std::to_string(ctx.requested_states[a].location) + ") -> ";
+    }
+    msg += "a" + std::to_string(cycle_agent) +
+           "(loc=" + std::to_string(ctx.prev_states[cycle_agent].location) +
+           ", act=" + action_to_string(ctx.requested_actions[cycle_agent]) +
+           ", next=" + std::to_string(ctx.requested_states[cycle_agent].location) + ")";
+    return msg;
+}
+
+void log_actionmodel_message(const StepResolveContext& ctx, const string& msg)
+{
+    if (ctx.logger != nullptr)
+        ctx.logger->log_warning(msg, ctx.time);
+    else
+        cout << "[ActionModel] t=" << ctx.time << " " << msg << endl;
 }
 
 Rect make_swept_rect(const BoxMotion& m)
@@ -267,22 +333,21 @@ bool try_commit_candidate(int agent_id,
             continue;
         }
 
-        bool might_depend = false;
-        if (ctx.requested_valid[j] && moving_boxes_collide(motion_i, ctx.requested_motions[j]))
-            might_depend = true;
-        if (!might_depend && ctx.wait_valid[j] && moving_boxes_collide(motion_i, ctx.wait_motions[j]))
-            might_depend = true;
-        if (!might_depend)
+        // Directional dependency: i depends on j only if j staying (wait motion) blocks i's requested motion.
+        // This avoids turning linear "j is leaving, i follows" chains into fake mutual cycles.
+        if (!(use_requested && ctx.wait_valid[j] && moving_boxes_collide(motion_i, ctx.wait_motions[j])))
             continue;
 
         if (ctx.status[j] == VISITING)
         {
             if (use_requested)
             {
+                const string cycle_desc = format_cycle_description(agent_id, j, ctx);
                 set_reason_if_empty(
                     ctx.requested_fail_reasons,
                     agent_id,
-                    "dependency cycle with agent " + std::to_string(j));
+                    cycle_desc);
+                log_actionmodel_message(ctx, cycle_desc);
             }
             return false;
         }
@@ -328,6 +393,8 @@ bool resolve_agent_recursive(int agent_id, StepResolveContext& ctx)
         return false;
 
     ctx.status[agent_id] = VISITING;
+    ctx.stack_pos[agent_id] = static_cast<int>(ctx.recursion_stack.size());
+    ctx.recursion_stack.push_back(agent_id);
     vector<int> neighbors;
     neighbors.reserve(16);
 
@@ -345,6 +412,8 @@ bool resolve_agent_recursive(int agent_id, StepResolveContext& ctx)
         ctx.decided_motions[agent_id] = ctx.wait_motions[agent_id];
     }
 
+    ctx.recursion_stack.pop_back();
+    ctx.stack_pos[agent_id] = -1;
     ctx.status[agent_id] = DONE;
     return ctx.chose_requested[agent_id] != 0;
 }
@@ -628,12 +697,17 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
     vector<string> requested_fail_reasons(n);
     vector<int> seen_agents(n, -1);
     int seen_token = 0;
+    vector<int> recursion_stack;
+    recursion_stack.reserve(n);
+    vector<int> stack_pos(n, -1);
+    const int time = prev.empty() ? (timestep + 1) : (prev[0].timestep + 1);
 
     StepResolveContext ctx{
         grid,
         rows,
         cols,
         n,
+        prev,
         requested_actions,
         requested_states,
         wait_states,
@@ -651,7 +725,11 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
         decided_motions,
         requested_fail_reasons,
         seen_agents,
-        seen_token
+        seen_token,
+        recursion_stack,
+        stack_pos,
+        logger,
+        time
     };
 
     for (int i = 0; i < n; i++)
@@ -664,10 +742,8 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
         {
             _wait_agents[i] = 1;
             string reason = requested_fail_reasons[i].empty() ? "requested motion rejected by recursive dependency resolution" : requested_fail_reasons[i];
-            const int time = prev.empty() ? (timestep + 1) : (prev[0].timestep + 1);
             if (logger != nullptr)
                 logger->log_warning("Agent " + std::to_string(i) + " waits instead of " + action_to_string(requested_actions[i]) + ": " + reason, time);
-            cout << "[ActionModel] t=" << time << " agent " << i << " waits instead of " << action_to_string(requested_actions[i]) << ": " << reason << endl;
         }
     }
 
