@@ -90,7 +90,7 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
     return predicted_states;
 }
 
-void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> staged_actions, std::vector<ExecutionCommand> & agent_command)
+void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> & agent_command)
 {
     cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
     // // // //always go if there are staged actions
@@ -126,22 +126,22 @@ void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> sta
     {
         // always try to go and clear orders because we don't know the current delay
         if (!decided[i])
-            mcp(staged_actions, i, decided, agent_command);
+            mcp(i, decided, agent_command);
     }
     
 }
 
-bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
+bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
 {
     cout<<"mcp for agent "<<agent_id<<endl;
-    if (staged_actions[agent_id].empty())
+    if (env->staged_actions[agent_id].empty())
     {
         //no action, just stop and wait for the next plan, no tpg order clear
         agent_command[agent_id] = ExecutionCommand::STOP;
         curr_decision[agent_id] = true;
         return false;
     }
-    else if (staged_actions[agent_id].front() != Action::FW) 
+    else if (env->staged_actions[agent_id].front() != Action::FW) 
     {
         //try to go but still stay at current location because it's not move forward, no tpg order clear
         agent_command[agent_id] = ExecutionCommand::GO;
@@ -171,7 +171,6 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
             int blocking_agent_id = temp_tpg[next_location].front();
 
             int next_id=-1;
-
             auto it = temp_tpg[next_location].begin();
             if (it != temp_tpg[next_location].end()) 
             {
@@ -198,7 +197,7 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
             if (!temp_tpg[curr_location].empty())
                 temp_tpg[curr_location].pop_front(); //temporarily pop the current agent from temp_tpg to simulate the move
 
-            if (mcp(staged_actions, blocking_agent_id, curr_decision, agent_command))
+            if (mcp(blocking_agent_id, curr_decision, agent_command))
             {
 
                 //now agent can go and clear the tpg order

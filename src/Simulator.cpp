@@ -38,7 +38,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
     agent_command.resize(num_of_agents);
 
     auto process_start = std::chrono::steady_clock::now();
-    executor->next_command(move_time_limit, staged_actions, agent_command);
+    executor->next_command(move_time_limit, agent_command);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
     std::vector<Action> actions(num_of_agents, Action::W); //default action is wait
@@ -192,6 +192,9 @@ void Simulator::sync_shared_env(SharedEnvironment* env)
     env->start_states = predict_states;
     // env->curr_states = curr_states;
     env->system_timestep = timestep;
+
+    env->staged_actions = staged_actions;
+    
 
     // make sure executor uses the same shared environment
     if (executor != nullptr)
