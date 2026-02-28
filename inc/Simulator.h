@@ -116,15 +116,20 @@ public:
     }
 
     void record_planned_movements(Action action, int agent_id);
-    void record_actual_movements(Action action, int agent_id);
+    void record_actual_movements(State state, Action action, int agent_id);
 
     void set_chunk(int size, int max_simulation)
     {
         chunk_size = size;
         int num_chunks = (max_simulation + chunk_size - 1) / chunk_size; // calculate the number of chunks needed
-        chunked_actual_movements.resize(num_of_agents, vector<list<pair<int, int>>>(num_chunks));
-        chunked_planner_movements.resize(num_of_agents, vector<list<pair<int, int>>>(num_chunks));
-        chunked_snapshot_states.resize(num_of_agents, vector<State>(num_chunks));   
+        chunked_actual_movements.resize(num_of_agents, vector<list<pair<Action, int>>>(num_chunks));
+        chunked_planner_movements.resize(num_of_agents, vector<list<pair<Action, int>>>(num_chunks));
+        chunked_planner_snapshot_states.resize(num_of_agents, vector<State>(num_chunks)); 
+        chunked_actual_snapshot_states.resize(num_of_agents, vector<State>(num_chunks)); 
+        current_planner_chunk_count.resize(num_of_agents, 0);
+        current_planner_chunk_index.resize(num_of_agents, 0);
+        current_actual_chunk_count.resize(num_of_agents, 0);
+        current_actual_chunk_index.resize(num_of_agents, 0);  
     }
 
 private:
@@ -149,11 +154,16 @@ private:
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;
-    vector<vector<list<pair<int, int>>>> chunked_actual_movements;
-    vector<vector<list<pair<int, int>>>> chunked_planner_movements;
-    vector<vector<State>> chunked_snapshot_states;
+    vector<vector<list<pair<Action, int>>>> chunked_actual_movements;
+    vector<vector<list<pair<Action, int>>>> chunked_planner_movements;
+    vector<vector<State>> chunked_planner_snapshot_states;
+    vector<vector<State>> chunked_actual_snapshot_states;
 
     int chunk_size = 100; // the size of each chunk for chunked movements and states
+    vector<int> current_planner_chunk_count; // the current chunk count for recording movements and states
+    vector<int> current_planner_chunk_index; // the current chunk index for recording movements and states
+    vector<int> current_actual_chunk_count; // the current chunk count for recording movements and states
+    vector<int> current_actual_chunk_index; // the current chunk index for recording movements and states
 
     vector<vector<Action>> staged_actions;
 
