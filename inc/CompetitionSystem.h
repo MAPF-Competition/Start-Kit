@@ -69,7 +69,6 @@ public:
     }
 
     void simulate(int simulation_time,int chunk_size);
-    void plan(int time_limit);
     bool planner_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
