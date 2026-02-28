@@ -93,25 +93,26 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
 void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> staged_actions, std::vector<ExecutionCommand> & agent_command)
 {
     cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
-    // // //always go if there are staged actions
-    for (int i = 0; i < env->curr_states.size(); i++)
-    {
-        if (!staged_actions[i].empty())
-        {
-            agent_command[i] = ExecutionCommand::GO;
-        }
-        else
-        {
-            agent_command[i] = ExecutionCommand::STOP;
-        }
-    }
-    // return;
+    // // // //always go if there are staged actions
+    // for (int i = 0; i < env->curr_states.size(); i++)
+    // {
+    //     if (!staged_actions[i].empty())
+    //     {
+    //         agent_command[i] = ExecutionCommand::GO;
+    //     }
+    //     else
+    //     {
+    //         agent_command[i] = ExecutionCommand::STOP;
+    //     }
+    // }
+    // // return;
 
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
     {
         int prev_location = previous_locations[i];
         int curr_location = env->system_states[i].location;
+        assert(tpg[prev_location].front() == i);
         if (prev_location != curr_location && tpg[prev_location].front() == i)
         {
             //remove the agent from the previous location in tpg
@@ -143,6 +144,7 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
     else if (staged_actions[agent_id].front() != Action::FW) 
     {
         //try to go but still stay at current location because it's not move forward, no tpg order clear
+        agent_command[agent_id] = ExecutionCommand::GO;
         curr_decision[agent_id] = true;
         return false;
     }
@@ -152,15 +154,13 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
         int curr_location = env->system_states[agent_id].location;
         int curr_orientation = env->system_states[agent_id].orientation;
         int next_location = curr_location + moves[curr_orientation];
+
         if (temp_tpg[next_location].empty() || temp_tpg[next_location].front() == agent_id)
         {
             //try to go and can go, clear the tpg order
             agent_command[agent_id] = ExecutionCommand::GO;
-
-            assert(!temp_tpg[curr_location].empty());
-            assert(temp_tpg[curr_location].front() == agent_id);
-
-            temp_tpg[curr_location].pop_front();
+            if (!temp_tpg[curr_location].empty())
+                temp_tpg[curr_location].pop_front();
 
             curr_decision[agent_id] = true;
             return true;
@@ -169,31 +169,40 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
         {
             //try to go by recursion
             int blocking_agent_id = temp_tpg[next_location].front();
-            if (curr_decision[blocking_agent_id])
+
+            int next_id=-1;
+
+            auto it = temp_tpg[next_location].begin();
+            if (it != temp_tpg[next_location].end()) 
+            {
+                auto it2 = std::next(it);
+                if (it2 != temp_tpg[next_location].end()) 
+                {
+                    // *it2 is the second element
+                    next_id = *it2;
+                }
+            }
+
+            assert(next_id != -1); 
+            
+            if (curr_decision[blocking_agent_id] || next_id != agent_id)
             {                
-                //the blocking agent has already made the decision, so we cannot go
+                //the blocking agent has already made the decision or current agent is not on the second order, so we cannot go
                 agent_command[agent_id] = ExecutionCommand::STOP;
                 curr_decision[agent_id] = true;
                 return false;       
             }
+
+            //try to simulate to see if the agent can go by pushing blocking agent
             curr_decision[agent_id] = true;
+            if (!temp_tpg[curr_location].empty())
+                temp_tpg[curr_location].pop_front(); //temporarily pop the current agent from temp_tpg to simulate the move
+
             if (mcp(staged_actions, blocking_agent_id, curr_decision, agent_command))
             {
 
-                if (temp_tpg[curr_location].front() != agent_id)
-                {
-                    //still more agents on the order, has to wait for the next tick 
-                    agent_command[agent_id] = ExecutionCommand::STOP;
-                    // curr_decision[agent_id] = true;
-                    return false;
-                }
-
                 //now agent can go and clear the tpg order
                 agent_command[agent_id] = ExecutionCommand::GO;
-                assert(!temp_tpg[curr_location].empty());
-
-                temp_tpg[curr_location].pop_front();
-
                 // curr_decision[agent_id] = true;
                 return true;
             }
@@ -201,6 +210,8 @@ bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vec
             {
                 //the blocking agent cannot go, so we cannot go
                 agent_command[agent_id] = ExecutionCommand::STOP;
+                //restore the temp_tpg by adding the current agent back to the front of the current location
+                temp_tpg[curr_location].push_front(agent_id);
                 // curr_decision[agent_id] = true;
                 return false;
             }
