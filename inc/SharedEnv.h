@@ -40,6 +40,9 @@ public:
     // plan_start_time is updated when the simulation system call the entry plan function, its type is std::chrono::steady_clock::time_point
     TimePoint plan_start_time;
 
+    // the current staged actions in the shared environment
+    vector<vector<Action>> staged_actions;
+
     int min_planner_communication_time; // information of the minimum communication time for the planner to return a plan, in milliseconds. 
     int action_time; // information of the time for executing each action, in milliseconds. 
     int max_counter; // information of the max counter value for agents, which is the number of time ticks that agents have to spend to finish one action
