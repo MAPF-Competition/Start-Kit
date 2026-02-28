@@ -173,6 +173,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
     int timestep = simulator.get_curr_timestep();
 
     //start initial planning
+    plan_time_limit = initial_plan_time_limit;
     std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
     future = task.get_future();
     env->plan_start_time = std::chrono::steady_clock::now();
@@ -255,6 +256,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
             //launch new planning task
             sync_shared_env();
+            plan_time_limit = min_comm_time;
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
             future = task.get_future();
             env->plan_start_time = std::chrono::steady_clock::now();
@@ -286,6 +288,11 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
+
+    env->min_planner_communication_time = min_comm_time;
+    env->action_time = simulator_time_limit;
+    env->max_counter = simulator.get_max_counter();
+
 
     
     // // bool succ = load_records(); // continue simulating from the records

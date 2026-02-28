@@ -49,10 +49,9 @@ struct State
     }
 
     State(): location(-1), timestep(-1), orientation(-1), counter(Counter()), delay(Delay()), moveType(None) {}
-    // State(int loc): loc(loc), timestep(0), orientation(0) {}
-    // State(int loc, int timestep): loc(loc), timestep(timestep), orientation(0) {}
-    State(int location, int timestep = -1, int orientation = -1, Counter counter = Counter(), Delay delay = Delay(), MoveType moveType = None):
-        location(location), timestep(timestep), orientation(orientation), counter(counter), delay(delay), moveType(moveType) {}
+
+    State(int location, int timestep = -1, int orientation = -1, int max_counter = 10, Delay delay = Delay(), MoveType moveType = None):
+        location(location), timestep(timestep), orientation(orientation), counter(Counter(max_counter)), delay(delay), moveType(moveType) {}
     State(const State& other):
         location(other.location), timestep(other.timestep), orientation(other.orientation), counter(other.counter), delay(other.delay), moveType(other.moveType) {}
 };

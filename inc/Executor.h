@@ -3,9 +3,12 @@
 #include "SharedEnv.h"
 #include "Plan.h"
 
+enum ProcessPlanType {APPEND_ONE, APPEND_ALL, APPEND_WINDOW};
+
 class Executor
 {
 public:
+
     SharedEnvironment* env;
     Executor(SharedEnvironment* env): env(env){};
     Executor(){env = new SharedEnvironment();};
@@ -22,6 +25,9 @@ public:
     vector<list<int>> temp_tpg; //temporary dependency graph for current timestep, used for mcp
     vector<int> previous_locations; //record the previous locations of agents for tpg update
     vector<State> predicted_states;
+
+    ProcessPlanType process_plan_type = APPEND_WINDOW; //the default process plan type is to append windoed actions to staged actions, window = min_planner_communication_time/simulator_time_limit, which means we will only execute the part of the plan that can be executed within the communication time limit.
+    int window_size;
 
     bool mcp(std::vector<vector<Action>> staged_actions, int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command);
 

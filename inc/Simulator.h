@@ -12,8 +12,8 @@
 class Simulator
 {
 public:
-    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr):
-        map(grid), model(model), executor(executor)
+    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model, Executor* executor = nullptr, int max_counter = 10):
+        map(grid), model(model), executor(executor), max_counter(max_counter)
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
@@ -26,7 +26,7 @@ public:
                     cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
                     exit(0);
                 }
-                starts[i] = State(start_locs[i], 0, 0);
+                starts[i] = State(start_locs[i], 0, 0, max_counter);
         }
 
         curr_states = starts;
@@ -69,6 +69,8 @@ public:
     vector<State> get_current_state(){ return curr_states; }
 
     int get_curr_timestep() {return timestep;}
+
+    int get_max_counter() {return max_counter;}
 
     void sync_shared_env(SharedEnvironment* env);
 
@@ -156,4 +158,6 @@ private:
     vector<vector<Action>> staged_actions;
 
     vector<vector<pair<int, int>>> delay_schedule;
+    
+    int max_counter;
 };
