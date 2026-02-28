@@ -50,8 +50,8 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
         cout<<"time out wait"<<endl;
         for (int i = 0; i < num_of_agents; i++)
         {
-            planner_movements[i].push_back(Action::NA);
-            actual_movements[i].push_back(Action::W);
+            record_planned_movements(Action::NA, i);
+            record_actual_movements(curr_states[i], Action::W, i);
         }
         timestep++; //all agents wait for one timestep
         diff -= move_time_limit;
@@ -76,16 +76,11 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
         {
             actions[i] = Action::W;
         }
-        if (i == 22 || i == 84)
-        {
-            cout<<"agent "<<i<<" command "<<(agent_command[i] == ExecutionCommand::GO ? "GO" : "STOP")<<" action "<<(actions[i] == Action::FW ? "FW" : (actions[i] == Action::CR ? "CR" : (actions[i] == Action::CCR ? "CCR" : (actions[i] == Action::NA ? "NA" : "W"))))<<endl;
-            cout<<"current states"<<curr_states[i].location<<" orientation "<<curr_states[i].orientation<<" counter "<<curr_states[i].counter.count<<endl;
-        }
         if (curr_states[i].delay.inDelay)
         {
             actions[i] = Action::W;
         }
-        planner_movements[i].push_back(actions[i]);
+        record_planned_movements(actions[i], i);
     }
 
     auto pre_states = curr_states;
@@ -97,8 +92,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
     for (int k = 0; k < num_of_agents; k++)
     {
         //record the actual path and actions
-        paths[k].push_back(curr_states[k]);
-        actual_movements[k].push_back(actions[k]);
+        record_actual_movements(pre_states[k], actions[k], k);
 
         if (staged_actions[k].empty())
         {
@@ -126,9 +120,72 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
 
 void Simulator::record_planned_movements(Action action, int agent_id)
 {
-    
-    
+    assert(current_planner_chunk_index[agent_id] < chunked_planner_movements[agent_id].size());
+    bool is_different_action = true;
+    if (current_planner_chunk_count[agent_id] > 0)
+    {
+        assert(!chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].empty());
+        auto last_movement = chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].back().first;
+        if (last_movement == action)
+        {
+            is_different_action = false;
+        }
+    }
+    if (is_different_action)
+    {
+        chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].push_back({action, 1});
+    }
+    else
+    {
+        //update the last movement's timestep to current timestep
+        chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].back().second++;
+    }
+    if (current_planner_chunk_count[agent_id] == 0)
+    {
+        chunked_planner_snapshot_states[agent_id][current_planner_chunk_index[agent_id]] = curr_states[agent_id];
+    }
+    current_planner_chunk_count[agent_id]++;
+    if (current_planner_chunk_count[agent_id] >= chunk_size)
+    {
+        current_planner_chunk_index[agent_id]++;
+        current_planner_chunk_count[agent_id] = 0;
+    }
 }
+
+void Simulator::record_actual_movements(State state, Action action, int agent_id)
+{
+    assert(current_actual_chunk_index[agent_id] < chunked_actual_movements[agent_id].size());
+    bool is_different_action = true;
+    if (current_actual_chunk_count[agent_id] > 0)
+    {
+        assert(!chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].empty());
+        auto last_movement = chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].back().first;
+        if (last_movement == action)
+        {
+            is_different_action = false;
+        }
+    }
+    if (is_different_action)
+    {
+        chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].push_back({action, 1});
+    }
+    else
+    {
+        //update the last movement's timestep to current timestep
+        chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].back().second++;
+    }
+    if (current_actual_chunk_count[agent_id] == 0)
+    {
+        chunked_actual_snapshot_states[agent_id][current_actual_chunk_index[agent_id]] = state;
+    }
+    current_actual_chunk_count[agent_id]++;
+    if (current_actual_chunk_count[agent_id] >= chunk_size)
+    {
+        current_actual_chunk_index[agent_id]++;
+        current_actual_chunk_count[agent_id] = 0;
+    }
+}
+
 
 void Simulator::simulate_delay()
 {
@@ -210,38 +267,60 @@ json Simulator::actual_path_to_json() const
     for (int i = 0; i < num_of_agents; i++)
     {
         std::string path;
-        bool first = true;
-        for (const auto action : actual_movements[i])
+        int curr_steps = 0;
+        for (const auto& chunk : chunked_actual_movements[i])
         {
-            if (!first)
+            path+="[(";
+            path+=std::to_string(curr_steps);
+            path+=",";
+            path+=std::to_string(chunked_actual_snapshot_states[i][0].location/map.cols);
+            path+=","; 
+            path+=std::to_string(chunked_actual_snapshot_states[i][0].location%map.cols);
+            path+=",";
+            path+=std::to_string(chunked_actual_snapshot_states[i][0].orientation);
+            path+= ",";
+            path+=std::to_string(chunked_actual_snapshot_states[i][0].counter.count);
+            path+="):(";
+            
+            bool first = true;
+            for (const auto& action_pair : chunk)
             {
-                path+= ",";
-            }
-            else
-            {
-                first = false;
-            }
+                Action action = action_pair.first;
+                int duration = action_pair.second;
+                if (!first)
+                {
+                    path+= ",";
+                }
+                else
+                {
+                    first = false;
+                }
 
-            if (action == Action::FW)
-            {
-                path+="F";
+                if (action == Action::FW)
+                {
+                    path+="F";
+                }
+                else if (action == Action::CR)
+                {
+                    path+="R";
+                } 
+                else if (action == Action::CCR)
+                {
+                    path+="C";
+                }
+                else if (action == Action::NA)
+                {
+                    path+="T";
+                }
+                else
+                {
+                    path+="W";
+                }
+                path+=" ";
+                path+=std::to_string(duration);
             }
-            else if (action == Action::CR)
-            {
-                path+="R";
-            } 
-            else if (action == Action::CCR)
-            {
-                path+="C";
-            }
-            else if (action == Action::NA)
-            {
-                path+="T";
-            }
-            else
-            {
-                path+="W";
-            }
+            path+=")]";
+            curr_steps += chunk_size;
         }
         apaths.push_back(path);
     }
@@ -256,39 +335,60 @@ json Simulator::planned_path_to_json() const
     for (int i = 0; i < num_of_agents; i++)
     {
         std::string path;
-        bool first = true;
-        for (const auto action : planner_movements[i])
+        int curr_steps = 0;
+        for (const auto& chunk : chunked_planner_movements[i])
         {
-            if (!first)
+            path+="[(";
+            path+=std::to_string(curr_steps);
+            path+=",";
+            path+=std::to_string(chunked_planner_snapshot_states[i][0].location/map.cols);
+            path+=","; 
+            path+=std::to_string(chunked_planner_snapshot_states[i][0].location%map.cols);
+            path+=",";
+            path+=std::to_string(chunked_planner_snapshot_states[i][0].orientation);
+            path+= ",";
+            path+=std::to_string(chunked_planner_snapshot_states[i][0].counter.count);
+            path+="):(";
+            bool first = true;
+            for (const auto& action_pair : chunk)
             {
-                path+= ",";
-            } 
-            else 
-            {
-                first = false;
-            }
+                Action action = action_pair.first;
+                int duration = action_pair.second;
+                if (!first)
+                {
+                    path+= ",";
+                }
+                else
+                {
+                    first = false;
+                }
 
-            if (action == Action::FW)
-            {
-                path+="F";
+                if (action == Action::FW)
+                {
+                    path+="F";
+                }
+                else if (action == Action::CR)
+                {
+                    path+="R";
+                } 
+                else if (action == Action::CCR)
+                {
+                    path+="C";
+                }
+                else if (action == Action::NA)
+                {
+                    path+="T";
+                }
+                else
+                {
+                    path+="W";
+                }
+                path+=" ";
+                path+=std::to_string(duration);
             }
-            else if (action == Action::CR)
-            {
-                path+="R";
-            } 
-            else if (action == Action::CCR)
-            {
-                path+="C";
-            } 
-            else if (action == Action::NA)
-            {
-                path+="T";
-            }
-            else
-            {
-                path+="W";
-            }
-        }  
+            curr_steps += chunk_size;
+            path+=")]";
+        } 
         ppaths.push_back(path);
     }
 
