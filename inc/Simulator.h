@@ -70,7 +70,9 @@ public:
 
     int get_curr_timestep() {return timestep;}
 
-    int get_max_counter() {return max_counter;}
+    int get_max_counter() const {return max_counter;}
+    
+    int get_chunk_size() const {return chunk_size;}
 
     void sync_shared_env(SharedEnvironment* env);
 
