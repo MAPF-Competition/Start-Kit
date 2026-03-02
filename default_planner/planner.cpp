@@ -8,6 +8,19 @@
 
 namespace DefaultPlanner{
 
+    static const char* debug_action_to_string(Action action)
+    {
+        switch (action)
+        {
+            case Action::FW: return "FW";
+            case Action::CR: return "CR";
+            case Action::CCR: return "CCR";
+            case Action::W: return "W";
+            case Action::NA: return "NA";
+            default: return "UNKNOWN";
+        }
+    }
+
     //default planner data
     std::vector<int> decision; 
     std::vector<int> prev_decision;
@@ -310,8 +323,8 @@ namespace DefaultPlanner{
         if (pibt_time <= 0){
             pibt_time = 1;
         }
-        TimePoint flow_end_time = episode_start + std::chrono::milliseconds(std::max(0, time_limit - pibt_time - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE));
-        TimePoint pibt_end_time = episode_start + std::chrono::milliseconds(std::max(1, pibt_time));
+        const int flow_budget_ms = std::max(0, time_limit - pibt_time * num_steps - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
+        TimePoint flow_end_time = episode_start + std::chrono::milliseconds(flow_budget_ms);
 
         std::vector<double> local_priority = p;
 
@@ -328,6 +341,13 @@ namespace DefaultPlanner{
         setup_multistep_episode_state(env, flow_end_time, local_priority);
         update_guide_paths_once_for_multistep(env, flow_end_time);
 
+        const auto after_setup = std::chrono::steady_clock::now();
+        const auto setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
+        std::cout << "[DefaultPlanner::plan] timing: time_limit=" << time_limit
+              << "ms, pibt_time_hint=" << pibt_time
+              << "ms, flow_budget=" << flow_budget_ms
+              << "ms, setup_elapsed=" << setup_elapsed_ms << "ms" << std::endl;
+
         // commit only cross-episode priority update (internal rollout keeps using local_priority only)
         p = local_priority;
 
@@ -339,14 +359,34 @@ namespace DefaultPlanner{
                 refresh_multistep_step_state(env, local_priority);
             }
 
-            if (std::chrono::steady_clock::now() <= pibt_end_time){
-                run_multistep_pibt_once(env, local_priority, one_step_actions);
-            }
-            else{
-                one_step_actions.assign(env->num_of_agents, Action::W);
+            run_multistep_pibt_once(env, local_priority, one_step_actions);
+
+            std::cout << "[DefaultPlanner::plan] step " << step << " per-agent state/action:" << std::endl;
+            for (int aid = 0; aid < env->num_of_agents; aid++){
+                int goal_loc = -1;
+                if (!env->goal_locations[aid].empty())
+                    goal_loc = env->goal_locations[aid].front().first;
+                std::cout << "  agent " << aid
+                          << " loc=" << env->curr_states[aid].location
+                          << " ori=" << env->curr_states[aid].orientation
+                          << " goal=" << goal_loc
+                          << " task=" << trajLNS.tasks[aid]
+                          << " decided_loc=" << decided[aid].loc
+                          << " action=" << debug_action_to_string(one_step_actions[aid])
+                          << std::endl;
             }
 
             append_actions_and_rollout_states(env, actions, one_step_actions);
+        }
+
+        std::cout << "[DefaultPlanner::plan] computed actions for "
+                  << env->num_of_agents << " agents over " << num_steps << " steps" << std::endl;
+        for (int aid = 0; aid < env->num_of_agents; aid++){
+            std::cout << "  agent " << aid << ":";
+            for (int step = 0; step < static_cast<int>(actions[aid].size()); step++){
+                std::cout << (step == 0 ? " " : ", ") << debug_action_to_string(actions[aid][step]);
+            }
+            std::cout << std::endl;
         }
 
         // restore env state after internal rollout simulation
