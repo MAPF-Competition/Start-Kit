@@ -138,10 +138,8 @@ list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
     //new_freeagents.clear(); //prepare to push all new free agents to the shared environment
     for (int k = 0; k < num_of_agents; k++)
     {
-        cout<<"agent "<<k<<" current task assignment "<<current_assignment[k]<<" current location "<<states[k].location<<endl;
         if (current_assignment[k] != -1 && states[k].location == ongoing_tasks[current_assignment[k]]->get_next_loc())
         {
-            cout<<"current location "<<states[k].location<<" next loc "<<ongoing_tasks[current_assignment[k]]->get_next_loc()<<endl;
             Task * task = ongoing_tasks[current_assignment[k]];
             task->idx_next_loc += 1;
 
