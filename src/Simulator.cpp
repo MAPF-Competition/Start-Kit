@@ -189,6 +189,11 @@ void Simulator::record_actual_movements(State state, Action action, int agent_id
 
 void Simulator::simulate_delay()
 {
+    if (!delay_enabled)
+    {
+        return;
+    }
+
     std::vector<bool> started_this_tick(num_of_agents, false);
 
     if (timestep >= 0 && timestep < static_cast<int>(delay_schedule.size()))
@@ -226,6 +231,22 @@ void Simulator::simulate_delay()
                 curr_states[k].delay.inDelay = false;
             }
         }
+    }
+}
+
+void Simulator::set_delay_enabled(bool enabled)
+{
+    delay_enabled = enabled;
+    if (delay_enabled)
+    {
+        return;
+    }
+
+    for (int i = 0; i < num_of_agents; i++)
+    {
+        curr_states[i].delay.inDelay = false;
+        predict_states[i].delay.inDelay = false;
+        delays[i] = 0;
     }
 }
 

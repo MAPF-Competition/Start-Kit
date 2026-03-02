@@ -46,6 +46,7 @@ public:
         {
             this->executor = new Executor();
         }
+        set_delay_enabled(false);
     }
 
     virtual ~Simulator()
@@ -65,6 +66,8 @@ public:
     void simulate_delay();
 
     void validate_actions_with_delay(vector<Action>& actions);
+
+    void set_delay_enabled(bool enabled);
 
     vector<State> get_current_state(){ return curr_states; }
 
@@ -168,6 +171,7 @@ private:
     vector<vector<Action>> staged_actions;
 
     vector<vector<pair<int, int>>> delay_schedule;
+    bool delay_enabled = true;
     
     int max_counter;
 };
