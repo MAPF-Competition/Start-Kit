@@ -275,6 +275,9 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
 
     js["numEntryTimeouts"] = total_timetous;
 
+    js["agentMaxCounter"] = simulator.get_max_counter();
+    js["outputSegmentSize"]=simulator.get_chunk_size();
+
     // Save start locations[x,y,orientation]
     if (screen <= 2)
     {
