@@ -5,5 +5,6 @@
     "taskFile": "tasks/random_32_32_20.tasks",
     "numTasksReveal": 1.5,
     "delayFile": "delays/delay.json",
+    "agentCounter": 10,
     "version": "2026 LoRR"
 }
