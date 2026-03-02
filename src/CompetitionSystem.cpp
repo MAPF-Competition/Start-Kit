@@ -46,84 +46,6 @@ bool BaseSystem::planner_wrapper()
 }
 
 
-void BaseSystem::plan(int time_limit)
-{
-
-    using namespace std::placeholders;
-
-    int timestep = simulator.get_curr_timestep();
-
-    //previouly timeouted, check if finished
-    if (started && future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
-    {
-        std::cout << started << "     " << (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) << std::endl;
-        if(logger)
-        {
-            logger->log_info("planner cannot run because the previous run is still running", timestep);
-        }
-
-        if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
-        {
-            task_td.join();
-            started = false;
-            auto res = future.get();
-            logger->log_info("planner returns", timestep);
-            return;
-        }
-        logger->log_info("planner timeout", timestep);
-        return;
-    }
-
-    //launch new planning task and check if finished within time limit
-
-    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
-
-    future = task.get_future();
-    if (task_td.joinable())
-    {
-        task_td.join();
-    }
-    task_td = std::thread(std::move(task));
-    started = true;
-    if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
-    {
-        task_td.join();
-        started = false;
-        auto res = future.get();
-        logger->log_info("planner returns", timestep);
-        return;
-    }
-    logger->log_info("planner timeout", timestep);
-    return;
-
-    // future = task.get_future();
-    // if (task_td.joinable()){
-    //     task_td.join();
-    // }
-    // env->plan_start_time = std::chrono::steady_clock::now();
-    // task_td = std::thread(std::move(task));
-
-    // started = true;
-
-    // while (timestep + timeout_timesteps < simulation_time){
-
-    //     if (future.wait_for(std::chrono::milliseconds(plan_time_limit)) == std::future_status::ready)
-    //         {
-    //             task_td.join();
-    //             started = false;
-    //             auto res = future.get();
-
-    //             logger->log_info("planner returns", timestep + timeout_timesteps);
-    //             return;
-    //         }
-    //     logger->log_info("planner timeout", timestep + timeout_timesteps);
-    //     timeout_timesteps += 1;
-    // }
-
-    //
-}
-
-
 bool BaseSystem::planner_initialize()
 {
     using namespace std::placeholders;
@@ -173,6 +95,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
     int timestep = simulator.get_curr_timestep();
 
     //start initial planning
+    plan_time_limit = initial_plan_time_limit;
     std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
     future = task.get_future();
     env->plan_start_time = std::chrono::steady_clock::now();
@@ -255,6 +178,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
             //launch new planning task
             sync_shared_env();
+            plan_time_limit = min_comm_time;
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
             future = task.get_future();
             env->plan_start_time = std::chrono::steady_clock::now();
@@ -286,6 +210,11 @@ void BaseSystem::initialize()
     env->rows = map.rows;
     env->cols = map.cols;
     env->map = map.map;
+
+    env->min_planner_communication_time = min_comm_time;
+    env->action_time = simulator_time_limit;
+    env->max_counter = simulator.get_max_counter();
+
 
     
     // // bool succ = load_records(); // continue simulating from the records
@@ -333,27 +262,13 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     json js;
     // Save action model
     js["actionModel"] = "MAPF_T";
-    js["version"] = "2024 LoRR";
-
-    // std::string feasible = fast_mover_feasible ? "Yes" : "No";
-    // js["AllValid"] = feasible;
+    js["version"] = "2026 LoRR";
 
     js["teamSize"] = num_of_agents;
 
     js["numTaskFinished"] = task_manager.num_of_task_finish;
-    int makespan = 0;
-    if (num_of_agents > 0)
-    {
-        makespan = solution_costs[0];
-        for (int a = 1; a < num_of_agents; a++)
-        {
-            if (solution_costs[a] > makespan)
-            {
-                makespan = solution_costs[a];
-            }
-        }
-    }
-    js["makespan"] = makespan;
+    
+    js["makespan"] = simulation_time;
 
     js["numPlannerErrors"] = simulator.get_number_errors();
     js["numScheduleErrors"] = task_manager.get_number_errors();

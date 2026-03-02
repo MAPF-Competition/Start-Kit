@@ -17,9 +17,9 @@ class BaseSystem
 public:
     Logger* logger = nullptr;
 
-	BaseSystem(Grid &grid, Entry* planner, Executor* executor, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model):
+	BaseSystem(Grid &grid, Entry* planner, Executor* executor, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model, int max_counter = 10):
       map(grid), planner(planner), env(planner->env),
-      task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor)
+      task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor,max_counter)
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
@@ -54,7 +54,6 @@ public:
         min_comm_time = comm;
         simulator_time_limit = move;
         process_new_plan_time_limit = process_new_plan;
-        plan_time_limit = comm; // for backward compatibility, plan_time_limit is the communication time limit for planner
     };
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
     void set_log_level(int level){log_level = level;};
@@ -70,7 +69,6 @@ public:
     }
 
     void simulate(int simulation_time,int chunk_size);
-    void plan(int time_limit);
     bool planner_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
