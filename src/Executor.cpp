@@ -108,7 +108,7 @@ void Executor::next_command(int exec_time_limit, std::vector<vector<Action>> sta
 
 bool Executor::mcp(std::vector<vector<Action>> staged_actions, int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
 {
-    cout<<"mcp for agent "<<agent_id<<endl;
+    // cout<<"mcp for agent "<<agent_id<<endl;
     if (staged_actions[agent_id].empty())
     {
         //no action, just stop and wait for the next plan, no tpg order clear
