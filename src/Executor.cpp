@@ -95,17 +95,17 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
 {
     cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
     // // //always go if there are staged actions
-    for (int i = 0; i < env->curr_states.size(); i++)
-    {
-        if (!env->staged_actions[i].empty())
-        {
-            agent_command[i] = ExecutionCommand::GO;
-        }
-        else
-        {
-            agent_command[i] = ExecutionCommand::STOP;
-        }
-    }
+    // for (int i = 0; i < env->curr_states.size(); i++)
+    // {
+    //     if (!env->staged_actions[i].empty())
+    //     {
+    //         agent_command[i] = ExecutionCommand::GO;
+    //     }
+    //     else
+    //     {
+    //         agent_command[i] = ExecutionCommand::STOP;
+    //     }
+    // }
     // return;
 
     //update the tpg based on the current system states from last tick
@@ -166,6 +166,7 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
                 temp_tpg[curr_location].pop_front();
 
             curr_decision[agent_id] = true;
+            cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
             return true;
         }
         else
@@ -207,6 +208,7 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
 
                 //now agent can go and clear the tpg order
                 agent_command[agent_id] = ExecutionCommand::GO;
+                cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
                 // curr_decision[agent_id] = true;
                 return true;
             }
