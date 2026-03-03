@@ -6,5 +6,6 @@
     "numTasksReveal": 1.5,
     "delayFile": "delays/delay.json",
     "agentCounter": 10,
-    "version": "2026 LoRR"
+    "version": "2026 LoRR",
+    "agentSize": 0.5
 }
