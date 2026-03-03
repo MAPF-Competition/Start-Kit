@@ -56,8 +56,28 @@ struct State
         location(other.location), timestep(other.timestep), orientation(other.orientation), counter(other.counter), delay(other.delay), moveType(other.moveType) {}
 };
 
-std::ostream & operator << (std::ostream &out, const State &s);
+inline std::ostream & operator << (std::ostream &out, const State &s)
+{
+    out << "loc=" << s.location
+        << ",ori=" << s.orientation
+        << ",t=" << s.timestep
+        << ",counter=" << s.counter.count << "/" << s.counter.maxCount
+        << ",delay={min=" << s.delay.minDelay
+        << ",max=" << s.delay.maxDelay
+        << ",in=" << s.delay.inDelay << "}";
+    return out;
+}
 
 typedef std::vector<State> Path;
 
-std::ostream & operator << (std::ostream &out, const Path &path);
+inline std::ostream & operator << (std::ostream &out, const Path &path)
+{
+    for (auto state : path)
+    {
+        if (state.location < 0)
+            continue;
+        out << "(" << state << ")->";
+    }
+    out << std::endl;
+    return out;
+}
