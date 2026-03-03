@@ -78,9 +78,13 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
         }
         if (curr_states[i].delay.inDelay)
         {
+            cout<<"agent "<<i<<" delayed"<<endl;
             actions[i] = Action::W;
         }
         record_planned_movements(actions[i], i);
+        if (actions[i] == Action::FW)
+
+            cout<<"planned movement for agent "<<i<<" action fw"<<endl;
     }
 
     auto pre_states = curr_states;
@@ -93,6 +97,10 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
     {
         //record the actual path and actions
         record_actual_movements(pre_states[k], actions[k], k);
+
+        if (actions[k] == Action::FW)
+
+            cout<<"actual movement for agent "<<k<<" action fw"<<endl;
 
         if (staged_actions[k].empty())
         {
@@ -113,6 +121,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
             //the agent has moved to the next location or move to next orientation, so we can remove the staged action
             staged_actions[k].erase(staged_actions[k].begin());
         }
+        cout<<"executor, current agent "<<k<<" pre state "<<pre_states[k].location<<" curr state "<<curr_states[k].location<<endl;
     }
     //return move_valid;
     return curr_states;
@@ -212,7 +221,7 @@ void Simulator::simulate_delay()
                 curr_states[agent].delay.inDelay = true;
                 delays[agent] = duration;
                 started_this_tick[agent] = true;
-                cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
+                //cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
             }
             else
             {
@@ -223,6 +232,8 @@ void Simulator::simulate_delay()
 
     for (int k = 0; k < num_of_agents; k++)
     {
+        curr_states[k].delay.inDelay = false;
+        continue;
         if (curr_states[k].delay.inDelay && !started_this_tick[k])
         {
             delays[k]--;
