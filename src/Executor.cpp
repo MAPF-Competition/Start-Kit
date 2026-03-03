@@ -124,7 +124,7 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
         }
     }
     vector<bool> decided(env->num_of_agents, false);
-    temp_tpg = tpg; //copy the tpg to temp_tpg for current timestep processing, we will update temp_tpg during mcp but keep tpg unchanged
+    //temp_tpg = tpg; //copy the tpg to temp_tpg for current timestep processing, we will update temp_tpg during mcp but keep tpg unchanged
     for (int i = 0; i < env->system_states.size(); i++)
     {
         // always try to go and clear orders because we don't know the current delay
@@ -158,12 +158,12 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
         int curr_orientation = env->system_states[agent_id].orientation;
         int next_location = curr_location + moves[curr_orientation];
 
-        if (temp_tpg[next_location].empty() || temp_tpg[next_location].front() == agent_id)
+        if (tpg[next_location].empty() || tpg[next_location].front() == agent_id)
         {
             //try to go and can go, clear the tpg order
             agent_command[agent_id] = ExecutionCommand::GO;
-            if (!temp_tpg[curr_location].empty())
-                temp_tpg[curr_location].pop_front();
+            // if (!tpg[curr_location].empty())
+            //     tpg[curr_location].pop_front();
 
             curr_decision[agent_id] = true;
             cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
@@ -171,56 +171,54 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
         }
         else
         {
-            //try to go by recursion
-            int blocking_agent_id = temp_tpg[next_location].front();
+            // //try to go by recursion
+            // int blocking_agent_id = temp_tpg[next_location].front();
 
-            cout<<"agent "<<agent_id<<" next loc "<<next_location<<" tpg blocking agent "<<blocking_agent_id<<endl;
+            // cout<<"agent "<<agent_id<<" next loc "<<next_location<<" tpg blocking agent "<<blocking_agent_id<<endl;
 
-            int next_id=-1;
-            auto it = temp_tpg[next_location].begin();
-            if (it != temp_tpg[next_location].end()) 
-            {
-                auto it2 = std::next(it);
-                if (it2 != temp_tpg[next_location].end()) 
-                {
-                    // *it2 is the second element
-                    next_id = *it2;
-                }
-            }
+            // int next_id=-1;
+            // auto it = temp_tpg[next_location].begin();
+            // if (it != temp_tpg[next_location].end()) 
+            // {
+            //     auto it2 = std::next(it);
+            //     if (it2 != temp_tpg[next_location].end()) 
+            //     {
+            //         // *it2 is the second element
+            //         next_id = *it2;
+            //     }
+            // }
 
-            assert(next_id != -1); 
+            // assert(next_id != -1); 
             
-            if (curr_decision[blocking_agent_id] || next_id != agent_id)
-            {                
-                //the blocking agent has already made the decision or current agent is not on the second order, so we cannot go
-                agent_command[agent_id] = ExecutionCommand::STOP;
-                curr_decision[agent_id] = true;
-                return false;       
-            }
+            // if (curr_decision[blocking_agent_id] || next_id != agent_id)
+            // {                
+            //     //the blocking agent has already made the decision or current agent is not on the second order, so we cannot go
+            //     agent_command[agent_id] = ExecutionCommand::STOP;
+            //     curr_decision[agent_id] = true;
+            //     return false;       
+            // }
 
-            //try to simulate to see if the agent can go by pushing blocking agent
-            curr_decision[agent_id] = true;
-            if (!temp_tpg[curr_location].empty())
-                temp_tpg[curr_location].pop_front(); //temporarily pop the current agent from temp_tpg to simulate the move
+            // //try to simulate to see if the agent can go by pushing blocking agent
+            // curr_decision[agent_id] = true;
+            // if (!temp_tpg[curr_location].empty())
+            //     temp_tpg[curr_location].pop_front(); //temporarily pop the current agent from temp_tpg to simulate the move
 
-            if (mcp(blocking_agent_id, curr_decision, agent_command) && temp_tpg[next_location].front() == agent_id)
-            {
+            // if (mcp(blocking_agent_id, curr_decision, agent_command) && temp_tpg[next_location].front() == agent_id)
+            // {
 
-                //now agent can go and clear the tpg order
-                agent_command[agent_id] = ExecutionCommand::GO;
-                cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
-                // curr_decision[agent_id] = true;
-                return true;
-            }
-            else
-            {
+            //     //now agent can go and clear the tpg order
+            //     agent_command[agent_id] = ExecutionCommand::GO;
+            //     cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
+            //     // curr_decision[agent_id] = true;
+            //     return true;
+            // }
+            // else
+            // {
                 //the blocking agent cannot go, so we cannot go
                 agent_command[agent_id] = ExecutionCommand::STOP;
-                //restore the temp_tpg by adding the current agent back to the front of the current location
-                temp_tpg[curr_location].push_front(agent_id);
-                // curr_decision[agent_id] = true;
+                curr_decision[agent_id] = true;
                 return false;
-            }
+            // }
         }
     }
     
