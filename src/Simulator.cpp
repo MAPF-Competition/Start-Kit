@@ -78,9 +78,13 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
         }
         if (curr_states[i].delay.inDelay)
         {
+            cout<<"agent "<<i<<" delayed"<<endl;
             actions[i] = Action::W;
         }
         record_planned_movements(actions[i], i);
+        if (actions[i] == Action::FW)
+
+            cout<<"planned movement for agent "<<i<<" action fw"<<endl;
     }
 
     auto pre_states = curr_states;
@@ -93,6 +97,10 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
     {
         //record the actual path and actions
         record_actual_movements(pre_states[k], actions[k], k);
+
+        if (actions[k] == Action::FW)
+
+            cout<<"actual movement for agent "<<k<<" action fw"<<endl;
 
         if (staged_actions[k].empty())
         {
