@@ -192,7 +192,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         //while the planner is running, move from previous plans
         simulator.sync_shared_env(env);
         auto move_start = std::chrono::steady_clock::now();
-        simulator.move(simulator_time_limit);
+        curr_states = simulator.move(simulator_time_limit);
         auto move_end = std::chrono::steady_clock::now();
 
         int elapsed_tick =std::max(1, ((int)std::chrono::duration_cast<std::chrono::milliseconds>(move_end - move_start).count() + simulator_time_limit - 1) / simulator_time_limit);
@@ -274,6 +274,9 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     js["numScheduleErrors"] = task_manager.get_number_errors();
 
     js["numEntryTimeouts"] = total_timetous;
+
+    js["agentMaxCounter"] = simulator.get_max_counter();
+    js["outputSegmentSize"]=simulator.get_chunk_size();
 
     // Save start locations[x,y,orientation]
     if (screen <= 2)

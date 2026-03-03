@@ -64,6 +64,7 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
             {
                 new_location = new_location + moves[curr_states[i].orientation];
                 tpg[new_location].push_back(i);
+                cout<<"insert "<<i<<" to tpg at "<<new_location<<endl;
             }
             else if (plan[i][timestep] == Action::CR)
             {
@@ -93,10 +94,10 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
 void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> & agent_command)
 {
     cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
-    // // // //always go if there are staged actions
+    // // //always go if there are staged actions
     // for (int i = 0; i < env->curr_states.size(); i++)
     // {
-    //     if (!staged_actions[i].empty())
+    //     if (!env->staged_actions[i].empty())
     //     {
     //         agent_command[i] = ExecutionCommand::GO;
     //     }
@@ -105,17 +106,19 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
     //         agent_command[i] = ExecutionCommand::STOP;
     //     }
     // }
-    // // return;
+    // return;
 
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
     {
         int prev_location = previous_locations[i];
         int curr_location = env->system_states[i].location;
+        cout<<"tpg for agent "<<i<<" prev loc "<< prev_location<<" tpg first "<<tpg[prev_location].front()<<endl;
         assert(tpg[prev_location].front() == i);
         if (prev_location != curr_location && tpg[prev_location].front() == i)
         {
             //remove the agent from the previous location in tpg
+            cout<<"pop agent "<<i<<" from location "<< prev_location<<" current at "<<curr_location<<endl;
             tpg[prev_location].pop_front();
             previous_locations[i] = curr_location;
         }
@@ -133,6 +136,7 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
 
 bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
 {
+    cout<<"mcp for "<<agent_id<<endl;
     if (env->staged_actions[agent_id].empty())
     {
         //no action, just stop and wait for the next plan, no tpg order clear
@@ -162,12 +166,15 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
                 temp_tpg[curr_location].pop_front();
 
             curr_decision[agent_id] = true;
+            cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
             return true;
         }
         else
         {
             //try to go by recursion
             int blocking_agent_id = temp_tpg[next_location].front();
+
+            cout<<"agent "<<agent_id<<" next loc "<<next_location<<" tpg blocking agent "<<blocking_agent_id<<endl;
 
             int next_id=-1;
             auto it = temp_tpg[next_location].begin();
@@ -196,11 +203,12 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
             if (!temp_tpg[curr_location].empty())
                 temp_tpg[curr_location].pop_front(); //temporarily pop the current agent from temp_tpg to simulate the move
 
-            if (mcp(blocking_agent_id, curr_decision, agent_command))
+            if (mcp(blocking_agent_id, curr_decision, agent_command) && temp_tpg[next_location].front() == agent_id)
             {
 
                 //now agent can go and clear the tpg order
                 agent_command[agent_id] = ExecutionCommand::GO;
+                cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
                 // curr_decision[agent_id] = true;
                 return true;
             }
