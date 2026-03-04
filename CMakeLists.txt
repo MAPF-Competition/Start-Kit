@@ -5,11 +5,18 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Set the default value of PYTHON to false
 option(PYTHON "Enable Python" OFF)
+option(ENABLE_VISUALIZER "Enable realtime visualizer telemetry export" ON)
 
 if(PYTHON)
     set(PYTHON_FLAG 1)
 else()
     set(PYTHON_FLAG 0)
+endif()
+
+if(ENABLE_VISUALIZER)
+    set(VISUALIZER_FLAG 1)
+else()
+    set(VISUALIZER_FLAG 0)
 endif()
 
 
@@ -30,6 +37,10 @@ include_directories("default_planner")
 
 file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp")
 file(GLOB DEFAULT_PLANNER_SOURCES "default_planner/*.cpp")
+
+if(NOT ENABLE_VISUALIZER)
+    list(FILTER SOURCES EXCLUDE REGEX ".*VisualizerRecorder\\.cpp$")
+endif()
 
 
 # Find Boost
@@ -61,7 +72,7 @@ IF(PYTHON)
 
     add_executable(lifelong  ${PY_SOURCES} ${SOURCES})
     target_link_libraries(lifelong PRIVATE pybind11::embed ${Boost_LIBRARIES})
-    target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+    target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG} ENABLE_VISUALIZER=${VISUALIZER_FLAG})
 
     if (COPY_PY_PATH_CONFIG)
         file(COPY "config.json" DESTINATION ${CMAKE_BINARY_DIR})
@@ -74,7 +85,7 @@ ELSE()
 
     add_executable(lifelong ${SOURCES} )
     target_link_libraries(lifelong ${Boost_LIBRARIES})
-    target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+    target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG} ENABLE_VISUALIZER=${VISUALIZER_FLAG})
 ENDIF()
 
 
@@ -104,6 +115,5 @@ if(BUILD_TESTS)
     target_link_libraries(multi_step_plan_test ${Boost_LIBRARIES})
     add_test(NAME multi_step_plan_test COMMAND multi_step_plan_test)
 endif()
-
 
 

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoRR Tick Visualizer</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>LoRR Tick Visualizer</h1>
+      <label class="file-input">
+        <span>Load NDJSON</span>
+        <input id="ndjsonFile" type="file" accept=".ndjson,.jsonl,.txt">
+      </label>
+      <button id="playPause" disabled>Play</button>
+      <button id="resetView" disabled>Reset View</button>
+      <label class="speed">
+        Speed
+        <select id="speed" disabled>
+          <option value="0.25">0.25x</option>
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+          <option value="8">8x</option>
+        </select>
+      </label>
+      <span id="status">Load a visualizer NDJSON file to start.</span>
+    </header>
+
+    <div class="timeline">
+      <input id="tickSlider" type="range" min="0" max="0" step="1" value="0" disabled>
+      <div id="tickLabel">tick -</div>
+    </div>
+
+    <main id="viewport">
+      <canvas id="bgCanvas"></canvas>
+      <canvas id="glCanvas"></canvas>
+    </main>
+  </div>
+
+  <script src="./viewer.js"></script>
+</body>
+</html>

@@ -106,9 +106,10 @@ It is able to visualise the output of the start-kit program and help participant
 
 Please refer to the project website for more information. Also the document [Debug_and_Visualise_Your_Planner](./Debug_and_Visualise_Your_Planner.md) which provides helpful hints for interpreting and diagnosing planner output.
 
+For high-agent-count runs, this repository also includes a WebGL-based replay viewer under [`visualizer/`](./visualizer/README.md), using simulator tick output generated with `--vizOutput`.
+
 ## Submission Instruction
 
 Please refer to the [Submission_Instruction.md](./Submission_Instruction.md).
-
 
 

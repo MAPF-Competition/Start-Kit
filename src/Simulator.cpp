@@ -88,6 +88,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
     }
 
     auto pre_states = curr_states;
+    last_actions = actions;
 
     curr_states = model->step(curr_states, actions,timestep);
     timestep++;

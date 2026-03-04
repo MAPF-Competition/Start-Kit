@@ -39,6 +39,7 @@ public:
         // chunked_snapshot_states.resize(num_of_agents);
         // prepare staged actions container for each agent
         staged_actions.resize(num_of_agents);
+        last_actions.resize(num_of_agents, Action::W);
         delays.resize(num_of_agents, 0);
 
         // if no executor provided, create a default one (its env will be set later via sync_shared_env)
@@ -70,6 +71,7 @@ public:
     void set_delay_enabled(bool enabled);
 
     vector<State> get_current_state(){ return curr_states; }
+    const vector<Action>& get_last_actions() const { return last_actions; }
 
     int get_curr_timestep() {return timestep;}
 
@@ -171,6 +173,7 @@ private:
     vector<int> current_actual_chunk_index; // the current chunk index for recording movements and states
 
     vector<vector<Action>> staged_actions;
+    vector<Action> last_actions;
 
     vector<vector<pair<int, int>>> delay_schedule;
     bool delay_enabled = true;

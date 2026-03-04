@@ -88,6 +88,21 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     this->simulation_time = simulation_time;
 
+#if ENABLE_VISUALIZER
+    if (!visualizer_output_file.empty())
+    {
+        visualizer_recorder.open(
+            visualizer_output_file,
+            map,
+            num_of_agents,
+            agent_size,
+            simulator_time_limit,
+            simulation_time,
+            visualizer_tick_stride);
+        visualizer_recorder.record_tick(simulator.get_curr_timestep(), simulator.get_current_state(), simulator.get_last_actions());
+    }
+#endif
+
     // sync_shared_env();
 
     vector<State> curr_states = simulator.get_current_state();
@@ -122,7 +137,10 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         logger->log_info("planner cannot run because the previous run is still running", timestep);
         auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
-        simulator.move(simulator_time_limit);
+        curr_states = simulator.move(simulator_time_limit);
+#if ENABLE_VISUALIZER
+        visualizer_recorder.record_tick(simulator.get_curr_timestep(), curr_states, simulator.get_last_actions());
+#endif
         auto move_end = std::chrono::steady_clock::now();
         while(deadline < move_end)
         {
@@ -200,7 +218,14 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
         //update tasks
         task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
+#if ENABLE_VISUALIZER
+        visualizer_recorder.record_tick(simulator.get_curr_timestep(), curr_states, simulator.get_last_actions());
+#endif
     }
+
+#if ENABLE_VISUALIZER
+    visualizer_recorder.close();
+#endif
 }
 
 
@@ -418,5 +443,3 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     f << std::setw(4) << js;
 
 }
-
-

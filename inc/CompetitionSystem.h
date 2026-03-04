@@ -10,7 +10,11 @@
 #include "TaskManager.h"
 #include <pthread.h>
 #include <future>
+#include <algorithm>
 #include "Simulator.h"
+#if ENABLE_VISUALIZER
+#include "VisualizerRecorder.h"
+#endif
 
 class BaseSystem
 {
@@ -68,6 +72,19 @@ public:
         simulator.set_delay_profile(delay_ranges, delay_schedule);
     }
 
+#if ENABLE_VISUALIZER
+    void set_visualizer_output(const std::string& output_file, int tick_stride)
+    {
+        visualizer_output_file = output_file;
+        visualizer_tick_stride = std::max(1, tick_stride);
+    }
+
+    void set_agent_size(float size)
+    {
+        agent_size = size;
+    }
+#endif
+
     void simulate(int simulation_time,int chunk_size);
     bool planner_wrapper();
 
@@ -100,6 +117,9 @@ protected:
     int min_comm_time = 1000;
     int simulator_time_limit = 100;
     int process_new_plan_time_limit = 100;
+#if ENABLE_VISUALIZER
+    float agent_size = 1.0f;
+#endif
 
 
     vector<State> starts;
@@ -123,6 +143,11 @@ protected:
 
     TaskManager task_manager;
     Simulator simulator;
+#if ENABLE_VISUALIZER
+    VisualizerRecorder visualizer_recorder;
+    std::string visualizer_output_file;
+    int visualizer_tick_stride = 1;
+#endif
     // deque<Task> task_queue;
     virtual void sync_shared_env();
 

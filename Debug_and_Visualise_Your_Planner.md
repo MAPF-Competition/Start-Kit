@@ -23,3 +23,15 @@ Therefore, the errors it shows are those recorded in the JSON file.
 If you modify the JSON file manually, the error list and agent highlighting can be inconsistent with the movement.
 
 For more details, please refer to the [Visualiser Page](https://github.com/MAPF-Competition/PlanViz).
+
+## Realtime Tick Visualizer (for large teams)
+
+For large-scale runs (e.g., thousands of agents), this repository also provides a lightweight WebGL viewer in [`visualizer/`](./visualizer/README.md).
+
+1. Run `lifelong` with `--vizOutput` to export per-timestep NDJSON ticks.
+2. Open `visualizer/index.html` through a local HTTP server (see [`visualizer/README.md`](./visualizer/README.md)).
+3. Load the generated NDJSON file and replay with pan/zoom/timeline controls.
+
+Useful options:
+- `--vizOutput ./viz_ticks.ndjson`
+- `--vizTickStride N` (record every Nth tick to reduce file size)

@@ -57,6 +57,10 @@ int main(int argc, char **argv)
         ("planCommTimeLimit,t", po::value<int>()->default_value(1000), "the minimal communication time limit for planner in milliseconds")
         ("outputActionWindow,w", po::value<int>()->default_value(100), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
         ("executorProcessPlanTimeLimit,x", po::value<int>()->default_value(100), "the time limit for process new plan in milliseconds")
+#if ENABLE_VISUALIZER
+        ("vizOutput", po::value<std::string>()->default_value(""), "optional NDJSON output file for realtime visualizer ticks")
+        ("vizTickStride", po::value<int>()->default_value(1), "record every Nth timestep in vizOutput (N>=1)")
+#endif
         ;
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -98,6 +102,19 @@ int main(int argc, char **argv)
         logger->log_fatal("output directory does not exist",0);
         _exit(1);
     }
+
+#if ENABLE_VISUALIZER
+    std::string viz_output = vm["vizOutput"].as<std::string>();
+    if (!viz_output.empty())
+    {
+        std::filesystem::path viz_path(viz_output);
+        if (viz_path.parent_path().string().size() > 0 && !std::filesystem::is_directory(viz_path.parent_path()))
+        {
+            logger->log_fatal("visualizer output directory does not exist", 0);
+            _exit(1);
+        }
+    }
+#endif
 
 
     Entry *planner = nullptr;
@@ -165,12 +182,21 @@ int main(int argc, char **argv)
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
     system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model, read_param_json<int>(data, "maxCounter", 10));
+#if ENABLE_VISUALIZER
+    system_ptr->set_agent_size(agent_size);
+#endif
 
     system_ptr->set_logger(logger);
     system_ptr->set_plan_time_limit(vm["initialPlanTimeLimit"].as<int>(),vm["planCommTimeLimit"].as<int>(),vm["actionMoveTimeLimit"].as<int>(),vm["executorProcessPlanTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
+#if ENABLE_VISUALIZER
+    if (!viz_output.empty())
+    {
+        system_ptr->set_visualizer_output(viz_output, vm["vizTickStride"].as<int>());
+    }
+#endif
 
     auto delay_file = read_param_json<std::string>(data, "delayFile", "");
     if (delay_file.empty())
