@@ -16,7 +16,7 @@ void Executor::initialize(int preprocess_time_limit)
     {
         window_size = INT_MAX;
     }
-    cout<<"executor initialized with window size: "<<window_size<<endl;
+    // cout<<"executor initialized with window size: "<<window_size<<endl;
 }
 
 vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct, vector<vector<Action>> & staged_actions)
@@ -50,8 +50,8 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
     }
     int num_insert_timesteps = window_size - current_left_action_size;
 
-    cout<<"current_left_action_size: "<<current_left_action_size<<endl;
-    cout<<"num_insert_timesteps: "<<num_insert_timesteps<<endl;
+    // cout<<"current_left_action_size: "<<current_left_action_size<<endl;
+    // cout<<"num_insert_timesteps: "<<num_insert_timesteps<<endl;
 
     //apppend actions to window size
     for (int timestep = 0; timestep < plan[0].size() && timestep < num_insert_timesteps; timestep++)
@@ -64,7 +64,7 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
             {
                 new_location = new_location + moves[curr_states[i].orientation];
                 tpg[new_location].push_back(i);
-                cout<<"insert "<<i<<" to tpg at "<<new_location<<endl;
+                // cout<<"insert "<<i<<" to tpg at "<<new_location<<endl;
             }
             else if (plan[i][timestep] == Action::CR)
             {
@@ -76,12 +76,12 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
                 if (new_orientation == -1)
                     new_orientation = 3;
             }
-            cout<<"agent "<<i<<" current prediceted state location from last iteration "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
-            cout<<"agent "<<i<<" action "<<(plan[i][timestep] == Action::FW ? "FW" : (plan[i][timestep] == Action::CR ? "CR" : (plan[i][timestep] == Action::CCR ? "CCR" : (plan[i][timestep] == Action::NA ? "NA" : "W"))))<<" new prediceted state location "<<new_location<<" orientation "<<new_orientation<<endl;
+            // cout<<"agent "<<i<<" current prediceted state location from last iteration "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
+            // cout<<"agent "<<i<<" action "<<(plan[i][timestep] == Action::FW ? "FW" : (plan[i][timestep] == Action::CR ? "CR" : (plan[i][timestep] == Action::CCR ? "CCR" : (plan[i][timestep] == Action::NA ? "NA" : "W"))))<<" new prediceted state location "<<new_location<<" orientation "<<new_orientation<<endl;
             predicted_states[i].location = new_location;
             predicted_states[i].orientation = new_orientation;
             predicted_states[i].timestep+=1;
-            cout<<"agent "<<i<<" predicted state location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<" timestep "<<predicted_states[i].timestep<<endl;
+            // cout<<"agent "<<i<<" predicted state location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<" timestep "<<predicted_states[i].timestep<<endl;
             if (plan[i][timestep] != Action::NA && plan[i][timestep] != Action::W)
             {
                 staged_actions[i].push_back(plan[i][timestep]);
@@ -93,7 +93,7 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
 
 void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> & agent_command)
 {
-    cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
+    // cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
     // // //always go if there are staged actions
     // for (int i = 0; i < env->curr_states.size(); i++)
     // {
@@ -113,12 +113,12 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
     {
         int prev_location = previous_locations[i];
         int curr_location = env->system_states[i].location;
-        cout<<"tpg for agent "<<i<<" prev loc "<< prev_location<<" tpg first "<<tpg[prev_location].front()<<endl;
+        // cout<<"tpg for agent "<<i<<" prev loc "<< prev_location<<" tpg first "<<tpg[prev_location].front()<<endl;
         assert(tpg[prev_location].front() == i);
         if (prev_location != curr_location && tpg[prev_location].front() == i)
         {
             //remove the agent from the previous location in tpg
-            cout<<"pop agent "<<i<<" from location "<< prev_location<<" current at "<<curr_location<<endl;
+            // cout<<"pop agent "<<i<<" from location "<< prev_location<<" current at "<<curr_location<<endl;
             tpg[prev_location].pop_front();
             previous_locations[i] = curr_location;
         }
@@ -136,7 +136,7 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
 
 bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
 {
-    cout<<"mcp for "<<agent_id<<endl;
+    // cout<<"mcp for "<<agent_id<<endl;
     if (env->staged_actions[agent_id].empty())
     {
         //no action, just stop and wait for the next plan, no tpg order clear
@@ -166,7 +166,7 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
             //     tpg[curr_location].pop_front();
 
             curr_decision[agent_id] = true;
-            cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
+            // cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
             return true;
         }
         else
