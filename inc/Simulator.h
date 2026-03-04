@@ -46,7 +46,7 @@ public:
         {
             this->executor = new Executor();
         }
-        set_delay_enabled(false);
+        set_delay_enabled(true);
     }
 
     virtual ~Simulator()
