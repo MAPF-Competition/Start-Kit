@@ -221,7 +221,7 @@ void Simulator::simulate_delay()
                 curr_states[agent].delay.inDelay = true;
                 delays[agent] = duration;
                 started_this_tick[agent] = true;
-                //cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
+                cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
             }
             else
             {
