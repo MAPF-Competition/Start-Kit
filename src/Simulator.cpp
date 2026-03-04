@@ -31,7 +31,7 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
 
 vector<State> Simulator::move(int move_time_limit) //move one single 100ms step 
 {
-    cout<<"timestep "<<timestep<<endl;
+    // cout<<"timestep "<<timestep<<endl;
     //first call executor to get next execution command for each agent based on current state and staged actions
     std::vector<ExecutionCommand> agent_command;
     // reserve space for the executor to write commands
@@ -47,7 +47,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
 
     while (diff > 0)
     {
-        cout<<"time out wait"<<endl;
+        // cout<<"time out wait"<<endl;
         for (int i = 0; i < num_of_agents; i++)
         {
             record_planned_movements(Action::NA, i);
@@ -78,13 +78,13 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
         }
         if (curr_states[i].delay.inDelay)
         {
-            cout<<"agent "<<i<<" delayed"<<endl;
+            // cout<<"agent "<<i<<" delayed"<<endl;
             actions[i] = Action::W;
         }
         record_planned_movements(actions[i], i);
-        if (actions[i] == Action::FW)
+        // if (actions[i] == Action::FW)
 
-            cout<<"planned movement for agent "<<i<<" action fw"<<endl;
+            // cout<<"planned movement for agent "<<i<<" action fw"<<endl;
     }
 
     auto pre_states = curr_states;
@@ -98,9 +98,9 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
         //record the actual path and actions
         record_actual_movements(pre_states[k], actions[k], k);
 
-        if (actions[k] == Action::FW)
+        // if (actions[k] == Action::FW)
 
-            cout<<"actual movement for agent "<<k<<" action fw"<<endl;
+        //     cout<<"actual movement for agent "<<k<<" action fw"<<endl;
 
         if (staged_actions[k].empty())
         {
@@ -121,7 +121,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
             //the agent has moved to the next location or move to next orientation, so we can remove the staged action
             staged_actions[k].erase(staged_actions[k].begin());
         }
-        cout<<"executor, current agent "<<k<<" pre state "<<pre_states[k].location<<" curr state "<<curr_states[k].location<<endl;
+        // cout<<"executor, current agent "<<k<<" pre state "<<pre_states[k].location<<" curr state "<<curr_states[k].location<<endl;
     }
     //return move_valid;
     return curr_states;
@@ -227,8 +227,8 @@ void Simulator::simulate_delay()
 
     for (int k = 0; k < num_of_agents; k++)
     {
-        curr_states[k].delay.inDelay = false;
-        continue;
+        // curr_states[k].delay.inDelay = false;
+        // continue;
         if (curr_states[k].delay.inDelay && !started_this_tick[k])
         {
             delays[k]--;
