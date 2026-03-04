@@ -223,17 +223,31 @@ void BaseSystem::initialize()
 
     int timestep = simulator.get_curr_timestep();
 
-    //planner initilise before knowing the first goals
-    bool planner_initialize_success= planner_initialize();
+    std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, std::placeholders::_1));
+    auto init_future = init_task.get_future();
 
-    //todo: add executor initialise
+    auto init_start_time = std::chrono::steady_clock::now();
+    env->plan_start_time = init_start_time;
+    auto init_deadline   = init_start_time + std::chrono::milliseconds(preprocess_time_limit);
+    std::thread init_td(std::move(init_task), preprocess_time_limit);
+
     simulator.initialise_executor(preprocess_time_limit);
 
-    
-    
-    log_preprocessing(planner_initialize_success);
-    if (!planner_initialize_success)
+    auto init_end_time = std::chrono::steady_clock::now();
+
+    int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(init_end_time - init_start_time).count();
+
+    if (init_future.wait_until(init_deadline) == std::future_status::ready && diff <= preprocess_time_limit)
+    {
+        init_td.join();
+        log_preprocessing(true);
+    } 
+    else 
+    {
+        init_td.detach();
+        log_preprocessing(false);
         _exit(124);
+    }
 
     // initialize_goal_locations();
     task_manager.reveal_tasks(timestep); //this also intialize env->new_tasks
