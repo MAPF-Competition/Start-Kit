@@ -13,8 +13,6 @@ This document explains:
 
 ## System Overview
 
-![system_overview](./image/sequence_diagram.png)
-
 The start-kit runs a **two-rate control loop**:
 
 ### A) Planning update (slow loop)
@@ -38,6 +36,9 @@ Every execution tick (even while planning is running), the system:
 3. applies delays (may force some agents to STOP/Wait),
 4. simulates one tick of motion with the action model (continuous overlap-based collision handling),
 5. updates robot states and task progress.
+
+![system_overview](./image/sequence_diagram.png)
+This image shows the interaction loop in the start-kit. The system calls `Entry::compute(...)` periodically to let the planner/scheduler return a **multi-step, grid-level** Plan and Task Schedule. The system then calls `Executor::process_new_plan(...)` to **stage** the new plan, merging it with any unfinished actions (respecting multi-tick **commitment**) and producing updated `staged_actions` (and optional predicted states). Meanwhile, every tick, the system calls `Executor::next_command(...)` to output per-agent **GO/STOP**, applies delays/safety checks, and advances the simulator.
 
 ---
 
