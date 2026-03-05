@@ -13,7 +13,7 @@ This document explains:
 
 ## System Overview
 
-![system_overview](./image/system_overview.png)
+![system_overview](./image/sequence_diagram.png)
 
 The start-kit runs a **two-rate control loop**:
 
