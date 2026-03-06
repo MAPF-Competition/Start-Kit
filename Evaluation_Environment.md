@@ -25,14 +25,14 @@ python/user_scheduler/pyTaskScheduler.hpp, python/common/pyEnvironment.hpp,
 python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.hpp, python/set_track.bash        
 ```
 
-In the **planner track**, don't modify or interfere with any start kit functionalities, including those in the following files:
+In the **executor track**, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp
 ```
 
 In the **scheduler track**, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp, inc/Executor.h, src/Executor.cpp
 ```
 
 ## Evaluation Server Hardware Specification
