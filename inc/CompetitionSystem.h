@@ -8,9 +8,11 @@
 #include "Entry.h"
 #include "Logger.h"
 #include "TaskManager.h"
+#include "delayGenerator.h"
 #include <pthread.h>
 #include <future>
 #include "Simulator.h"
+#include <memory>
 
 class BaseSystem
 {
@@ -62,10 +64,9 @@ public:
         task_manager.set_logger(logger);
     }
 
-    void set_delay_profile(const vector<pair<int, int>>& delay_ranges,
-                           const vector<vector<pair<int, int>>>& delay_schedule)
+    void set_delay_generator(std::unique_ptr<DelayGenerator> generator)
     {
-        simulator.set_delay_profile(delay_ranges, delay_schedule);
+        simulator.set_delay_generator(std::move(generator));
     }
 
     void simulate(int simulation_time,int chunk_size);

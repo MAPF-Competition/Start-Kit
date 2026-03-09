@@ -13,6 +13,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
+#include "delayGenerator.h"
 
 using boost::heap::fibonacci_heap;
 using boost::heap::compare;
@@ -183,93 +184,69 @@ T read_param_json(nlohmann::json& data, std::string name, T default_value)
 }
 
 
-inline void load_delay_profile(const std::string& delay_file,
-                               int team_size,
-                               std::vector<std::pair<int, int>>& delay_ranges,
-                               std::vector<std::vector<std::pair<int, int>>>& delay_schedule)
+template <typename T>
+T read_required_json_param(const nlohmann::json& data, const std::string& name, const std::string& parent_name)
 {
-    nlohmann::json delay_data;
-    std::ifstream delay_stream(delay_file);
-    if (!delay_stream.is_open())
+    if (!data.contains(name))
     {
-        std::cerr << "Failed to open delay file " << delay_file << std::endl;
-        exit(1);
+        throw std::invalid_argument("Missing required property " + parent_name + "." + name);
     }
-
     try
     {
-        delay_data = nlohmann::json::parse(delay_stream);
+        return data.at(name).get<T>();
     }
-    catch (nlohmann::json::parse_error error)
+    catch (const nlohmann::json::type_error& error)
     {
-        std::cerr << "Failed to parse delay file " << delay_file << std::endl;
-        std::cerr << "Message: " << error.what() << std::endl;
-        exit(1);
+        throw std::invalid_argument("Incorrect type for " + parent_name + "." + name + ": " + std::string(error.what()));
     }
+}
 
-    if (delay_data.contains("agent_delay_ranges") && delay_data["agent_delay_ranges"].is_array())
+
+inline DelayConfig parse_delay_config(const nlohmann::json& data)
+{
+    if (!data.contains("delayConfig") || !data.at("delayConfig").is_object())
     {
-        for (const auto& range_entry : delay_data["agent_delay_ranges"])
-        {
-            if (!range_entry.contains("agent") || !range_entry.contains("min") || !range_entry.contains("max"))
-            {
-                continue;
-            }
-
-            int agent = range_entry["agent"].get<int>();
-            if (agent < 0 || agent >= team_size)
-            {
-                continue;
-            }
-            int min_delay = range_entry["min"].get<int>();
-            int max_delay = range_entry["max"].get<int>();
-            if (max_delay < min_delay)
-            {
-                std::swap(max_delay, min_delay);
-            }
-            delay_ranges[agent] = {min_delay, max_delay};
-        }
+        throw std::invalid_argument("Missing required object delayConfig in the input JSON");
     }
 
-    if (delay_data.contains("schedule") && delay_data["schedule"].is_array())
+    const auto& delay_json = data.at("delayConfig");
+    DelayConfig config;
+    config.seed = read_required_json_param<unsigned int>(delay_json, "seed", "delayConfig");
+    config.minDelay = read_required_json_param<int>(delay_json, "minDelay", "delayConfig");
+    config.maxDelay = read_required_json_param<int>(delay_json, "maxDelay", "delayConfig");
+
+    const std::string event_model = read_required_json_param<std::string>(delay_json, "eventModel", "delayConfig");
+    if (event_model == "bernoulli")
     {
-        for (const auto& step_entry : delay_data["schedule"])
-        {
-            if (!step_entry.contains("t") || !step_entry.contains("delays"))
-            {
-                continue;
-            }
-
-            int t = step_entry["t"].get<int>();
-            if (t < 0)
-            {
-                continue;
-            }
-            if (t >= static_cast<int>(delay_schedule.size()))
-            {
-                delay_schedule.resize(t + 1);
-            }
-
-            const auto& step_delays = step_entry["delays"];
-            if (!step_delays.is_array())
-            {
-                continue;
-            }
-            for (const auto& item : step_delays)
-            {
-                if (!item.is_array() || item.size() < 2)
-                {
-                    continue;
-                }
-
-                int agent = item[0].get<int>();
-                int duration = item[1].get<int>();
-                if (agent < 0 || agent >= team_size || duration <= 0)
-                {
-                    continue;
-                }
-                delay_schedule[t].push_back({agent, duration});
-            }
-        }
+        config.eventModel = DelayConfig::EventModel::Bernoulli;
     }
+    else if (event_model == "poisson")
+    {
+        config.eventModel = DelayConfig::EventModel::Poisson;
+    }
+    else
+    {
+        throw std::invalid_argument("delayConfig.eventModel must be either 'bernoulli' or 'poisson'");
+    }
+
+    config.pDelay = read_required_json_param<double>(delay_json, "pDelay", "delayConfig");
+    config.poissonLambda = read_required_json_param<double>(delay_json, "poissonLambda", "delayConfig");
+
+    const std::string duration_model = read_required_json_param<std::string>(delay_json, "durationModel", "delayConfig");
+    if (duration_model == "uniform")
+    {
+        config.durationModel = DelayConfig::DurationModel::Uniform;
+    }
+    else if (duration_model == "gaussian")
+    {
+        config.durationModel = DelayConfig::DurationModel::Gaussian;
+    }
+    else
+    {
+        throw std::invalid_argument("delayConfig.durationModel must be either 'uniform' or 'gaussian'");
+    }
+
+    config.gaussMeanRatio = read_required_json_param<double>(delay_json, "gaussMeanRatio", "delayConfig");
+    config.gaussStdRatio = read_required_json_param<double>(delay_json, "gaussStdRatio", "delayConfig");
+    return config;
 }

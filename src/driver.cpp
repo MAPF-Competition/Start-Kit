@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <climits>
 #include <memory>
+#include <stdexcept>
 
 
 #ifdef PYTHON
@@ -23,7 +24,6 @@ using json = nlohmann::json;
 
 po::variables_map vm;
 std::unique_ptr<BaseSystem> system_ptr;
-
 
 void sigint_handler(int a)
 {
@@ -158,6 +158,16 @@ int main(int argc, char **argv)
     model->set_logger(logger);
 
     int team_size = read_param_json<int>(data, "teamSize");
+    DelayConfig delay_config;
+    try
+    {
+        delay_config = parse_delay_config(data);
+    }
+    catch (const std::invalid_argument& error)
+    {
+        logger->log_fatal(error.what(), 0);
+        _exit(1);
+    }
 
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
     std::vector<list<int>> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
@@ -172,16 +182,15 @@ int main(int argc, char **argv)
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
-    auto delay_file = read_param_json<std::string>(data, "delayFile", "");
-    if (delay_file.empty())
+    try
     {
-        logger->log_fatal("Missing required property delayFile in the input JSON", 0);
+        system_ptr->set_delay_generator(std::make_unique<DelayGenerator>(delay_config, team_size));
+    }
+    catch (const std::invalid_argument& error)
+    {
+        logger->log_fatal(error.what(), 0);
         _exit(1);
     }
-    std::vector<std::pair<int, int>> delay_ranges(team_size, {0, 0});
-    std::vector<std::vector<std::pair<int, int>>> delay_schedule;
-    load_delay_profile(base_folder + delay_file, team_size, delay_ranges, delay_schedule);
-    system_ptr->set_delay_profile(delay_ranges, delay_schedule);
 
     signal(SIGINT, sigint_handler);
 
