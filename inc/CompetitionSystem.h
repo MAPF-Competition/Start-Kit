@@ -9,6 +9,9 @@
 #include "Logger.h"
 #include "TaskManager.h"
 #include "delayGenerator.h"
+#if ENABLE_VISUALIZER
+#include "VisualizerRecorder.h"
+#endif
 #include <pthread.h>
 #include <future>
 #include <algorithm>

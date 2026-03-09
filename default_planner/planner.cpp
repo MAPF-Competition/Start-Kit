@@ -395,19 +395,5 @@ namespace DefaultPlanner{
         env->curr_timestep = original_timestep;
         decided = original_decided;
 
-        bool all_wait_actions = true;
-        for (const auto& agent_actions : actions){
-            for (Action action : agent_actions){
-                if (action != Action::W){
-                    all_wait_actions = false;
-                    break;
-                }
-            }
-            if (!all_wait_actions){
-                break;
-            }
-        }
-        std::cout << "[DefaultPlanner::plan] all_actions_wait="
-                  << (all_wait_actions ? "true" : "false") << std::endl;
     }
 }
