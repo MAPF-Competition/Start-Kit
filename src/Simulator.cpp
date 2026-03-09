@@ -198,50 +198,37 @@ void Simulator::record_actual_movements(State state, Action action, int agent_id
 
 void Simulator::simulate_delay()
 {
-    if (!delay_enabled)
+    if (!delay_enabled || delay_generator == nullptr)
     {
         return;
     }
 
-    std::vector<bool> started_this_tick(num_of_agents, false);
-
-    if (timestep >= 0 && timestep < static_cast<int>(delay_schedule.size()))
-    {
-        for (const auto& scheduled_delay : delay_schedule[timestep])
-        {
-            int agent = scheduled_delay.first;
-            int duration = scheduled_delay.second;
-            if (agent < 0 || agent >= num_of_agents || duration <= 0)
-            {
-                continue;
-            }
-
-            if (!curr_states[agent].delay.inDelay)
-            {
-                curr_states[agent].delay.inDelay = true;
-                delays[agent] = duration;
-                started_this_tick[agent] = true;
-                cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
-            }
-            else
-            {
-                delays[agent] = std::max(delays[agent], duration);
-            }
-        }
-    }
-
     for (int k = 0; k < num_of_agents; k++)
     {
-        // curr_states[k].delay.inDelay = false;
-        // continue;
-        if (curr_states[k].delay.inDelay && !started_this_tick[k])
+        if (curr_states[k].delay.inDelay)
         {
             delays[k]--;
             if (delays[k] <= 0)
             {
                 curr_states[k].delay.inDelay = false;
+                delays[k] = 0;
             }
         }
+    }
+
+    const auto generated_delays = delay_generator->nextTick();
+    for (const auto& delay_event : generated_delays)
+    {
+        const int agent = delay_event.first;
+        const int duration = delay_event.second;
+        if (agent < 0 || agent >= num_of_agents || duration <= 0)
+        {
+            continue;
+        }
+
+        curr_states[agent].delay.inDelay = true;
+        delays[agent] = duration;
+        cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
     }
 }
 
