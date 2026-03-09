@@ -81,11 +81,13 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
             predicted_states[i].location = new_location;
             predicted_states[i].orientation = new_orientation;
             predicted_states[i].timestep+=1;
+            curr_states[i] = predicted_states[i];
             // cout<<"agent "<<i<<" predicted state location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<" timestep "<<predicted_states[i].timestep<<endl;
             if (plan[i][timestep] != Action::NA && plan[i][timestep] != Action::W)
             {
                 staged_actions[i].push_back(plan[i][timestep]);
             }
+            //cout<<" t "<<timestep<<" agent "<<i<<" current location "<<curr_states[i].location<<" predict location "<<predicted_states[i].location<<endl;
         }
     }
     return predicted_states;

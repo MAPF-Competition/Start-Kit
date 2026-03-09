@@ -147,7 +147,9 @@ namespace DefaultPlanner{
     static void update_guide_paths_once_for_multistep(SharedEnvironment* env, TimePoint flow_end_time)
     {
         // one-time guide-path update for goal-changed agents
-        for (int i = 0; i < env->num_of_agents; i++){
+        for (int i = 0; i < env->num_of_agents; i++)
+        {
+            //cout<<"agent "<<i<<" start "<<env->curr_states[i].location<<" goal "<<trajLNS.tasks[i]<<endl;
             if (std::chrono::steady_clock::now() > flow_end_time)
                 break;
             if (require_guide_path[i]){
@@ -310,6 +312,7 @@ namespace DefaultPlanner{
     void plan(int time_limit, std::vector<std::vector<Action>> & actions,
                          SharedEnvironment* env, int num_steps){
         actions.clear();
+        //cout<<"num of steps to plan "<<num_steps<<endl;
         if (env == nullptr || env->num_of_agents <= 0){
             return;
         }
