@@ -11,3 +11,4 @@ output.json
 *-build/
 cmake-build-*/
 build*
+proposal/

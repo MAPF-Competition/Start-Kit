@@ -228,7 +228,7 @@ void Simulator::simulate_delay()
 
         curr_states[agent].delay.inDelay = true;
         delays[agent] = duration;
-        cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
+        // cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
     }
 }
 

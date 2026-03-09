@@ -64,5 +64,5 @@ void Logger::log_warning(std::string input)
 
 void Logger::log_warning(std::string input, int timestep)
 {
-    log_warning("[timestep=" + std::to_string(timestep) + "] " + input);
+    log_warning("[time=" + std::to_string((static_cast<float>(timestep)/10.0f)) + "] " + input);
 }
