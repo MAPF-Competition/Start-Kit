@@ -2,7 +2,9 @@
 #include "SharedEnv.h"
 #include "States.h"
 #include "Executor.h"
+#include "delayGenerator.h"
 #include "nlohmann/json.hpp"
+#include <memory>
 
 
 //simulator is use for simulating the moves and store the current states
@@ -69,6 +71,22 @@ public:
     void validate_actions_with_delay(vector<Action>& actions);
 
     void set_delay_enabled(bool enabled);
+    void set_delay_generator(std::unique_ptr<DelayGenerator> generator)
+    {
+        delay_generator = std::move(generator);
+
+        const int min_delay = delay_generator ? delay_generator->get_config().minDelay : -1;
+        const int max_delay = delay_generator ? delay_generator->get_config().maxDelay : -1;
+        for (int i = 0; i < num_of_agents; i++)
+        {
+            starts[i].delay.minDelay = min_delay;
+            starts[i].delay.maxDelay = max_delay;
+            curr_states[i].delay.minDelay = min_delay;
+            curr_states[i].delay.maxDelay = max_delay;
+            predict_states[i].delay.minDelay = min_delay;
+            predict_states[i].delay.maxDelay = max_delay;
+        }
+    }
 
     vector<State> get_current_state(){ return curr_states; }
     const vector<Action>& get_last_actions() const { return last_actions; }
@@ -90,37 +108,6 @@ public:
     nlohmann::ordered_json action_errors_to_json() const;
 
     int get_number_errors() const {return model->errors.size();}
-
-    void set_delay_profile(const vector<pair<int, int>>& delay_ranges,
-                           const vector<vector<pair<int, int>>>& delay_schedule)
-    {
-        if (!delay_ranges.empty() && static_cast<int>(delay_ranges.size()) != num_of_agents)
-        {
-            throw std::invalid_argument("Invalid delay profile: delay_ranges size must match number of agents");
-        }
-
-        this->delay_schedule = delay_schedule;
-
-        if (!delay_ranges.empty())
-        {
-            for (int i = 0; i < num_of_agents; i++)
-            {
-                int min_d = std::max(0, delay_ranges[i].first);
-                int max_d = std::max(0, delay_ranges[i].second);
-                if (max_d < min_d)
-                {
-                    std::swap(min_d, max_d);
-                }
-
-                starts[i].delay.minDelay = min_d;
-                starts[i].delay.maxDelay = max_d;
-                curr_states[i].delay.minDelay = min_d;
-                curr_states[i].delay.maxDelay = max_d;
-                predict_states[i].delay.minDelay = min_d;
-                predict_states[i].delay.maxDelay = max_d;
-            }
-        }
-    }
 
     void record_planned_movements(Action action, int agent_id);
     void record_actual_movements(State state, Action action, int agent_id);
@@ -175,7 +162,7 @@ private:
     vector<vector<Action>> staged_actions;
     vector<Action> last_actions;
 
-    vector<vector<pair<int, int>>> delay_schedule;
+    std::unique_ptr<DelayGenerator> delay_generator;
     bool delay_enabled = true;
     
     int max_counter;

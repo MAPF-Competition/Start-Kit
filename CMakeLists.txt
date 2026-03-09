@@ -114,6 +114,14 @@ if(BUILD_TESTS)
     )
     target_link_libraries(multi_step_plan_test ${Boost_LIBRARIES})
     add_test(NAME multi_step_plan_test COMMAND multi_step_plan_test)
+
+    add_executable(delay_generator_test
+        tests/delay_generator_test.cpp
+        src/delayGenerator.cpp
+        src/common.cpp
+    )
+    target_link_libraries(delay_generator_test ${Boost_LIBRARIES})
+    add_test(NAME delay_generator_test COMMAND delay_generator_test)
 endif()
 
 
