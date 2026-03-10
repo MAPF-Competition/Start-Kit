@@ -203,32 +203,11 @@ void Simulator::simulate_delay()
         return;
     }
 
-    for (int k = 0; k < num_of_agents; k++)
+    delay_generator->nextTick();
+    const auto& remaining_delays = delay_generator->get_remaining_delays();
+    for (int agent = 0; agent < num_of_agents; agent++)
     {
-        if (curr_states[k].delay.inDelay)
-        {
-            delays[k]--;
-            if (delays[k] <= 0)
-            {
-                curr_states[k].delay.inDelay = false;
-                delays[k] = 0;
-            }
-        }
-    }
-
-    const auto generated_delays = delay_generator->nextTick();
-    for (const auto& delay_event : generated_delays)
-    {
-        const int agent = delay_event.first;
-        const int duration = delay_event.second;
-        if (agent < 0 || agent >= num_of_agents || duration <= 0)
-        {
-            continue;
-        }
-
-        curr_states[agent].delay.inDelay = true;
-        delays[agent] = duration;
-        // cout<<"agent "<<agent<<" starts delay for "<<delays[agent]<<" timesteps"<<endl;
+        curr_states[agent].delay.inDelay = remaining_delays[agent] > 0;
     }
 }
 
@@ -244,7 +223,10 @@ void Simulator::set_delay_enabled(bool enabled)
     {
         curr_states[i].delay.inDelay = false;
         predict_states[i].delay.inDelay = false;
-        delays[i] = 0;
+    }
+    if (delay_generator != nullptr)
+    {
+        delay_generator->clear_active_delays();
     }
 }
 
