@@ -1,4 +1,4 @@
-#include "delayGenerator.h"
+#include "DelayGenerator.h"
 
 #include <algorithm>
 #include <cmath>
