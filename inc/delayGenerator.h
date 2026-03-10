@@ -35,6 +35,7 @@ public:
     DelayGenerator(const DelayConfig& config, int num_of_agents);
 
     std::vector<std::pair<int, int>> nextTick();
+    void clear_active_delays();
 
     const DelayConfig& get_config() const { return config; }
     const std::vector<int>& get_remaining_delays() const { return remaining_delay; }

@@ -149,3 +149,8 @@ std::vector<std::pair<int, int>> DelayGenerator::nextTick()
     current_tick++;
     return events;
 }
+
+void DelayGenerator::clear_active_delays()
+{
+    std::fill(remaining_delay.begin(), remaining_delay.end(), 0);
+}

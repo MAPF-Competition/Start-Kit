@@ -41,7 +41,6 @@ public:
         // chunked_snapshot_states.resize(num_of_agents);
         // prepare staged actions container for each agent
         staged_actions.resize(num_of_agents);
-        delays.resize(num_of_agents, 0);
 
         // if no executor provided, create a default one (its env will be set later via sync_shared_env)
         if (this->executor == nullptr)
@@ -142,7 +141,6 @@ private:
 
     vector<State> curr_states;
     vector<State> predict_states;
-    vector<int> delays;
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;
