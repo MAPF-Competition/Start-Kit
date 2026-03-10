@@ -73,7 +73,7 @@ public:
     bool planner_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
-    void saveResults(const string &fileName, int screen) const;
+    void saveResults(const string &fileName, int screen, bool pretty_print = false) const;
 
 
 protected:
