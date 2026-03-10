@@ -39,6 +39,11 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 
 	int target = lns.tasks.at(curr_id);
 
+	if (higher_id == -1){
+		//fist agent in the chain, disallow cyclic movments by preventing other agents moving to first agent's previous location
+		occupied[prev_loc] = true;
+	}
+
 	// for each neighbor of (prev_loc,prev_direction), and a wait copy of current location, generate a successor
 	std::vector<int> neighbors;
 	std::vector<PIBT_C> successors;
@@ -75,7 +80,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 
 
     for (auto& next: successors){
-		if(occupied[next.location])
+		if(occupied[next.location] && !(higher_id == -1 && prev_loc == next.location))
 			continue;
 		assert(validateMove(prev_loc, next.location, lns.env));
 		
