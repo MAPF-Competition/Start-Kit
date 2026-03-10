@@ -1,6 +1,4 @@
 (function () {
-  const VISUAL_AGENT_SIZE = 1.0; // requested fixed visual size: 1 grid unit
-
   const ndjsonInput = document.getElementById("ndjsonFile");
   const playPauseBtn = document.getElementById("playPause");
   const resetViewBtn = document.getElementById("resetView");
@@ -142,7 +140,8 @@
     const pos = new Float32Array(n * 2);
     const dotPos = new Float32Array(n * 2);
     const delay = new Float32Array(n);
-    const markerRadius = VISUAL_AGENT_SIZE * 0.5;
+    const agentSize = state.meta.agentSize || 1.0;
+    const markerRadius = agentSize * 0.5;
     const dotOffset = markerRadius * 0.6;
     const quarterTurn = Math.PI * 0.5;
 
@@ -157,10 +156,8 @@
       const loc = tick.loc[i];
       const row = Math.floor(loc / state.meta.cols);
       const col = loc % state.meta.cols;
-      const baseX = tick.x ? tick.x[i] : col;
-      const baseY = tick.y ? tick.y[i] : row;
-      const centerX = baseX + markerRadius;
-      const centerY = baseY + markerRadius;
+      const centerX = tick.x ? tick.x[i] + 0.5 : col + 0.5;
+      const centerY = tick.y ? tick.y[i] + 0.5 : row + 0.5;
       pos[i * 2] = centerX;
       pos[i * 2 + 1] = centerY;
       const ori = tick.ori[i] || 0;
@@ -393,7 +390,7 @@
     gl.uniform2f(state.uViewMin, state.viewMinX, state.viewMinY);
     gl.uniform2f(state.uViewSize, state.viewW, state.viewH);
     const pxPerCell = Math.min(glCanvas.width / state.viewW, glCanvas.height / state.viewH);
-    const basePointSize = Math.max(1.0, VISUAL_AGENT_SIZE * pxPerCell);
+    const basePointSize = Math.max(1.0, (state.meta.agentSize || 1.0) * pxPerCell);
     gl.uniform1f(state.uPointSize, basePointSize);
     gl.uniform3f(state.uColorNormal, 0.066, 0.647, 0.914);
     gl.uniform3f(state.uColorDelay, 0.875, 0.204, 0.204);
@@ -539,6 +536,9 @@
     const raw = await file.text();
     const parsed = parseNdjson(raw);
     state.meta = parsed.meta;
+    if (!Number.isFinite(state.meta.agentSize) || state.meta.agentSize <= 0) {
+      state.meta.agentSize = 1.0;
+    }
     state.ticks = parsed.ticks;
     state.currentTickIdx = 0;
     state.playing = false;
