@@ -13,7 +13,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
-#include "delayGenerator.h"
+#include "DelayGenerator.h"
 
 using boost::heap::fibonacci_heap;
 using boost::heap::compare;

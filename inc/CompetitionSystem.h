@@ -8,7 +8,7 @@
 #include "Entry.h"
 #include "Logger.h"
 #include "TaskManager.h"
-#include "delayGenerator.h"
+#include "DelayGenerator.h"
 #include <pthread.h>
 #include <future>
 #include "Simulator.h"
