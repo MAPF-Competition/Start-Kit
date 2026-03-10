@@ -44,19 +44,19 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
     int moves[4] = {1, env->cols, -1, -env->cols};
     std::vector<std::vector<Action>> plan = plan_struct.actions;
 
-    //check how many actions we need to insert to ensure agents have enough actions to execute within the communication time limit.
-    int current_left_action_size = INT_MAX;
-    for (int i = 0; i < env->num_of_agents; i++)
-    {
-        current_left_action_size = min(current_left_action_size, (int)staged_actions[i].size());
-    }
-    int num_insert_timesteps = window_size - current_left_action_size;
+    // //check how many actions we need to insert to ensure agents have enough actions to execute within the communication time limit.
+    // int current_left_action_size = INT_MAX;
+    // for (int i = 0; i < env->num_of_agents; i++)
+    // {
+    //     current_left_action_size = min(current_left_action_size, (int)staged_actions[i].size());
+    // }
+    // int num_insert_timesteps = window_size - current_left_action_size;
 
     // cout<<"current_left_action_size: "<<current_left_action_size<<endl;
     // cout<<"num_insert_timesteps: "<<num_insert_timesteps<<endl;
 
     //apppend actions to window size
-    for (int timestep = 0; timestep < plan[0].size() && timestep < num_insert_timesteps; timestep++)
+    for (int timestep = 0; timestep < plan[0].size(); timestep++)
     {
         for (int i = 0; i < plan.size(); i++)
         {
