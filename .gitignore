@@ -11,4 +11,5 @@ output.json
 *-build/
 cmake-build-*/
 build*
+proposal/
 viz_ticks.ndjson

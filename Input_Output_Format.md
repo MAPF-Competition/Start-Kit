@@ -29,7 +29,7 @@ All paths here is the relative path relative to the location of input JSON file
 | `mapFile` | String | The relative path to the file that describes the grid environment input. We use the grid map format as described in the next section (with a section link to the relevant section) |
 | `agentFile` | String | String <br /> The relative path to the file that describes the start locations for robots. The first line indicates the number of robots n. The following n lines correspond to the start locations of the n robots..* |
 | `taskFile` | String | The relative path to the file that describes the locations for tasks. The first line indicates the number of tasks m. The following m lines contain multiple integers that each corresponds to a location of the task on the grid,\* and the order of locations on the same line specifies the order of locations that should be completed for this task |
-| `delayFile` | String | The relative path to the delay profile JSON file. |
+| `delayConfig` | Object | Inline configuration for runtime delay generation. See the `delayConfig` fields below. |
 | `teamSize` | Int | The number of robots in the simulation  |
 | `numTasksReveal` | Float | The multiplier of tasks revealed in the task pool. We always keep numTasksReveal times teamSize of tasks revealed in the task pool. If in one timestep, k tasks are finished, then the system will add k tasks into the task pool |
 | `agentSize` | Float | Size of the robot safety square for overlap-based collision checking (default `1.0`). Must be > 0. |
@@ -40,6 +40,20 @@ All paths here is the relative path relative to the location of input JSON file
 - The simulator advances **every execution tick** (fast loop).
 - The planner is called **periodically** (slow loop), with at least `planCommTimeLimit` ms between plan updates.
 - If a planning call is late, the simulation continues using the most recently accepted staged actions (robots may effectively wait if no staged actions are available).
+
+### `delayConfig` fields
+
+| Field | Type | Description |
+|---|---:|---|
+| `seed` | Int | Deterministic seed used by the runtime delay generator. |
+| `minDelay` | Int | Minimum sampled delay duration. |
+| `maxDelay` | Int | Maximum sampled delay duration. |
+| `eventModel` | String | Delay event model: `bernoulli` or `poisson`. |
+| `pDelay` | Float | Per-agent delay probability when using the `bernoulli` model. |
+| `poissonLambda` | Float | Poisson rate when using the `poisson` model. |
+| `durationModel` | String | Delay duration model: `uniform` or `gaussian`. |
+| `gaussMeanRatio` | Float | Relative mean position inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
+| `gaussStdRatio` | Float | Relative standard deviation inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
 
 ## Map File Format
 
@@ -108,7 +122,6 @@ Where:
 - each `(A d)` means action `A` applied for `d` consecutive ticks
 
 Multiple segments are concatenated in the string to represent the full run.
-
 
 
 
