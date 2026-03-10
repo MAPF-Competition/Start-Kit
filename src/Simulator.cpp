@@ -31,7 +31,7 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
 
 vector<State> Simulator::move(int move_time_limit) //move one single 100ms step 
 {
-    // cout<<"timestep "<<timestep<<endl;
+    cout<<"timestep "<<timestep<<endl;
     //first call executor to get next execution command for each agent based on current state and staged actions
     std::vector<ExecutionCommand> agent_command;
     // reserve space for the executor to write commands
