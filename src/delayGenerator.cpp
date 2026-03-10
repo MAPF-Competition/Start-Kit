@@ -8,6 +8,7 @@ DelayGenerator::DelayGenerator(const DelayConfig& config, int num_of_agents):
     config(config),
     num_of_agents(num_of_agents),
     remaining_delay(num_of_agents, 0),
+    delay_intervals(num_of_agents),
     rng(config.seed)
 {
     if (num_of_agents < 0)
@@ -143,6 +144,7 @@ std::vector<std::pair<int, int>> DelayGenerator::nextTick()
     {
         const int duration = sample_delay_duration();
         remaining_delay[agent] = duration;
+        delay_intervals[agent].push_back({current_tick, current_tick + duration});
         events.push_back({agent, duration});
     }
 
@@ -153,4 +155,19 @@ std::vector<std::pair<int, int>> DelayGenerator::nextTick()
 void DelayGenerator::clear_active_delays()
 {
     std::fill(remaining_delay.begin(), remaining_delay.end(), 0);
+}
+
+nlohmann::ordered_json DelayGenerator::delay_intervals_to_json() const
+{
+    nlohmann::ordered_json result = nlohmann::ordered_json::array();
+    for (const auto& agent_intervals : delay_intervals)
+    {
+        nlohmann::ordered_json agent_json = nlohmann::ordered_json::array();
+        for (const auto& interval : agent_intervals)
+        {
+            agent_json.push_back({interval.first, interval.second});
+        }
+        result.push_back(agent_json);
+    }
+    return result;
 }

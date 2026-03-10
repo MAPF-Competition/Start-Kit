@@ -3,6 +3,7 @@
 #include <random>
 #include <utility>
 #include <vector>
+#include "nlohmann/json.hpp"
 
 struct DelayConfig
 {
@@ -40,6 +41,8 @@ public:
     const DelayConfig& get_config() const { return config; }
     const std::vector<int>& get_remaining_delays() const { return remaining_delay; }
     int get_current_tick() const { return current_tick; }
+    const std::vector<std::vector<std::pair<int, int>>>& get_delay_intervals() const { return delay_intervals; }
+    nlohmann::ordered_json delay_intervals_to_json() const;
 
 private:
     void validate_config() const;
@@ -51,5 +54,6 @@ private:
     int num_of_agents = 0;
     int current_tick = 0;
     std::vector<int> remaining_delay;
+    std::vector<std::vector<std::pair<int, int>>> delay_intervals;
     std::mt19937 rng;
 };

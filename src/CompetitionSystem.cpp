@@ -291,6 +291,7 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
 
     js["agentMaxCounter"] = simulator.get_max_counter();
     js["outputSegmentSize"]=simulator.get_chunk_size();
+    js["delayIntervals"] = simulator.delay_intervals_to_json();
 
     // Save start locations[x,y,orientation]
     if (screen <= 2)
@@ -425,4 +426,3 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
     }
 
 }
-
