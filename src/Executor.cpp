@@ -7,6 +7,8 @@ void Executor::initialize(int preprocess_time_limit)
     if (process_plan_type == APPEND_WINDOW)
     {
         window_size = env->min_planner_communication_time / (env->action_time*env->max_counter); //calculate the window size based on the communication time limit and action execution time
+        if (window_size < 1)
+            window_size = 1;
     }
     else if (process_plan_type == APPEND_ONE)
     {
