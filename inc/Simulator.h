@@ -103,6 +103,19 @@ public:
     nlohmann::ordered_json starts_to_json() const;
 
     nlohmann::ordered_json action_errors_to_json() const;
+    nlohmann::ordered_json delay_intervals_to_json() const
+    {
+        if (delay_generator == nullptr)
+        {
+            nlohmann::ordered_json empty = nlohmann::ordered_json::array();
+            for (int i = 0; i < num_of_agents; i++)
+            {
+                empty.push_back(nlohmann::ordered_json::array());
+            }
+            return empty;
+        }
+        return delay_generator->delay_intervals_to_json();
+    }
 
     int get_number_errors() const {return model->errors.size();}
 
