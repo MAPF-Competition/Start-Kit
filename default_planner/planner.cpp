@@ -205,6 +205,8 @@ namespace DefaultPlanner{
                 return local_priority.at(a) > local_priority.at(b);
             }
         );
+        //clear reset occupied
+        std::fill(occupied.begin(), occupied.end(), false);
 
         for (int i : ids){
             if (decided[i].state == DONE::NOT_DONE){
@@ -301,6 +303,7 @@ namespace DefaultPlanner{
      * @param time_limit time limit for planning in milliseconds
      * @param actions vector of actions to be populated by the planner
      * @param env shared environment object
+     * @param num_steps number of steps to plan
      * 
      * The plan function is the main function of the default planner. 
      * It computes the actions for the agents based on the current state of the environment.
@@ -383,15 +386,52 @@ namespace DefaultPlanner{
             append_actions_and_rollout_states(env, actions, one_step_actions);
         }
 
-        // std::cout << "[DefaultPlanner::plan] computed actions for "
-        //           << env->num_of_agents << " agents over " << num_steps << " steps" << std::endl;
-        // for (int aid = 0; aid < env->num_of_agents; aid++){
-        //     std::cout << "  agent " << aid << ":";
-        //     for (int step = 0; step < static_cast<int>(actions[aid].size()); step++){
-        //         std::cout << (step == 0 ? " " : ", ") << debug_action_to_string(actions[aid][step]);
-        //     }
-        //     std::cout << std::endl;
-        // }
+        std::cout << "[DefaultPlanner::plan] computed actions for "
+                  << env->num_of_agents << " agents over " << num_steps << " steps" << std::endl;
+        for (int aid = 0; aid < env->num_of_agents; aid++){
+            if (aid != 47) continue;
+            int curr_loc = env->curr_states[aid].location;
+            int goal_loc = -1;
+            if (!env->goal_locations[aid].empty()) {
+                goal_loc = env->goal_locations[aid].front().first;
+            }
+            // Use curr_task_schedule and task_pool for assigned task info
+            int assigned_task_id = -1;
+            std::string task_details = "N/A";
+            if (aid < env->curr_task_schedule.size()) {
+                assigned_task_id = env->curr_task_schedule[aid];
+                auto it = env->task_pool.find(assigned_task_id);
+                if (it != env->task_pool.end()) {
+                    const auto& task = it->second;
+                    std::ostringstream oss;
+                    oss << "task_id=" << task.task_id
+                        << ", t_revealed=" << task.t_revealed
+                        << ", t_completed=" << task.t_completed
+                        << ", agent_assigned=" << task.agent_assigned
+                        << ", idx_next_loc=" << task.idx_next_loc
+                        << ", locations=[";
+                    for (size_t i = 0; i < task.locations.size(); ++i) {
+                        oss << task.locations[i];
+                        if (i + 1 < task.locations.size()) oss << ",";
+                    }
+                    oss << "]";
+                    const bool task_finished = (task.idx_next_loc >= static_cast<int>(task.locations.size()));
+                    if (!task_finished) {
+                        oss << ", next_loc=" << task.locations[task.idx_next_loc];
+                    }
+                    task_details = oss.str();
+                }
+            }
+            std::cout << "  agent " << aid
+                      << ": loc=" << curr_loc
+                      << ", goal=" << goal_loc
+                      << ", assigned_task_id=" << assigned_task_id
+                      << ", task_details=[" << task_details << "]:";
+            for (int step = 0; step < static_cast<int>(actions[aid].size()); step++){
+                std::cout << (step == 0 ? " " : ", ") << debug_action_to_string(actions[aid][step]);
+            }
+            std::cout << std::endl;
+        }
 
         // restore env state after internal rollout simulation
         env->curr_states = original_states;
