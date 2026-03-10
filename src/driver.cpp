@@ -28,7 +28,10 @@ std::unique_ptr<BaseSystem> system_ptr;
 void sigint_handler(int a)
 {
     fprintf(stdout, "stop the simulation...\n");
-    system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
+    system_ptr->saveResults(
+        vm["output"].as<std::string>(),
+        vm["outputScreen"].as<int>(),
+        vm["prettyPrintJson"].as<bool>());
     _exit(0);
 }
 
@@ -52,6 +55,7 @@ int main(int argc, char **argv)
         ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
         ("initialPlanTimeLimit,n", po::value<int>()->default_value(1000), "the initial time limit for planner in milliseconds")
         ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
+        ("prettyPrintJson", po::bool_switch()->default_value(false), "pretty-print the output JSON instead of writing it on one line")
         ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
         ("planCommTimeLimit,t", po::value<int>()->default_value(1000), "the minimal communication time limit for planner in milliseconds")
@@ -196,8 +200,10 @@ int main(int argc, char **argv)
 
     system_ptr->simulate(vm["simulationTime"].as<int>(),100);
 
-
-    system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
+    system_ptr->saveResults(
+        vm["output"].as<std::string>(),
+        vm["outputScreen"].as<int>(),
+        vm["prettyPrintJson"].as<bool>());
 
     delete model;
     delete logger;

@@ -271,7 +271,7 @@ void BaseSystem::initialize()
 }
 
 
-void BaseSystem::saveResults(const string &fileName, int screen) const
+void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_print) const
 {
     json js;
     // Save action model
@@ -415,8 +415,14 @@ void BaseSystem::saveResults(const string &fileName, int screen) const
     }
 
     std::ofstream f(fileName,std::ios_base::trunc |std::ios_base::out);
-    f << std::setw(4) << js;
+    if (pretty_print)
+    {
+        f << std::setw(4) << js;
+    }
+    else
+    {
+        f << js.dump();
+    }
 
 }
-
 
