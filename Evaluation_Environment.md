@@ -27,13 +27,15 @@ python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.
 
 In the **executor track**, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp, inc/Plan.h
 ```
 
 In the **scheduler track**, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp, inc/Executor.h, src/Executor.cpp
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp, inc/Executor.h, src/Executor.cpp, inc/Plan.h
 ```
+
+This restriction is broader than file edits. You must not alter, override, spoof, or otherwise distort the behavior of these protected functionalities in any manner, whether directly or indirectly through other modules, shared data structures, side effects, or runtime interactions.
 
 ## Evaluation Server Hardware Specification
 
