@@ -13,7 +13,7 @@ This document explains:
 
 ## System Overview
 
-The start-kit runs a **two-rate control loop**:
+The start-kit runs a **two-rate control loop** (For more details about the central controller, please refer to our [Competition Web Page](https://www.leagueofrobotrunners.org/)):
 
 ### A) Planning update (slow loop)
 Periodically (every multiple execution ticks), the competition system:
@@ -115,7 +115,32 @@ You can read the current staged actions in `env->staged_actions`.
 
 Important Note: in the combined track, you can customise your `Plan`, but your executor also needs to be responsible for understanding the `Plan` and converting the `Plan` into a sequence of `Action`s to stage and pass to the system. In other words, the system will only accept the staged actions as a sequence of `Action`s defined in `inc/ActionModel.h`.
 
----
+## Execution model (Counters, delays, and overlap-based safety)
+
+### Multi-tick actions (counter)
+`FW`, `CR`, and `CCR` take multiple execution ticks.
+Progress is tracked by `State.counter`.
+When the counter completes, the discrete location/orientation updates.
+
+### Delays
+During a delay tick, an agent is forced to Wait/STOP.
+This pauses counter progress and may create congestion.
+
+### Collisions and safety (no vertex/edge rules)
+This branch does not use “vertex” or “edge” conflicts.
+Instead, safety is enforced by geometric overlap:
+- agents are modelled as axis-aligned squares (“safety bubbles”)
+- obstacles are solid squares
+- overlap is checked continuously over a tick (swept collision)
+
+If an agent’s requested motion is unsafe, the action model may override it to `W` for that tick.
+This override can happen per-agent (not necessarily “everyone waits”).
+
+Practical implication:
+- Your planner can output collision-free plans at the grid level, but the executor/action model
+  is the final authority and may still STOP/WAIT agents due to continuous overlap constraints,
+  delays, and dependency resolution.
+
 
 ## SharedEnvironment (`SharedEnv`)
 
@@ -159,23 +184,34 @@ Also available:
 
 ---
 
-## Entry Integration
+## Timing and timeouts (what really happens)
 
-### Understand the default Planning Entry
-Default Planning Entry is in `src/Entry.cpp`.
+There are several time budgets in the system:
 
-`Entry::compute(time_limit, plan, proposed_schedule)` runs:
-1) scheduler: `TaskScheduler::plan(time_limit, proposed_schedule)`
-2) goal update: `Entry::update_goal_locations(proposed_schedule)`
-3) planner: `MAPFPlanner::plan(time_limit, plan)`
+### Preprocessing (hard limit)
+`Entry::initialize(preprocess_time_limit)` and `Executor::initialize(int preprocess_time_limit)` are called before evaluation begins.
+If any of the preprocessing exceeds this limit, the run terminates (exit code 124).
 
-The scheduler and planner share the same `time_limit` and are called sequentially.
-Both should budget time using `env->plan_start_time`.
+### Planning update time limit (soft limit)
+`Entry::compute(time_limit, ...)` is time-bounded.
+If it runs late:
+- the executor continues ticking using the last accepted staged actions,
+- the next plan update is delayed until the current planning call finishes.
 
-### Understand the default Executor Entry
-Default Executor Entry is in `src/Executor.cpp`. Details of the API will be illustrated in next section.
+In other words: late planning reduces how often your plan can be updated; the simulation does not freeze.
+
+### Executor per-tick time limit (soft limit)
+`Executor::next_command(exec_time_limit)` is called every execution tick.
+If it is slow, you effectively lose execution time (the simulation may advance using safe waiting for all agents behaviour to compensate).
+Keep `next_command` lightweight.
+
+### Plan processing time limit (soft limit)
+`Executor::process_new_plan(sync_time_limit, ...)` should also be efficient.
+If it is slow, it will be treated similarly as planning late, which means the system will continue ticking and calling the next command without having new plans.
 
 ---
+
+## Entry Integration
 
 ## Planner / Scheduler / Executor APIs (fixed)
 
@@ -218,93 +254,28 @@ Return:
 - `process_new_plan(...)` updates `staged_actions` and returns predicted states.
 - `next_command(...)` outputs `GO/STOP` per agent for the next tick.
 
-The default executor provides a baseline policy and a default plan-staging strategy.
+## Understand the default components
 
----
+### The default entry
+In `src/Entry.cpp`, you can find the default implementation for entry. In the `Entry::compute()` function, the default entry calls the default scheduler first. After the scheduler finishes, robots might be assigned new tasks and their goal locations (next errand of the scheduled task of each robot) are stored in `env->goal_locations` for planner reference.
+Then, the entry calls the default planner to compute the actions for robots.
+The time limit is revealed to both the default scheduler and planner. Inside the default scheduler and planner, you can see each of them using half amount of the time limit.
 
-## How plans are received and executed (important)
+### The default scheduler
+In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
+- The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `DefaultPlanner::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given robot.
+- The scheduling function of the default scheduler (see `schedule_plan()` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when the `schedule_plan()` function is called, it iterates over each robot that does not have an assigned task. For each iterated robot, the algorithm iterates over tasks that are not assigned to any robot and assigns the one with minimal makespan (the distance to travel from the robot's current location through every errand of the task) to the robot.
 
-### Plan staging window
-The executor may choose to stage only part of the returned plan.
-The default executor uses a “window” idea:
-- it stages enough actions to cover roughly one planner communication interval.
+### The default planner
+In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are further defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and a global heuristic table (if not initialized by the scheduler). Its `plan()` function computes collision-free actions for the current timestep.
 
-This prevents staging far into the future when a new plan may arrive soon.
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions for multiple steps using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) (PIBT) following the optimised traffic flow.
 
-### When is a staged action consumed?
-In the simulator, a staged action is removed from the front of the queue only when it is completed:
-- `W` is consumed after one tick of waiting
-- `FW` is consumed when the agent reaches the next cell center (location changes)
-- `CR/CCR` is consumed when the orientation update completes (orientation changes)
-
-If an agent is STOPped mid-action (or delayed), the action remains at the front and resumes later.
-
----
-
-## Execution model (Counters, delays, and overlap-based safety)
-
-### Multi-tick actions (counter)
-`FW`, `CR`, and `CCR` take multiple execution ticks.
-Progress is tracked by `State.counter`.
-When the counter completes, the discrete location/orientation updates.
-
-### Delays
-During a delay tick, an agent is forced to Wait/STOP.
-This pauses counter progress and may create congestion.
-
-### Collisions and safety (no vertex/edge rules)
-This branch does not use “vertex” or “edge” conflicts.
-Instead, safety is enforced by geometric overlap:
-- agents are modelled as axis-aligned squares (“safety bubbles”)
-- obstacles are solid squares
-- overlap is checked continuously over a tick (swept collision)
-
-If an agent’s requested motion is unsafe, the action model may override it to `W` for that tick.
-This override can happen per-agent (not necessarily “everyone waits”).
-
-Practical implication:
-- Your planner can output collision-free plans at the grid level, but the executor/action model
-  is the final authority and may still STOP/WAIT agents due to continuous overlap constraints,
-  delays, and dependency resolution.
-
----
-
-## Timing and timeouts (what really happens)
-
-There are several time budgets in the system:
-
-### Preprocessing (hard limit)
-`Entry::initialize(preprocess_time_limit)` and `Executor::initialize(int preprocess_time_limit)` are called before evaluation begins.
-If any of the preprocessing exceeds this limit, the run terminates (exit code 124).
-
-### Planning update time limit (soft limit)
-`Entry::compute(time_limit, ...)` is time-bounded.
-If it runs late:
-- the executor continues ticking using the last accepted staged actions,
-- the next plan update is delayed until the current planning call finishes.
-
-In other words: late planning reduces how often your plan can be updated; the simulation does not freeze.
-
-### Executor per-tick time limit (soft limit)
-`Executor::next_command(exec_time_limit)` is called every execution tick.
-If it is slow, you effectively lose execution time (the simulation may advance using safe waiting for all agents behaviour to compensate).
-Keep `next_command` lightweight.
-
-### Plan processing time limit (soft limit)
-`Executor::process_new_plan(sync_time_limit, ...)` should also be efficient.
-If it is slow, it will be treated similarly as planning late, which means the system will continue ticking and calling the next command without having new plans.
-
----
-
-## What to implement for each track
-
-(If your competition year uses different track naming, follow the website instructions; the APIs above remain fixed.)
-
-- Scheduling Track: implement your scheduler; default planner + default executor run with it.
-- Execution Track: implement your executor; default planner/scheduler provide intent.
-- Combined Track: implement planner, scheduler and executor
-
-You can also modify `Entry` in combined settings, but do not change API signatures.
+> ⚠️ **NOTE** ⚠️, the default planner is an anytime algorithm, meaning the time it has to compute a solution directly impacts the quality of that solution. 
+When a small amount of time is allocated, the default planner behaves like vanilla PIBT. When more time is allocated, the default planner updates traffic cost and incrementally recomputes guide paths for agents to improve their arrival time.
+If you are a Scheduling Track participant, remember that the sooner your `schedule_plan()` function returns, the more time is avaliable to the default planner.
+Better plans and better schedules can both substantially influence the performance of your submission on the leaderboard. 
+How to allocate time between these two components is an important part of a successful strategy.
 
 ### Timing parameters for default planner and scheduler
 
@@ -321,6 +292,32 @@ File `default_planner/const.h` specifies a few parameters that control the timin
 - `SCHEDULER_TIMELIMIT_TOLERANCE` The TaskScheduler will deduct this value from the time limit for the default scheduler.
 
 You are allowed to modify the values of these parameters to reduce/increase the time spent on related components.
+
+### The default Executor
+
+In `src/Executor.cpp` (API in `inc/Executor.h`), the default executor provides a baseline **execution policy** for the fast tick loop.
+
+It has two responsibilities:
+
+1) **Plan adoption and staging** (`process_new_plan`)
+- The planner may return a long multi-step plan. The executor stages all the new planned actions into per-agent `staged_actions`, so the system can keep executing smoothly.
+- When a new plan arrives, the executor merges it with any already staged actions already in progress.
+- The executor also generates a **predicted state** snapshot used as the input to the next planning call. This is done by simulating the resulting state after executing all the staged actions.
+
+2) **Tick-by-tick execution decision** (`next_command`)
+Every execution tick, the executor outputs one GO/STOP execution command per agent:
+
+The default executor uses a [**Temporal Dependency Graph (TPG)**](Ma, H., Kumar, T. S., & Koenig, S. (2017, February). Multi-agent path finding with delay probabilities. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1)) constructed from the current local situation. The TPG captures the temporal dependency of agents' visiting order of each location from the planned path. For example, if in the agents' path, one location is visited by the first agent, then the second agent, then the execution should also follow this order. When the first agent is delayed, the second agent will also need to wait before the first agent enters and leaves this location. In other words, the executor then derives GO/STOP decisions from this dependency structure, prioritising progress that does not violate the implied ordering. 
+
+## What to implement for each track
+
+(If your competition year uses different track naming, follow the website instructions; the APIs above remain fixed.)
+
+- Scheduling Track: implement your scheduler; default planner + default executor run with it.
+- Execution Track: implement your executor; default planner/scheduler provide intent.
+- Combined Track: implement planner, scheduler and executor
+
+You can also modify `Entry` in combined settings, but do not change API signatures.
 
 ### Unmodifiable files
 
@@ -350,70 +347,9 @@ You are free to use third-party libraries or other dependencies in your implemen
 - Specify dependency packages in apt.txt. These packages must be available for installation through apt-get on Ubuntu 22.
 
 ## Python Interface
-We also provide a Python interface for Python users based on pybind11.
+The Python interface is not ready for this competition stage and is currently not supported for submission use.
 
-Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
-
-The pybind11 bindings are implemented under `python/common`, `python/default_planner`, `python/default_scheduler`, `python/user_planner/`, and `python/user_scheduler/`.
-These implementations allow the user-implemented Python scheduler to work with the default C++ planner and allow user implemented Python planner to work with the default C++ scheduler.
-To use the Python interface, simply implement your planner and/or scheduler in:
-+ `python/pyMAPFPlanner.py`: this file is where users implement their python-based MAPF planner algorithms and return actions as a list of actions for each robot.
-+ `python/pyTaskScheduler.py`: this file is where users implement their python-based Task Scheduler algorithms and return proposed schedules as a list of task IDs for each robot.
-
-### Track Config and Compiling
-
-For each track of the competition, the start-kit uses a different combination of Python and C++ implementations:
-- In Scheduler Track, the start-kit uses `Python scheduler` and `C++ default planner`.
-- In Planner Track, the start-kit uses `Python planner` and `C++ default scheduler`.
-- In Combined Track, the start-kit uses both `Python planner` and `Python Scheduler`.
-
-When testing your implementation locally, you need to configure the correct track using the `./python/set_track.bash` under the root folder of the start-kit. The script will bring all necessary Python binding files to `./python/tmp` for compiling.
-
-For combined track:
-```shell
-./python/set_track.bash combined
-```
-For scheduler track:
-```shell
-./python/set_track.bash scheduler
-```
-For planner track:
-```shell
-./python/set_track.bash planner
-```
-
-Then edit your compile.sh to make sure it uses only the following content:
-```shell
-mkdir build
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
-make -C build -j
-```
-
-Compile and test your implementation with:
-```shell
-./compile.sh
-./build/lifelong --inputFile ./example_problems/random.domain/random_32_32_20_100.json -o test.json
-```
-Once compiled, the program looks for `pyMAPFPlanner` python module and `pyTaskScheduler.py` under `./python` or `../python` relative to the current working direction. Additionally, you can specify a path in `config.json` and use cmake flag `-DCOPY_PY_PATH_CONFIG=ON` (which copies the `config.json` to the target build folder), so that the problem will look for the `pyMAPFPlanner` in the specified folder.
-
-Additionally, you can specify a specific Python version by `-DPYBIND11_PYTHON_VERSION` or an exact Python install by `-DPYTHON_EXECUTABLE`
-
-For example:
-```shell
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYBIND11_PYTHON_VERSION=3.6
-
-#or
-
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYTHON_EXECUTABLE=path/to/python
-```
-
-Python packages can also be installed through `pip` on the evaluation server, thus you can specify the package you want to install in `pip.txt`.
-For example, on the default `pip.txt` contains:
-```
-torch
-pybind11-global>=2.10.1
-numpy
-```
+We plan to provide a fully supported Python interface for the main round.
 
 ## Evaluation
 
