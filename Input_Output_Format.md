@@ -6,6 +6,7 @@
 | `--help` |  | Show help message. |
 | `--inputFile` / `-i` | String | Path to the input problem JSON file (**required**). |
 | `--output` / `-o` | String | Output JSON path (default: `./output.json`). |
+| `--prettyPrintJson` | Bool | Pretty-print the output JSON instead of writing it on one line (default: `false`). |
 | `--outputScreen` / `-c` | Int | Output verbosity for the output JSON file: `1` = full output; `2` = only summary stats, actual plans and task finish events; `3` = only summary stats (omit events/tasks/errors/plannerTimes/starts/paths). |
 | `--logFile` / `-l` | String | Redirect logs to this file (optional). |
 | `--logDetailLevel` / `-d` | Int | Log level for the log file: `1` = all, `2` = warnings+fatal, `3` = fatal only. |
@@ -130,5 +131,4 @@ Where:
 - each `(A d)` means action `A` applied for `d` consecutive ticks
 
 Multiple segments are concatenated in the string to represent the full run.
-
 
