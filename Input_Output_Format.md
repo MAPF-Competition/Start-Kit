@@ -93,6 +93,7 @@ The following table defines the properties that appear in the output file.
 | teamSize        | Int <br /> The number of robots in the simulation                                                                                                                                                                                                                                                                                                                                                     |
 | agentMaxCounter | Int | The `maxCounter` used in this run (ticks per Forward/Rotate action) |
 | outputSegmentSize | Int | Segment/window length used for compressed path output |
+| delayIntervals | List | A list of `n` per-agent delay interval lists, where `n` is the number of robots. Each interval is stored as `[start_timestep, end_timestep]`. Included only when `outputScreen <= 2`. |
 | start           | List <br />A list of start locations. The length of the list is the number of robots.                                                                                                                                                                                                                                                                                           |
 | numTaskFinished | Int <br />Number of finished tasks.                                                                                                                                                                                                                                                                                                                                             |
 | sumOfCost       | Int <br />                                                                                                                                                                                                                                                                                                                                                                      |
@@ -132,3 +133,21 @@ Where:
 
 Multiple segments are concatenated in the string to represent the full run.
 
+### Delay interval format (`delayIntervals`)
+
+`delayIntervals` is a list with one entry per robot. Each robot entry is a list of delay intervals:
+
+`[[start_timestep, end_timestep], ...]`
+
+Where:
+- `start_timestep` is the execution tick when the delay starts
+- `end_timestep` is the execution tick when the delay ends
+
+Example:
+
+`[[], [[12, 15], [40, 42]], [[7, 9]]]`
+
+This means:
+- robot 0 had no delays
+- robot 1 was delayed during intervals `[12, 15]` and `[40, 42]`
+- robot 2 was delayed during interval `[7, 9]`
