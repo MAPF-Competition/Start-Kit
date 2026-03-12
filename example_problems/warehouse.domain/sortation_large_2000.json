@@ -4,5 +4,18 @@
     "teamSize": 2000,
     "taskFile": "tasks/sortation_large.tasks",
     "numTasksReveal": 1.5,
-    "version": "2024 LoRR"
+    "agentCounter": 10,
+    "version": "2026 LoRR",
+    "agentSize": 1.0,
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 1,
+        "maxDelay": 5,
+        "eventModel": "bernoulli",
+        "pDelay": 0.02,
+        "poissonLambda": 2.0,
+        "durationModel": "gaussian",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.35
+    }
 }
