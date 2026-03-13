@@ -4,7 +4,6 @@
 #include "pibt.h"
 #include "flow.h"
 #include "const.h"
-#include "tracy/Tracy.hpp"
 #include <deque>
 #include <numeric>
 #include <thread>
@@ -263,13 +262,13 @@ namespace DefaultPlanner{
                 causalPIBT(i,-1,prev_states,next_states,
                     prev_decision,decision,
                     occupied, trajLNS);
-                std::cout << "PIBT finished for agent " << i << std::endl;
-                std::cout << "Progress: "
-                          << ++pibt_cnt << "/" << ids_size
-                          << " | dist2path=" << PIBT_CNT_get_dist_2_path
-                          << " | heuristic=" << PIBT_CNT_get_heuristic
-                          << " | manhattan=" << PIBT_CNT_manhattan
-                          << std::endl;
+                // std::cout << "PIBT finished for agent " << i << std::endl;
+                // std::cout << "Progress: "
+                //           << ++pibt_cnt << "/" << ids_size
+                //           << " | dist2path=" << PIBT_CNT_get_dist_2_path
+                //           << " | heuristic=" << PIBT_CNT_get_heuristic
+                //           << " | manhattan=" << PIBT_CNT_manhattan
+                //           << std::endl;
             }
         }
         std::cout << "PIBT finished for all agents" << std::endl;
@@ -302,7 +301,7 @@ namespace DefaultPlanner{
         TimePoint pibt_end_time = std::chrono::steady_clock::now();
         std::chrono::duration<double> pibt_duration = pibt_end_time - pibt_start_time;
         // record PIBT runtime in ms and maintain sliding window
-        int pibt_ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(pibt_end_time - pibt_start_time).count();
+        int pibt_ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(pibt_end_time - pibt_start_time).count() + 1;
         pibt_time_history.push_back(pibt_ms);
         if (pibt_time_history.size() > PIBT_TIME_HISTORY_LEN) pibt_time_history.pop_front();
         // (optional) print running average for debugging
@@ -312,7 +311,6 @@ namespace DefaultPlanner{
 
         prev_states = next_states;
         size_t memory_usage = trajLNS.memory_usage();
-        TracyPlot("TrajLNS Memory Usage in GB:", static_cast<double>(memory_usage) / (1024 * 1024 * 1024));
         // std::cout << "TrajLNS Memory Usage in GB: " << static_cast<double>(memory_usage) / (1024 * 1024 * 1024) << std::endl;
         return;
 

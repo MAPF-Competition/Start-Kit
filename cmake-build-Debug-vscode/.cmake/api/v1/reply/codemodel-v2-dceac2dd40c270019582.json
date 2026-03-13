@@ -1,0 +1,78 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "lifelong",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "clean_all::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clean_all-Debug-a375117a53a9e2f025e7.json",
+					"name" : "clean_all",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "lifelong::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-lifelong-Debug-6cc90746adca2c9f3059.json",
+					"name" : "lifelong",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "multi_step_plan_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-multi_step_plan_test-Debug-c700f52b675bc6d6acd7.json",
+					"name" : "multi_step_plan_test",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/duo/Rutgers/ARC/LORR/Start-Kit/cmake-build-Debug-vscode",
+		"source" : "/home/duo/Rutgers/ARC/LORR/Start-Kit"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

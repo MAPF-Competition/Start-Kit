@@ -1,0 +1,8 @@
+{
+    "mapFile": "maps/scene_sp_sax_04.map",
+    "agentFile": "agents/ironHarvestTest_sp_sax_04_10000.agents",
+    "teamSize": 10000,
+    "taskFile": "tasks/ironHarvestTest_sp_sax_04.tasks",
+    "numTasksReveal": 1.0,
+    "version": "2024 LoRR"
+}

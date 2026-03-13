@@ -1,0 +1,21 @@
+{
+    "mapFile": "maps/warehouse_large.map",
+    "agentFile": "agents/warehouse_large_10000.agents",
+    "teamSize": 10000,
+    "taskFile": "tasks/warehouse_large.tasks",
+    "numTasksReveal": 1.5,
+    "version": "2024 LoRR",
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 1,
+        "maxDelay": 2,
+        "eventModel": "bernoulli",
+        "pDelay": 0.02,
+        "poissonLambda": 2.0,
+        "durationModel": "gaussian",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.12
+    },
+    "agentCounter": 10,
+    "agentSize": 1.0
+}

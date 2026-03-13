@@ -13,18 +13,6 @@ else()
 endif()
 
 
-# Tracy
-# IF (DEFINED TRACY_ENABLE)
-    # MESSAGE(STATUS "Tracy profiler: ${TRACY_ENABLE}")
-    # IF (${TRACY_ENABLE} STREQUAL "ON")
-        ADD_DEFINITIONS(-DTRACY_ENABLE)
-        INCLUDE("${PROJECT_SOURCE_DIR}/cmake/BuildTracy.cmake")
-        OPTION ( TRACY_ENABLE "" ON )
-        OPTION ( TRACY_ON_DEMAND "" ON )
-        ADD_SUBDIRECTORY (tracy)
-        # LIST(APPEND ALL_LIBRARIES Tracy::TracyClient)
-#     ENDIF ()
-# ENDIF()
 # Print the value of PYTHON
 message(STATUS "PYTHON: ${PYTHON}")
 
@@ -92,7 +80,7 @@ ELSE()
     
 
     add_executable(lifelong ${SOURCES} )
-    target_link_libraries(lifelong ${Boost_LIBRARIES} Tracy::TracyClient)
+    target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
 ENDIF()
 

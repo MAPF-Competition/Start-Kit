@@ -1,0 +1,21 @@
+{
+    "mapFile": "maps/Paris_1_256.map",
+    "agentFile": "agents/paris_1_256_1500.agents",
+    "teamSize": 1500,
+    "taskFile": "tasks/paris_1_256.tasks",
+    "numTasksReveal": 1.5,
+    "version": "2024 LoRR",
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 1,
+        "maxDelay": 20,
+        "eventModel": "bernoulli",
+        "pDelay": 0.02,
+        "poissonLambda": 2.0,
+        "durationModel": "uniform",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.35
+    },
+    "agentCounter": 10,
+    "agentSize": 0.7
+}

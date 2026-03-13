@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include <set>
-#include "tracy/Tracy.hpp"
 
 namespace DefaultPlanner{
 // enum ADAPTIVE {RANDOM, CONGESTION, COUNT};

@@ -130,7 +130,8 @@ void BaseSystem::plan(int & timeout_timesteps)
                 logger->log_info("planner returns", timestep + timeout_timesteps);
                 return;
             }
-            logger->log_info("planner timeout", timestep + timeout_timesteps);
+            std::string log_info = "planner timeout, planner time limit: " + std::to_string(plan_time_limit) + " ms";
+            logger->log_info(log_info, timestep + timeout_timesteps);
             timeout_timesteps += 1;
         }
 
