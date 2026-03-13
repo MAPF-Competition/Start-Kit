@@ -3,7 +3,7 @@
 Version 3.0.0 - 2026-03-13
 ----------------------------
 Added:
-- Added `Executor` support for processing staged plans separately from planning, including windowed plan adoption.
+- Added support for the `Execution` component to process plans from planning and execution plans under execution uncertainty.
 - Added support for multistep / staged planner execution with periodic planner communication.
 - Added runtime delay generation via `delayConfig` in the input JSON.
 - Added delay interval output (`delayIntervals`) to the output JSON for `outputScreen <= 2`.
