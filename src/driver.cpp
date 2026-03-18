@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <climits>
 #include <memory>
+#include <stdexcept>
 
 
 #ifdef PYTHON
@@ -24,11 +25,13 @@ using json = nlohmann::json;
 po::variables_map vm;
 std::unique_ptr<BaseSystem> system_ptr;
 
-
 void sigint_handler(int a)
 {
     fprintf(stdout, "stop the simulation...\n");
-    system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
+    system_ptr->saveResults(
+        vm["output"].as<std::string>(),
+        vm["outputScreen"].as<int>(),
+        vm["prettyPrintJson"].as<bool>());
     _exit(0);
 }
 
@@ -43,18 +46,29 @@ int main(int argc, char **argv)
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")
-        ("inputFile,i", po::value<std::string>()->required(), "input file name")
-        ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
-        ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
-        ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
-        ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
+        ("actionMoveTimeLimit,a", po::value<int>()->default_value(100), "the  time limit for move one action in milliseconds")
+        ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--only actual plans, task completion and summary, 3--only summary")
+        ("logDetailLevel,d", po::value<int>()->default_value(1), "the minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only")
         ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the large file storage path")
-        ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
-        ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
+        ("inputFile,i", po::value<std::string>()->required(), "input file name")
         ("logFile,l", po::value<std::string>()->default_value(""), "redirect stdout messages into the specified log file")
-        ("logDetailLevel,d", po::value<int>()->default_value(1), "the minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only");
+        ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
+        ("initialPlanTimeLimit,n", po::value<int>()->default_value(1000), "the initial time limit for planner in milliseconds")
+        ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
+        ("prettyPrintJson", po::bool_switch()->default_value(false), "pretty-print the output JSON instead of writing it on one line")
+        ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
+        ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
+        ("planCommTimeLimit,t", po::value<int>()->default_value(1000), "the minimal communication time limit for planner in milliseconds")
+        ("outputActionWindow,w", po::value<int>()->default_value(100), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
+        ("executorProcessPlanTimeLimit,x", po::value<int>()->default_value(100), "the time limit for process new plan in milliseconds")
+        ;
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
+
+    //time per tick 
+    // max counter 
+    // initial planning time 
+    // min communication tick 
 
     if (vm.count("help"))
     {
@@ -91,12 +105,14 @@ int main(int argc, char **argv)
 
 
     Entry *planner = nullptr;
+    Executor *executor = nullptr;
 
 #ifdef PYTHON
 #if PYTHON
         planner = new PyEntry();
 #else
         planner = new Entry();
+        executor = new Executor(planner->env);
 #endif
 #endif
 
@@ -136,30 +152,58 @@ int main(int argc, char **argv)
     }
     planner->env->file_storage_path = file_storage_path;
 
-    ActionModelWithRotate *model = new ActionModelWithRotate(grid);
+    float agent_size = read_param_json<float>(data, "agentSize", 1.0f);
+    if (agent_size <= 0.0f)
+    {
+        throw std::invalid_argument("agentSize should be a positive number");
+    }
+
+    ActionModelWithRotate *model = new ActionModelWithRotate(grid, agent_size);
     model->set_logger(logger);
 
     int team_size = read_param_json<int>(data, "teamSize");
+    DelayConfig delay_config;
+    try
+    {
+        delay_config = parse_delay_config(data);
+    }
+    catch (const std::invalid_argument& error)
+    {
+        logger->log_fatal(error.what(), 0);
+        _exit(1);
+    }
 
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
     std::vector<list<int>> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-    system_ptr = std::make_unique<BaseSystem>(grid, planner, agents, tasks, model);
+    system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model, read_param_json<int>(data, "maxCounter", 10));
 
     system_ptr->set_logger(logger);
-    system_ptr->set_plan_time_limit(vm["planTimeLimit"].as<int>());
+    system_ptr->set_plan_time_limit(vm["initialPlanTimeLimit"].as<int>(),vm["planCommTimeLimit"].as<int>(),vm["actionMoveTimeLimit"].as<int>(),vm["executorProcessPlanTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
+    try
+    {
+        system_ptr->set_delay_generator(std::make_unique<DelayGenerator>(delay_config, team_size));
+    }
+    catch (const std::invalid_argument& error)
+    {
+        logger->log_fatal(error.what(), 0);
+        _exit(1);
+    }
+
     signal(SIGINT, sigint_handler);
 
-    system_ptr->simulate(vm["simulationTime"].as<int>());
+    system_ptr->simulate(vm["simulationTime"].as<int>(),100);
 
-
-    system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
+    system_ptr->saveResults(
+        vm["output"].as<std::string>(),
+        vm["outputScreen"].as<int>(),
+        vm["prettyPrintJson"].as<bool>());
 
     delete model;
     delete logger;

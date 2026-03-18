@@ -7,11 +7,13 @@
 #include <cfloat>
 #include <ctime>
 #include <fstream>
+#include <random>
 #include <boost/heap/fibonacci_heap.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
+#include "DelayGenerator.h"
 
 using boost::heap::fibonacci_heap;
 using boost::heap::compare;
@@ -179,4 +181,72 @@ T read_param_json(nlohmann::json& data, std::string name, T default_value)
         std::cerr << "Message: " << error.what() << std::endl;
         exit(1);
     }
+}
+
+
+template <typename T>
+T read_required_json_param(const nlohmann::json& data, const std::string& name, const std::string& parent_name)
+{
+    if (!data.contains(name))
+    {
+        throw std::invalid_argument("Missing required property " + parent_name + "." + name);
+    }
+    try
+    {
+        return data.at(name).get<T>();
+    }
+    catch (const nlohmann::json::type_error& error)
+    {
+        throw std::invalid_argument("Incorrect type for " + parent_name + "." + name + ": " + std::string(error.what()));
+    }
+}
+
+
+inline DelayConfig parse_delay_config(const nlohmann::json& data)
+{
+    if (!data.contains("delayConfig") || !data.at("delayConfig").is_object())
+    {
+        throw std::invalid_argument("Missing required object delayConfig in the input JSON");
+    }
+
+    const auto& delay_json = data.at("delayConfig");
+    DelayConfig config;
+    config.seed = read_required_json_param<unsigned int>(delay_json, "seed", "delayConfig");
+    config.minDelay = read_required_json_param<int>(delay_json, "minDelay", "delayConfig");
+    config.maxDelay = read_required_json_param<int>(delay_json, "maxDelay", "delayConfig");
+
+    const std::string event_model = read_required_json_param<std::string>(delay_json, "eventModel", "delayConfig");
+    if (event_model == "bernoulli")
+    {
+        config.eventModel = DelayConfig::EventModel::Bernoulli;
+    }
+    else if (event_model == "poisson")
+    {
+        config.eventModel = DelayConfig::EventModel::Poisson;
+    }
+    else
+    {
+        throw std::invalid_argument("delayConfig.eventModel must be either 'bernoulli' or 'poisson'");
+    }
+
+    config.pDelay = read_required_json_param<double>(delay_json, "pDelay", "delayConfig");
+    config.poissonLambda = read_required_json_param<double>(delay_json, "poissonLambda", "delayConfig");
+
+    const std::string duration_model = read_required_json_param<std::string>(delay_json, "durationModel", "delayConfig");
+    if (duration_model == "uniform")
+    {
+        config.durationModel = DelayConfig::DurationModel::Uniform;
+    }
+    else if (duration_model == "gaussian")
+    {
+        config.durationModel = DelayConfig::DurationModel::Gaussian;
+    }
+    else
+    {
+        throw std::invalid_argument("delayConfig.durationModel must be either 'uniform' or 'gaussian'");
+    }
+
+    config.gaussMeanRatio = read_required_json_param<double>(delay_json, "gaussMeanRatio", "delayConfig");
+    config.gaussStdRatio = read_required_json_param<double>(delay_json, "gaussStdRatio", "delayConfig");
+    return config;
 }

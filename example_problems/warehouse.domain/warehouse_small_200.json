@@ -1,9 +1,9 @@
 {
-    "mapFile": "maps/Paris_1_256.map",
-    "agentFile": "agents/paris_1_256_250.agents",
-    "teamSize": 250,
-    "taskFile": "tasks/paris_1_256.tasks",
-    "numTasksReveal": 1.5,
+    "mapFile": "maps/warehouse_small.map",
+    "agentFile": "agents/warehouse_small_200.agents",
+    "teamSize": 200,
+    "taskFile": "tasks/warehouse_small.tasks",
+    "numTasksReveal": 1,
     "agentCounter": 10,
     "version": "2026 LoRR",
     "agentSize": 1.0,
@@ -12,10 +12,9 @@
         "minDelay": 1,
         "maxDelay": 5,
         "eventModel": "bernoulli",
-        "pDelay": 0.01,
+        "pDelay": 0.02,
         "poissonLambda": 2.0,
         "durationModel": "gaussian",
         "gaussMeanRatio": 0.5,
         "gaussStdRatio": 0.35
-    }
-}
+    }}

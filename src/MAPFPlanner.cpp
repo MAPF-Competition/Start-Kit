@@ -29,11 +29,13 @@ void MAPFPlanner::initialize(int preprocess_time_limit)
  * @param time_limit The time limit allocated for planning (in milliseconds).
  * @param actions A reference to a vector that will be populated with the planned actions (next action for each agent).
  */
-void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
+void MAPFPlanner::plan(int time_limit, Plan & plan) 
 {
     // use the remaining time after task schedule for path planning, -PLANNER_TIMELIMIT_TOLERANCE for timing error tolerance;
     int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
 
-    DefaultPlanner::plan(limit, actions, env);
+    int min_plan_steps = (int)(env->min_planner_communication_time/(env->action_time*env->max_counter)) + 1;
+
+    DefaultPlanner::plan(limit, plan.actions, env,min_plan_steps);
     return;
 }

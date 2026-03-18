@@ -1,128 +1,285 @@
 # Prepare Your Entry
-To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
 
+To run the program, please refer to [README.md](./README.md) to download the start-kit and compile.
+
+This document explains:
+- how the competition system calls `Entry`, `Planner`, `Scheduler`, and the **Executor**,
+- what data you receive in `SharedEnvironment`,
+- what you are expected to return (schedule + **multi-step plan**),
+- how timing / timeouts work in the **two-rate** (planner vs executor) loop,
+- how to build and test locally.
+
+---
 
 ## System Overview
 
-<img src="./image/lorr2024_system_overview.jpg" style="margin:auto;display: block;max-width:800px"/>
+A system overview is shown below to illustrate the main components of the start-kit:
 
-The image shows the system overview of the start-kit.
-At each timestep:
-1. the competition system calls the `Entry` for the proposed schedule and plan, providing the `SharedEnv` that stores the current state of the robots and schedule. Internally, `Entry` calls `Scheduler` to compute the proposed schedule and calls `Planner` to compute the proposed plan.
-2. Once `Entry` returns, the proposed plan will be passed to the Simulator for validation, and the Simulator will execute the plan and return the resulting state (current state) if the proposed plan is valid. 
-3. The current state and proposed schedule are then passed to the Task Manager to validate the proposed schedule and check which, if any, tasks are progressed or completed. The Task Manager also reveals new tasks to the system. 
-4. Then the returned current schedule, current state, revealed tasks and other information will be passed to `Entry` through `SharedEnv` at the next timestep.
+![system_overview](./image/system_overview.png)
 
-### Important concepts
+The start-kit runs a **two-rate control loop** for the planning/scheduling entry and execution (For more details about the central controller, please refer to our [Competition Web Page](https://www.leagueofrobotrunners.org/)):
+
+### A) Planning update (slow loop)
+Periodically (every multiple execution ticks), the competition system:
+1. syncs the latest environment info into `SharedEnvironment` (`env`),
+2. calls `Entry::compute(time_limit, proposed_plan, proposed_schedule)`.
+
+Inside `Entry::compute()` (default implementation in `src/Entry.cpp`):
+- `TaskScheduler::plan()` produces `proposed_schedule`,
+- `Entry::update_goal_locations()` updates `env->goal_locations`,
+- `MAPFPlanner::plan()` produces `proposed_plan` (a **multi-step plan**, see below).
+
+After `Entry::compute()` returns, the system:
+3. calls the **Executor** to process the new plan and update per-agent `staged_actions` (the action queues that will be executed until the next plan update),
+4. continues execution using those staged actions.
+
+### B) Execution tick (fast loop)
+Every execution tick (even while planning is running), the system:
+1. calls the Executor to decide a per-agent execution command (GO/STOP),
+2. converts GO/STOP + staged actions into **requested actions** for this tick,
+3. applies delays (may force some agents to STOP/Wait),
+4. simulates one tick of motion with the action model (continuous overlap-based collision handling),
+5. updates robot states and task progress.
+
+![system_overview](./image/sequence_diagram.png)
+This image shows the interaction loop in the start-kit. The system calls `Entry::compute(...)` periodically to let the planner/scheduler return a **multi-step, grid-level** Plan and Task Schedule. The system then calls `Executor::process_new_plan(...)` to **stage** the new plan, merging it with any unfinished actions (respecting multi-tick **commitment**) and producing updated `staged_actions` (and optional predicted states). Meanwhile, every tick, the system calls `Executor::next_command(...)` to output per-agent **GO/STOP**, applies delays/safety checks, and advances the simulator.
+
+---
+
+## Important concepts (code-level)
 
 Before you start, get familiar with the following concepts in the code base:
-- Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
-- Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
-- `State` (defined in `inc/States.h`): a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
-- `Task` (defined in `inc/Tasks.h`): A task contains a list of multiple errands, which is stored in `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
-  A task can be reassigned to a different robot if its first errand has not been completed (i.e. `idx_next_loc=0`).
-  However once a robot **opens** its assigned task (i.e., completes the first errand of the task), the task cannot be re-assigned to other robots.
-- `Action` enum (defined in `inc/ActionModel.h`): the four possible actions are encoded in our start actions as: FW - forward, CR - Clockwise rotate, CCR - Counter clockwise rotate, W - Wait, NA - Unknown actions
-- The `Entry` class acts as an interface to communicate with the start-kit main simulation. At each timestep, the main simulation will call the compute() function of Entry to get the next task and the next schedule for each robot to proceed. The compute function of the Entry will call the task scheduler to schedule the next task for each robot first and call the planner to plan the next actions.
 
-  
-### SharedEnv
-The `SharedEnvironment` API provides the necessary information for you to compute schedule and actions. This data structure (defined as `env` in `inc/MAPFPlanner.h`, `inc/Entry.h`, and `inc/TaskScheduler.cpp`) describes the simulated setup and the state of the current timestep:
--  `num_of_agents`: `int`, the total team size.
--  `rows`: `int`, the number of rows of the map.
--  `cols`: `int`, the number of columns of the map.
--  `map_name`: `string`, the map file name.
--  `map`: vector of `int`, stores the map.  
--  `file_storage_path`: `string`, used for indicating the path for file storage, refer to section 'Local Preprocessing and Large Files'.
--  `goal_locations`: vector of vector of `pair<int,int>`: current goal location of each robot, which is the first unfinished errand of the scheduled task. The first int is the goal location, and the second int indicates the timestep that the task was allocated.
--  `current_timestep`: `int`, the current timestep according to the simulator. *Please be aware that current_timestep may increment during a `plan()` call. This occurs when a planner exceeds the time limit for a given timestep*
--  `curr_states`: vector of `State`, the current state for each robot at the current time step.
--  `plan_start_time`: `chrono::steady_clock::time_point`, stores the exact time `Entry::compute()` was called, the `Entry::compute()` should return proposed plan and schedule no more than `time_limit` ms following the plan_start_time.
-- `curr_task_schedule`: `vector<int>`, the current schedule return by the Task Manager. `curr_task_schedule[i]` indicates the `task_id` scheduled for robot `i`. `-1` indicates a robot has no scheduled task.
-- `task_pool`: `unordered_map<int, Task>`, this `unordered_map` stores all revealed but unfinished tasks, using `task_id` as keys.
-- `new_tasks`: `vector<int>`, the `task_id` of the newly revealed tasks at the current timestep.
-- `new_freeagents`: `vector<int>`, the `id` of the newly freed robots (robots have their tasks completed) at the current timestep.
+### Coordinate system
+The location of a robot on the map is (row, col).
+- row increases downward, starting from 0 at the top
+- col increases rightward, starting from 0 at the left
 
-  
+See [coordination_system.pdf](./image/coordination_system.pdf).
+
+### Map representation
+The map is a `vector<int>` in row-major order.
+Index of (row, col) is `row * cols + col`.
+Cell value:
+- `1` = obstacle (non-traversable)
+- `0` = free (traversable)
+
+### `State` (robot state)
+Defined in `inc/States.h`.
+
+Besides `(location, timestep, orientation)`, the state includes:
+- `counter`: progress within the current action (`inc/Counter.h`)
+- `delay`: whether the agent is currently delayed (`inc/Delay.h`)
+- `moveType`: whether the agent is mid-transition or mid-rotation (`Transition / Rotation / None`)
+
+This matters because actions may take **multiple ticks** to finish.
+
+### `Task`
+Defined in `inc/Tasks.h`.
+
+A task is a sequence of errands (`locations`) that must be visited in order.
+Fields include:
+- `task_id`
+- `agent_assigned`
+- `idx_next_loc` (index of next unfinished errand)
+
+A task can be reassigned only if its first errand is not completed (`idx_next_loc == 0`).
+Once a robot opens a task (completes the first errand), it cannot be reassigned.
+
+### Planner-level `Action`
+Defined in `inc/ActionModel.h`:
+- `FW`  (Forward)
+- `CR`  (Clockwise rotate)
+- `CCR` (Counter-clockwise rotate)
+- `W`   (Wait)
+- `NA`  (Not applicable / reserved; do not output in your plan)
+
+**Planner actions are grid-level intent** (e.g., `FW` means “move toward the next cell”).
+
+### Execution-level `ExecutionCommand`
+Also defined in `inc/ActionModel.h`:
+- `GO`   (allow progress this tick)
+- `STOP` (pause this tick)
+
+The executor outputs `GO/STOP` every tick; the simulator then applies the action model and safety rules.
+
+### `Plan` and `staged_actions`
+- `Plan` is defined in `inc/Plan.h`.
+- A plan stores `plan.actions`, typed as `vector<vector<int>>`.
+
+Interpretation:
+- `plan.actions[i]` is a sequence of planner-level actions for agent `i`,
+  encoded as integers corresponding to the `Action` enum (`FW=0, CR=1, CCR=2, W=3, ...`).
+
+The executor converts the returned `Plan` into `staged_actions`:
+- `staged_actions[i]` is a queue of actions that are ready to be executed for agent `i`.
+- These staged actions are executed tick-by-tick until a new plan is adopted.
+
+You can read the current staged actions in `env->staged_actions`.
+
+Important Note: in the combined track, you can customise your `Plan`, but your executor also needs to be responsible for understanding the `Plan` and converting the `Plan` into a sequence of `Action`s to stage and pass to the system. In other words, the system will only accept the staged actions as a sequence of `Action`s defined in `inc/ActionModel.h`.
+
+## Execution model (Counters, delays, and overlap-based safety)
+
+### Multi-tick actions (counter)
+`FW`, `CR`, and `CCR` take multiple execution ticks.
+Progress is tracked by `State.counter`.
+When the counter completes, the discrete location/orientation updates.
+
+### Delays
+During a delay tick, an agent is forced to Wait/STOP.
+This pauses counter progress and may create congestion.
+
+### Collisions and safety (no vertex/edge rules)
+This branch does not use “vertex” or “edge” conflicts.
+Instead, safety is enforced by geometric overlap:
+- agents are modelled as axis-aligned squares (“safety bubbles”)
+- obstacles are solid squares
+- overlap is checked continuously over a tick (swept collision)
+
+If an agent’s requested motion is unsafe, the action model may override it to `W` for that tick.
+This override can happen per-agent (not necessarily “everyone waits”).
+
+Practical implication:
+- Your planner can output collision-free plans at the grid level, but the executor/action model
+  is the final authority and may still STOP/WAIT agents due to continuous overlap constraints,
+  delays, and dependency resolution.
+
+
+## SharedEnvironment (`SharedEnv`)
+
+`SharedEnvironment` is defined in `inc/SharedEnv.h` and is available as `env`.
+
+It contains:
+
+### Static environment info
+- `num_of_agents`, `rows`, `cols`
+- `map_name`
+- `map` (vector<int>)
+- `file_storage_path` (for storing/loading auxiliary data)
+
+### Time / execution parameters
+- `plan_start_time`: timepoint when the system called `Entry::compute()`
+- `min_planner_communication_time`: minimum time between plan updates (ms)
+- `action_time`: time budget per execution tick (ms)
+- `max_counter`: number of ticks needed to complete one action (FW/CR/CCR)
+
+### Robot state views
+This system exposes two useful “views” of robot states:
+
+- `system_states`: the **current physical states** in the executor loop (tick-by-tick).
+- `curr_states`: the **planning snapshot states** used for planning updates.
+  These may be predicted/processed states (e.g., after staging a plan window),
+  and may differ from `system_states`.
+
+Also available:
+- `system_timestep`: the current execution tick.
+- `curr_timestep`: the starting timestep for the predicted states, set to 0.
+- `staged_actions`: current per-agent action queues staged for execution.
+
+### Task info
+- `curr_task_schedule`: current schedule (agent -> task_id, or -1)
+- `task_pool`: revealed but unfinished tasks (task_id -> Task)
+- `new_tasks`: newly revealed tasks at this update
+- `new_freeagents`: agents that just finished a task at this update
+- `goal_locations`: per-agent next goal (derived from schedule; updated by Entry)
+
+> Note: `system_timestep` may advance during `Entry::compute()` because the executor continues to tick while planning is running. Do not assume time is frozen during planning.
+
+---
+
+## Timing and timeouts (what really happens)
+
+There are several time budgets in the system:
+
+### Preprocessing (hard limit)
+`Entry::initialize(preprocess_time_limit)` and `Executor::initialize(int preprocess_time_limit)` are called before evaluation begins.
+If any of the preprocessing exceeds this limit, the run terminates (exit code 124).
+
+### Planning update time limit (soft limit)
+`Entry::compute(time_limit, ...)` is time-bounded.
+If it runs late:
+- the executor continues ticking using the last accepted staged actions,
+- the next plan update is delayed until the current planning call finishes.
+
+In other words: late planning reduces how often your plan can be updated; the simulation does not freeze.
+
+### Executor per-tick time limit (soft limit)
+`Executor::next_command(exec_time_limit)` is called every execution tick.
+If it is slow, you effectively lose execution time (the simulation may advance using safe waiting for all agents behaviour to compensate).
+Keep `next_command` lightweight.
+
+### Plan processing time limit (soft limit)
+`Executor::process_new_plan(sync_time_limit, ...)` should also be efficient.
+If it is slow, it will be treated similarly as planning late, which means the system will continue ticking and calling the next command without having new plans.
+
+---
+
 ## Entry Integration
 
+## Planner / Scheduler / Executor APIs (fixed)
 
-### Understand the default entry
+These function signatures must not be changed:
+
+### Scheduler
+Files: `inc/TaskScheduler.h`, `src/TaskScheduler.cpp`
+- `TaskScheduler::initialize(int preprocess_time_limit)`
+- `TaskScheduler::plan(int time_limit, vector<int>& proposed_schedule)`
+
+Return:
+- `proposed_schedule[i] = task_id` or `-1` (no task)
+
+Invalid schedule examples:
+- same task assigned to multiple agents
+- assigning completed/unrevealed/nonexistent tasks
+- reassigning an already opened task to another agent
+- assigning `-1` to an agent that already opened a task (invalid)
+
+If a schedule is invalid or times out, the system keeps the previous valid schedule.
+
+### Planner
+Files: `inc/MAPFPlanner.h`, `src/MAPFPlanner.cpp`
+- `MAPFPlanner::initialize(int preprocess_time_limit)`
+- `MAPFPlanner::plan(int time_limit, Plan& plan)`
+
+Return:
+- `plan.actions[i]` = sequence of actions for agent `i` (multi-step plan)
+
+**Multi-step plans are supported and recommended.**
+If an agent runs out of staged actions, it will be STOPped until new actions are staged.
+
+### Executor
+Files: `inc/Executor.h`, `src/Executor.cpp`
+- `Executor::initialize(int preprocess_time_limit)`
+- `Executor::process_new_plan(int sync_time_limit, Plan& plan, vector<vector<Action>>& staged_actions)`
+- `Executor::next_command(int exec_time_limit, vector<ExecutionCommand>& agent_command)`
+
+Return:
+- `process_new_plan(...)` updates `staged_actions` and returns predicted states.
+- `next_command(...)` outputs `GO/STOP` per agent for the next tick.
+
+## Understand the default components
+
+### The default entry
 In `src/Entry.cpp`, you can find the default implementation for entry. In the `Entry::compute()` function, the default entry calls the default scheduler first. After the scheduler finishes, robots might be assigned new tasks and their goal locations (next errand of the scheduled task of each robot) are stored in `env->goal_locations` for planner reference.
 Then, the entry calls the default planner to compute the actions for robots.
 The time limit is revealed to both the default scheduler and planner. Inside the default scheduler and planner, you can see each of them using half amount of the time limit.
 
-#### The default scheduler
+### The default scheduler
 In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls functions that are further defined in `default_planner/scheduler.cpp`.
 - The preprocessing function of the default scheduler (see `schedule_initialize()` in `scheduler.cpp`) calls the `DefaultPlanner::init_heuristics()` function (see `default_planner/heuristics.cpp`) to initialize a global heuristic table, which will be used to store the distances between different locations. These distances are computed on demand during the simulation. The scheduler uses these distances to estimate the completion time of a given task for a given robot.
 - The scheduling function of the default scheduler (see `schedule_plan()` in `scheduler.cpp`) implements a greedy scheduling algorithm: Each time when the `schedule_plan()` function is called, it iterates over each robot that does not have an assigned task. For each iterated robot, the algorithm iterates over tasks that are not assigned to any robot and assigns the one with minimal makespan (the distance to travel from the robot's current location through every errand of the task) to the robot.
 
-#### The default planner
+### The default planner
 In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are further defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and a global heuristic table (if not initialized by the scheduler). Its `plan()` function computes collision-free actions for the current timestep.
 
-The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) (PIBT) following the optimised traffic flow. A more detailed technical report will be provided soon.
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions for multiple steps using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) (PIBT) following the optimised traffic flow.
 
 > ⚠️ **NOTE** ⚠️, the default planner is an anytime algorithm, meaning the time it has to compute a solution directly impacts the quality of that solution. 
 When a small amount of time is allocated, the default planner behaves like vanilla PIBT. When more time is allocated, the default planner updates traffic cost and incrementally recomputes guide paths for agents to improve their arrival time.
 If you are a Scheduling Track participant, remember that the sooner your `schedule_plan()` function returns, the more time is avaliable to the default planner.
 Better plans and better schedules can both substantially influence the performance of your submission on the leaderboard. 
 How to allocate time between these two components is an important part of a successful strategy.
-
-## What to implement for each track
-
-- Scheduling Track:
-You need to implement your own scheduler, which will work with the default planner. Check out the [Implement your scheduler](./Prepare_Your_Submission.md#implement-your-scheduler) section for more details.
-
-- Planning Track:
-You need to implement your own planner, which will work with the default scheduler. Check out the [Implement your planner](./Prepare_Your_Submission.md#implement-your-planner) section for more details.
-
-- Combined Track:
-You need to implement your own planner and scheduler. You can also modify the entry to meet your needs. Check out [Implement your planner](./Prepare_Your_Submission.md#implement-your-planner), [Implement your scheduler](./Prepare_Your_Submission.md#implement-your-scheduler) and [Implement your entry](./Prepare_Your_Submission.md#implement-your-entry) for more details.
-
-### Implement your scheduler
-
-If you are only competing in the scheduler track, you can ignore [Implement your planner](./Prepare_Your_Submission.md#implement-your-planner) and [Implement your entry](./Prepare_Your_Submission.md#implement-your-entry). 
-Instead, read [Entry Integration](./Prepare_Your_Submission.md#Entry-Integration) to understand how the default planner and default Entry work.
-
-The starting point for implementing your scheduler is to look at the files `src/TaskScheduler.cpp` and `inc/TaskScheduler.h`.
-- Implement your own preprocessing function `TaskScheduler::initialize()`. 
-- Implement your own scheduling function `TaskScheduler::plan()`. The inputs to the `plan` function are a time limit and a reference to a vector of integers as the resulting schedule. The ith integer in the result scheduler is the index of the task assigned to the ith robot.
-- Don't change the definitions for the `TaskScheduler::initialize()` and `TaskScheduler::plan()` functions. Except for this, you are free to add new members/functions to the `TaskScheduler` class.
-- Don’t override any operating system-related functions (signal handlers)
-- Don’t interfere with the running program -- stack manipulation etc
-
-At each timestep, the scheduler can access the `SharedEnvironment` API to read which tasks can be assigned to robots in `env->task_pool`.
-The scheduler should return one task schedule per robot to the simulator environment. The schedule are written into the `proposed_schedule` vector, which is the input parameter of `plan()` function. A schedule `proposed_schedule[i]` for robot `i` is the `task_id` of a open task. A schedule is invalid if:
-- one task is assigned to more than one agent,
-- it includes completed task,
-- a task already opened by an agent is reassgned to another agent.
-Additionally, assigning `task_id` `-1` to an agent to indicate no assigned task. This drops any existing but unopened task. However, assign `-1` to an agent with opened task leads to an invalid schedule error.
-
-  
-If the scheduler returns invalid `proposed_schedule`, the `proposed_schedule` will be rejected and `current_schedule` remain unchanged.
-
-
-### Implement your planner
-
-If you are only competing in the planner track, you can ignore [Implement your scheduler](./Prepare_Your_Submission.md#implement-your-scheduler) and [Implement your entry](./Prepare_Your_Submission.md#implement-your-entry). 
-Instead, read [Entry Integration](./Prepare_Your_Submission.md#Entry-Integration) to understand how the default scheduler and default Entry work.
-
-The starting point of your implementation is the file `src/MAPFPlanner.cpp` and `inc/MAPFPlanner.h`. See examples in `src/MAPFPlanner.cpp`
-- Implement your preprocessing in the function `MAPFPlanner::initialize()` that is provided to you. 
-- Implement your planner in the function `MAPFPlanner::plan()` that provided to you
-- Don't change the definitions for the `MAPFPlanner::initialize()` and `MAPFPlanner::plan()` functions. Except for this, you are free to add new members/functions to the `MAPFPlanner` class.
-- Don’t override any operating system-related functions (signal handlers)
-- Don’t interfere with the running program -- stack manipulation etc
-
-At the end of each planning episode, you return one `Action` per robot to the simulator environment. The actions are written into the `actions` vector, which is input to the `plan()` function as a reference. `actions[i]` should be a valid `Action` for robot `i` which do not move the agent to obstacles and do not raise edge or vertex conflict with any other robot. If the planner returns any invalid `Action`, all agents wait at this timestep.
- 
-Similar to the scheduler, the planner can access the `SharedEnvironment` API. You need to use this API to read the current state of the system. The default `Entry` implementation writes next goal locations of agents with assigned tasks in `env->goal_locations`. The planner could refer to these goal locations to compute the next actions for the agents. The planner could also access the `env->curr_task_schedule` to know the detailed task schedule and task details.
-
-### Implement your entry
-For participants that compete in the combined track, you can modify the `Entry`, `MAPFPlanner`, and `TaskScheduler` freely to meet your needs.
-You need to implement your own `Entry::initialize()` and `Entry::compute()` functions and are not allowed to change their definitions. Except for this, you are free to add new members/functions to the `Entry` class.
-The `Entry::compute()` needs to compute the task schedule and the actions for robots. Although the default entry does this by calling the scheduler and the planner separately, this is not required.
-If you compete in the combined track, you are allowed to modify the `Entry::compute()` function.
 
 ### Timing parameters for default planner and scheduler
 
@@ -140,11 +297,38 @@ File `default_planner/const.h` specifies a few parameters that control the timin
 
 You are allowed to modify the values of these parameters to reduce/increase the time spent on related components.
 
+### The default Executor
+
+In `src/Executor.cpp` (API in `inc/Executor.h`), the default executor provides a baseline **execution policy** for the fast tick loop.
+
+It has two responsibilities:
+
+1) **Plan adoption and staging** (`process_new_plan`)
+- The planner may return a long multi-step plan. The executor stages all the new planned actions into per-agent `staged_actions`, so the system can keep executing smoothly.
+- When a new plan arrives, the executor merges it with any already staged actions already in progress.
+- The executor also generates a **predicted state** snapshot used as the input to the next planning call. This is done by simulating the resulting state after executing all the staged actions.
+
+2) **Tick-by-tick execution decision** (`next_command`)
+Every execution tick, the executor outputs one GO/STOP execution command per agent:
+
+The default executor uses a [**Temporal Dependency Graph (TPG)**](Ma, H., Kumar, T. S., & Koenig, S. (2017, February). Multi-agent path finding with delay probabilities. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 31, No. 1)) constructed from the current local situation. The TPG captures the temporal dependency of agents' visiting order of each location from the planned path. For example, if in the agents' path, one location is visited by the first agent, then the second agent, then the execution should also follow this order. When the first agent is delayed, the second agent will also need to wait before the first agent enters and leaves this location. In other words, the executor then derives GO/STOP decisions from this dependency structure, prioritising progress that does not violate the implied ordering. 
+
+## What to implement for each track
+
+(If your competition year uses different track naming, follow the website instructions; the APIs above remain fixed.)
+
+- Scheduling Track: implement your scheduler; default planner + default executor run with it.
+- Execution Track: implement your executor; default planner/scheduler provide intent.
+- Combined Track: implement planner, scheduler and executor
+
+You can also modify `Entry` in combined settings, but do not change API signatures.
+
 ### Unmodifiable files
 
 Except for the related implementation files for each track and some modifiable files stated in the following sections, most of the starter kit files are unmodifiable, and you must ensure that their functionalities are not interfered with. 
 Please refer to [Evaluation_Environment.md](./Evaluation_Environment.md) for more details.
 
+---
 
 ## Build
 
@@ -167,70 +351,9 @@ You are free to use third-party libraries or other dependencies in your implemen
 - Specify dependency packages in apt.txt. These packages must be available for installation through apt-get on Ubuntu 22.
 
 ## Python Interface
-We also provide a Python interface for Python users based on pybind11.
+The Python interface is not ready for this competition stage and is currently not supported for submission use.
 
-Dependency: [Pybind11](https://pybind11.readthedocs.io/en/stable/)
-
-The pybind11 bindings are implemented under `python/common`, `python/default_planner`, `python/default_scheduler`, `python/user_planner/`, and `python/user_scheduler/`.
-These implementations allow the user-implemented Python scheduler to work with the default C++ planner and allow user implemented Python planner to work with the default C++ scheduler.
-To use the Python interface, simply implement your planner and/or scheduler in:
-+ `python/pyMAPFPlanner.py`: this file is where users implement their python-based MAPF planner algorithms and return actions as a list of actions for each robot.
-+ `python/pyTaskScheduler.py`: this file is where users implement their python-based Task Scheduler algorithms and return proposed schedules as a list of task IDs for each robot.
-
-### Track Config and Compiling
-
-For each track of the competition, the start-kit uses a different combination of Python and C++ implementations:
-- In Scheduler Track, the start-kit uses `Python scheduler` and `C++ default planner`.
-- In Planner Track, the start-kit uses `Python planner` and `C++ default scheduler`.
-- In Combined Track, the start-kit uses both `Python planner` and `Python Scheduler`.
-
-When testing your implementation locally, you need to configure the correct track using the `./python/set_track.bash` under the root folder of the start-kit. The script will bring all necessary Python binding files to `./python/tmp` for compiling.
-
-For combined track:
-```shell
-./python/set_track.bash combined
-```
-For scheduler track:
-```shell
-./python/set_track.bash scheduler
-```
-For planner track:
-```shell
-./python/set_track.bash planner
-```
-
-Then edit your compile.sh to make sure it uses only the following content:
-```shell
-mkdir build
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true
-make -C build -j
-```
-
-Compile and test your implementation with:
-```shell
-./compile.sh
-./build/lifelong --inputFile ./example_problems/random.domain/random_32_32_20_100.json -o test.json
-```
-Once compiled, the program looks for `pyMAPFPlanner` python module and `pyTaskScheduler.py` under `./python` or `../python` relative to the current working direction. Additionally, you can specify a path in `config.json` and use cmake flag `-DCOPY_PY_PATH_CONFIG=ON` (which copies the `config.json` to the target build folder), so that the problem will look for the `pyMAPFPlanner` in the specified folder.
-
-Additionally, you can specify a specific Python version by `-DPYBIND11_PYTHON_VERSION` or an exact Python install by `-DPYTHON_EXECUTABLE`
-
-For example:
-```shell
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYBIND11_PYTHON_VERSION=3.6
-
-#or
-
-cmake -B build ./ -DCMAKE_BUILD_TYPE=Release -DPYTHON=true -DPYTHON_EXECUTABLE=path/to/python
-```
-
-Python packages can also be installed through `pip` on the evaluation server, thus you can specify the package you want to install in `pip.txt`.
-For example, on the default `pip.txt` contains:
-```
-torch
-pybind11-global>=2.10.1
-numpy
-```
+We plan to provide a fully supported Python interface for the main round.
 
 ## Evaluation
 

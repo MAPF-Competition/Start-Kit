@@ -16,6 +16,7 @@ void schedule_initialize(int preprocess_time_limit, SharedEnvironment* env)
 
 void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  SharedEnvironment* env)
 {
+    cout<<"number of new free agents: "<<env->new_freeagents.size()<<" number of new tasks: "<<env->new_tasks.size()<<endl;
     //use at most half of time_limit to compute schedule, -10 for timing error tolerance
     //so that the remainning time are left for path planner
     TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(time_limit);
@@ -83,11 +84,11 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             it++;
         }
     }
-    #ifndef NDEBUG
-    cout << "Time Usage: " <<  ((float)(clock() - start))/CLOCKS_PER_SEC <<endl;
-    cout << "new free agents: " << env->new_freeagents.size() << " new tasks: "<< env->new_tasks.size() <<  endl;
-    cout << "free agents: " << free_agents.size() << " free tasks: " << free_tasks.size() << endl;
-    #endif
+    // #ifndef NDEBUG
+    // cout << "Time Usage: " <<  ((float)(clock() - start))/CLOCKS_PER_SEC <<endl;
+    // cout << "new free agents: " << env->new_freeagents.size() << " new tasks: "<< env->new_tasks.size() <<  endl;
+    // cout << "free agents: " << free_agents.size() << " free tasks: " << free_tasks.size() << endl;
+    // #endif
     return;
 }
 }
