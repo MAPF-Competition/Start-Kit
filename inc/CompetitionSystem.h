@@ -4,48 +4,37 @@
 #include "Grid.h"
 #include "Tasks.h"
 #include "ActionModel.h"
+#include "Plan.h"
 #include "Entry.h"
 #include "Logger.h"
 #include "TaskManager.h"
+#include "DelayGenerator.h"
 #include <pthread.h>
 #include <future>
 #include "Simulator.h"
+#include <memory>
 
 class BaseSystem
 {
 public:
     Logger* logger = nullptr;
 
-	BaseSystem(Grid &grid, Entry* planner, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model):
+	BaseSystem(Grid &grid, Entry* planner, Executor* executor, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model, int max_counter = 10):
       map(grid), planner(planner), env(planner->env),
-      task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model)
+      task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor,max_counter)
     {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
 
         for (size_t i = 0; i < start_locs.size(); i++)
-            {
-                if (grid.map[start_locs[i]] == 1)
-                    {
-                        cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
-                        exit(0);
-                    }
-                starts[i] = State(start_locs[i], 0, 0);
-            }
-
- //        int task_id = 0;
- // for (auto& task_location: tasks)
- //        {
- //            all_tasks.emplace_back(task_id++, task_location);
- //            task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().locations.front());
- //            //task_queue.emplace_back(task_id++, task_location);
- //        }
- //        num_of_agents = start_locs.size();
- //        starts.resize(num_of_agents);
- //        for (size_t i = 0; i < start_locs.size(); i++)
- //        {
- //            starts[i] = State(start_locs[i], 0, 0);
- //        }
+        {
+            if (grid.map[start_locs[i]] == 1)
+                {
+                    cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
+                    exit(0);
+                }
+            starts[i] = State(start_locs[i], 0, 0);
+        }
     };
 
 	virtual ~BaseSystem()
@@ -62,7 +51,12 @@ public:
     };
 
     void set_num_tasks_reveal(float num){task_manager.set_num_tasks_reveal(num);};
-    void set_plan_time_limit(int limit){plan_time_limit = limit;};
+    void set_plan_time_limit(int initial, int comm, int move, int process_new_plan){
+        initial_plan_time_limit = initial;
+        min_comm_time = comm;
+        simulator_time_limit = move;
+        process_new_plan_time_limit = process_new_plan;
+    };
     void set_preprocess_time_limit(int limit){preprocess_time_limit = limit;};
     void set_log_level(int level){log_level = level;};
     void set_logger(Logger* logger){
@@ -70,19 +64,23 @@ public:
         task_manager.set_logger(logger);
     }
 
-    void simulate(int simulation_time);
-    void plan(int & timeout_timesteps);
+    void set_delay_generator(std::unique_ptr<DelayGenerator> generator)
+    {
+        simulator.set_delay_generator(std::move(generator));
+    }
+
+    void simulate(int simulation_time,int chunk_size);
     bool planner_wrapper();
 
     //void saveSimulationIssues(const string &fileName) const;
-    void saveResults(const string &fileName, int screen) const;
+    void saveResults(const string &fileName, int screen, bool pretty_print = false) const;
 
 
 protected:
     Grid map;
     int simulation_time;
 
-    vector<Action> proposed_actions;
+    Plan proposed_plan;
     vector<int> proposed_schedule;
 
     int total_timetous = 0;
@@ -97,7 +95,12 @@ protected:
 
     int preprocess_time_limit=10;
 
-    int plan_time_limit = 3;
+    int plan_time_limit = 0;
+
+    int initial_plan_time_limit = 1000;
+    int min_comm_time = 1000;
+    int simulator_time_limit = 100;
+    int process_new_plan_time_limit = 100;
 
 
     vector<State> starts;
@@ -163,5 +166,3 @@ protected:
 
 // 	void update_tasks();
 // };
-
-
