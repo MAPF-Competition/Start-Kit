@@ -295,6 +295,7 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
     // Save start locations[x,y,orientation]
     if (screen <= 2)
     {
+        js["delayIntervals"] = simulator.delay_intervals_to_json();
         js["start"] = simulator.starts_to_json();
     }
     
@@ -428,4 +429,3 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
     }
 
 }
-

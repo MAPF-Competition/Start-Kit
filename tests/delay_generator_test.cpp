@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "delayGenerator.h"
+#include "DelayGenerator.h"
 
 int main()
 {

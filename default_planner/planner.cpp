@@ -368,21 +368,6 @@ namespace DefaultPlanner{
 
             run_multistep_pibt_once(env, local_priority, one_step_actions);
 
-            // std::cout << "[DefaultPlanner::plan] step " << step << " per-agent state/action:" << std::endl;
-            // for (int aid = 0; aid < env->num_of_agents; aid++){
-            //     int goal_loc = -1;
-            //     if (!env->goal_locations[aid].empty())
-            //         goal_loc = env->goal_locations[aid].front().first;
-            //     std::cout << "  agent " << aid
-            //               << " loc=" << env->curr_states[aid].location
-            //               << " ori=" << env->curr_states[aid].orientation
-            //               << " goal=" << goal_loc
-            //               << " task=" << trajLNS.tasks[aid]
-            //               << " decided_loc=" << decided[aid].loc
-            //               << " action=" << debug_action_to_string(one_step_actions[aid])
-            //               << std::endl;
-            // }
-
             append_actions_and_rollout_states(env, actions, one_step_actions);
         }
 
