@@ -106,11 +106,10 @@ if(BUILD_TESTS)
 
     add_executable(delay_generator_test
         tests/delay_generator_test.cpp
-        src/delayGenerator.cpp
+        src/DelayGenerator.cpp
         src/common.cpp
     )
     target_link_libraries(delay_generator_test ${Boost_LIBRARIES})
     add_test(NAME delay_generator_test COMMAND delay_generator_test)
 endif()
-
 

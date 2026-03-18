@@ -13,7 +13,11 @@ This document explains:
 
 ## System Overview
 
-The start-kit runs a **two-rate control loop** (For more details about the central controller, please refer to our [Competition Web Page](https://www.leagueofrobotrunners.org/)):
+A system overview is shown below to illustrate the main components of the start-kit:
+
+![system_overview](./image/system_overview.png)
+
+The start-kit runs a **two-rate control loop** for the planning/scheduling entry and execution (For more details about the central controller, please refer to our [Competition Web Page](https://www.leagueofrobotrunners.org/)):
 
 ### A) Planning update (slow loop)
 Periodically (every multiple execution ticks), the competition system:
