@@ -146,6 +146,7 @@ namespace DefaultPlanner{
             remaining_ms = std::max(0, time_limit - pibt_time - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
             std::cout << "PIBT time clamped to: " << pibt_time << " ms" << std::endl;
         }
+        std::cout << "Remaining time for traffic flow optimisation: " << remaining_ms << " ms" << std::endl;
         TimePoint end_time = start_time + std::chrono::milliseconds(remaining_ms);
 
         // recrod the initial location of each agent as dummy goals in case no goal is assigned to the agent.
@@ -231,9 +232,17 @@ namespace DefaultPlanner{
                 break;
             }
             if (require_guide_path[i]){
+                std::vector<int> old_traj = trajLNS.trajs[i];
                 if (!trajLNS.trajs[i].empty())
                     remove_traj(trajLNS, i);
-                update_traj(trajLNS, i);
+                if (!update_traj(trajLNS, i, &end_time)){
+                    trajLNS.trajs[i] = old_traj;
+                    if (!old_traj.empty()){
+                        add_traj(trajLNS, i);
+                    }
+                    std::cout << "Time limit reached during guide path replanning " << i << "/" << env->num_of_agents << std::endl;
+                    break;
+                }
             }
             // size_t memory_usage = trajLNS.memory_usage();
         }
@@ -241,6 +250,11 @@ namespace DefaultPlanner{
         // iterate and recompute the guide path to optimise traffic flow
         std::unordered_set<int> updated;
         frank_wolfe(trajLNS, updated,end_time);
+        int ms_left_after_fw = std::max(
+            0,
+            (int) std::chrono::duration_cast<std::chrono::milliseconds>(
+                end_time - std::chrono::steady_clock::now()).count());
+        std::cout << "Remaining time after Frank-Wolfe: " << ms_left_after_fw << " ms" << std::endl;
         std::cout << "Frank-Wolfe finished, now PIBT" << std::endl;
 
         TimePoint pibt_start_time = std::chrono::steady_clock::now();
@@ -307,10 +321,9 @@ namespace DefaultPlanner{
         // (optional) print running average for debugging
         long long dbg_sum = 0; for(int t: pibt_time_history) dbg_sum += t;
         double avg_ms = (double)dbg_sum / pibt_time_history.size();
-        std::cout << "PIBT running average (" << pibt_time_history.size() << "/" << PIBT_TIME_HISTORY_LEN << ") = " << avg_ms << " ms" << std::endl;
-
         prev_states = next_states;
         size_t memory_usage = trajLNS.memory_usage();
+        std::cout << "PIBT running average (" << pibt_time_history.size() << "/" << PIBT_TIME_HISTORY_LEN << ") = " << avg_ms << " ms" << std::endl;
         // std::cout << "TrajLNS Memory Usage in GB: " << static_cast<double>(memory_usage) / (1024 * 1024 * 1024) << std::endl;
         return;
 
