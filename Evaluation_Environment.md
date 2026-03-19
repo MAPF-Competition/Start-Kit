@@ -10,10 +10,10 @@ When you request an evaluation, we will:
 
 In **any track** of the competition, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-src/ActionModel.cpp, src/Evaluation.cpp, src/Logger.cpp, src/States.cpp,src/driver.cpp,
-src/CompetitionSystem.cpp, src/Grid.cpp, src/common.cpp, src/TaskManager.cpp, src/Simulator.cpp
+src/ActionModel.cpp, src/Evaluation.cpp, src/Logger.cpp, src/States.cpp, src/driver.cpp,
+src/CompetitionSystem.cpp, src/Grid.cpp, src/common.cpp, src/TaskManager.cpp, src/Simulator.cpp, src/DelayGenerator.cpp
 inc/ActionModel.h, inc/Evaluation.h, inc/Logger.h, inc/SharedEnv.h, inc/Tasks.h, inc/CompetitionSystem.h, inc/Grid.h,
-inc/States.h, inc/common.h, inc/TaskManager.h, inc/Simulator.h
+inc/States.h, inc/common.h, inc/TaskManager.h, inc/Simulator.h, inc/DelayGenerator.h
 default_planner/Memory.h, default_planner/heap.h, default_planner/pibt.cpp, default_planner/search_node.h, 
 default_planner/planner.h, default_planner/search.cpp, default_planner/utils.cpp, default_planner/TrajLNS.h,
 default_planner/flow.cpp, default_planner/heuristics.cpp, default_planner/pibt.h, default_planner/scheduler.cpp,
@@ -27,13 +27,15 @@ python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.
 
 In the **executor track**, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/TaskScheduler.h, src/TaskScheduler.cpp, inc/Entry.h, src/Entry.cpp, inc/Plan.h
 ```
 
 In the **scheduler track**, don't modify or interfere with any start kit functionalities, including those in the following files:
 ```
-inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp, inc/Executor.h, src/Executor.cpp
+inc/MAPFPlanner.h, src/MAPFPlanner.cpp, inc/Entry.h, src/Entry.cpp, inc/Executor.h, src/Executor.cpp, inc/Plan.h
 ```
+
+This restriction is broader than file edits. You must not alter, override, spoof, or otherwise distort the behavior of these protected functionalities in any manner, whether directly or indirectly through other modules, shared data structures, side effects, or runtime interactions.
 
 ## Evaluation Server Hardware Specification
 

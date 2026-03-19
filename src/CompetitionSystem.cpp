@@ -295,12 +295,38 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
     // Save start locations[x,y,orientation]
     if (screen <= 2)
     {
+        js["delayIntervals"] = simulator.delay_intervals_to_json();
         js["start"] = simulator.starts_to_json();
     }
     
     if (screen <= 2)
     {
         js["actualPaths"] = simulator.actual_path_to_json();
+    }
+
+    if (screen <= 2)
+    {
+        // Save events
+        json event = json::array();
+        for(auto e: task_manager.events)
+        {
+            json ev = json::array();
+            int timestep;
+            int agent_id;
+            int task_id;
+            int seq_id;
+            std::tie(timestep,agent_id,task_id,seq_id) = e;
+            ev.push_back(timestep);
+            ev.push_back(agent_id);
+            ev.push_back(task_id);
+            ev.push_back(seq_id);
+            event.push_back(ev);
+        }
+        js["events"] = event;
+
+        // Save all tasks
+        json tasks = task_manager.to_json(map.cols);
+        js["tasks"] = tasks;
     }
 
     if (screen <=1)
@@ -390,28 +416,6 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
         }
 
         js["scheduleErrors"] = schedule_errors;
-
-        // Save events
-        json event = json::array();
-        for(auto e: task_manager.events)
-        {
-            json ev = json::array();
-            int timestep;
-            int agent_id;
-            int task_id;
-            int seq_id;
-            std::tie(timestep,agent_id,task_id,seq_id) = e;
-            ev.push_back(timestep);
-            ev.push_back(agent_id);
-            ev.push_back(task_id);
-            ev.push_back(seq_id);
-            event.push_back(ev);
-        }
-        js["events"] = event;
-
-        // Save all tasks
-        json tasks = task_manager.to_json(map.cols);
-        js["tasks"] = tasks;
     }
 
     std::ofstream f(fileName,std::ios_base::trunc |std::ios_base::out);
@@ -425,4 +429,3 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
     }
 
 }
-

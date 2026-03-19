@@ -2,7 +2,7 @@
 #include "SharedEnv.h"
 #include "States.h"
 #include "Executor.h"
-#include "delayGenerator.h"
+#include "DelayGenerator.h"
 #include "nlohmann/json.hpp"
 #include <memory>
 
@@ -41,7 +41,6 @@ public:
         // chunked_snapshot_states.resize(num_of_agents);
         // prepare staged actions container for each agent
         staged_actions.resize(num_of_agents);
-        delays.resize(num_of_agents, 0);
 
         // if no executor provided, create a default one (its env will be set later via sync_shared_env)
         if (this->executor == nullptr)
@@ -104,6 +103,19 @@ public:
     nlohmann::ordered_json starts_to_json() const;
 
     nlohmann::ordered_json action_errors_to_json() const;
+    nlohmann::ordered_json delay_intervals_to_json() const
+    {
+        if (delay_generator == nullptr)
+        {
+            nlohmann::ordered_json empty = nlohmann::ordered_json::array();
+            for (int i = 0; i < num_of_agents; i++)
+            {
+                empty.push_back(nlohmann::ordered_json::array());
+            }
+            return empty;
+        }
+        return delay_generator->delay_intervals_to_json();
+    }
 
     int get_number_errors() const {return model->errors.size();}
 
@@ -142,7 +154,6 @@ private:
 
     vector<State> curr_states;
     vector<State> predict_states;
-    vector<int> delays;
 
     vector<list<Action>> actual_movements;
     vector<list<Action>> planner_movements;
