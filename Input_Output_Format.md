@@ -6,9 +6,10 @@
 | `--help` |  | Show help message. |
 | `--inputFile` / `-i` | String | Path to the input problem JSON file (**required**). |
 | `--output` / `-o` | String | Output JSON path (default: `./output.json`). |
-| `--outputScreen` / `-c` | Int | Output verbosity: `1` = full output; `2` = omit events/tasks; `3` = only summary stats (omit events/tasks/errors/plannerTimes/starts/paths). |
+| `--prettyPrintJson` | Bool | Pretty-print the output JSON instead of writing it on one line (default: `false`). |
+| `--outputScreen` / `-c` | Int | Output verbosity for the output JSON file: `1` = full output; `2` = only summary stats, actual plans and task finish events; `3` = only summary stats (omit events/tasks/errors/plannerTimes/starts/paths). |
 | `--logFile` / `-l` | String | Redirect logs to this file (optional). |
-| `--logDetailLevel` / `-d` | Int | Log level: `1` = all, `2` = warnings+fatal, `3` = fatal only. |
+| `--logDetailLevel` / `-d` | Int | Log level for the log file: `1` = all, `2` = warnings+fatal, `3` = fatal only. |
 | `--fileStoragePath` / `-f` | String | Large file storage path. If empty, reads `$LORR_LARGE_FILE_STORAGE_PATH`. |
 | `--simulationTime` / `-s` | Int | Maximum number of **execution ticks** to simulate (planning horizon). |
 | `--preprocessTimeLimit` / `-p` | Int (ms) | Preprocessing time limit (loading / precomputation before simulation). |
@@ -34,6 +35,10 @@ All paths here is the relative path relative to the location of input JSON file
 | `numTasksReveal` | Float | The multiplier of tasks revealed in the task pool. We always keep numTasksReveal times teamSize of tasks revealed in the task pool. If in one timestep, k tasks are finished, then the system will add k tasks into the task pool |
 | `agentSize` | Float | Size of the robot safety square for overlap-based collision checking (default `1.0`). Must be > 0. |
 | `maxCounter` | Int | Number of execution ticks required to complete one **Forward/Rotate** action (default `10`). |                                                                                                                                                                                   |
+
+Example input shown below:
+
+![output](./image/input_example.png)
 
 ### Notes on timing behavior (two-rate loop)
 
@@ -88,6 +93,7 @@ The following table defines the properties that appear in the output file.
 | teamSize        | Int <br /> The number of robots in the simulation                                                                                                                                                                                                                                                                                                                                                     |
 | agentMaxCounter | Int | The `maxCounter` used in this run (ticks per Forward/Rotate action) |
 | outputSegmentSize | Int | Segment/window length used for compressed path output |
+| delayIntervals | List | A list of `n` per-agent delay interval lists, where `n` is the number of robots. Each interval is stored as `[start_timestep, end_timestep]`. Included only when `outputScreen <= 2`. |
 | start           | List <br />A list of start locations. The length of the list is the number of robots.                                                                                                                                                                                                                                                                                           |
 | numTaskFinished | Int <br />Number of finished tasks.                                                                                                                                                                                                                                                                                                                                             |
 | sumOfCost       | Int <br />                                                                                                                                                                                                                                                                                                                                                                      |
@@ -104,6 +110,10 @@ The following table defines the properties that appear in the output file.
 | numPlannerErrors | Int <br /> The number of planner errors (invalid actions). |
 | numScheduleErrors | Int <br /> The number of schedule errors (invalid schedules). |
 | numEntryTimeouts | Int <br /> The number of entry timeouts. |
+
+Example output shown below:
+
+![output](./image/output_example.png)
 
 ### Path string format (`actualPaths` and `plannerPaths`)
 
@@ -123,5 +133,21 @@ Where:
 
 Multiple segments are concatenated in the string to represent the full run.
 
+### Delay interval format (`delayIntervals`)
 
+`delayIntervals` is a list with one entry per robot. Each robot entry is a list of delay intervals:
 
+`[[start_timestep, end_timestep], ...]`
+
+Where:
+- `start_timestep` is the execution tick when the delay starts
+- `end_timestep` is the execution tick when the delay ends
+
+Example:
+
+`[[], [[12, 15], [40, 42]], [[7, 9]]]`
+
+This means:
+- robot 0 had no delays
+- robot 1 was delayed during intervals `[12, 15]` and `[40, 42]`
+- robot 2 was delayed during interval `[7, 9]`

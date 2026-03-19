@@ -1,5 +1,23 @@
 # Changelog
 
+Version 3.0.0 - 2026-03-13
+----------------------------
+Added:
+- Added support for the `Execution` component to process plans from planning and execution plans under execution uncertainty.
+- Added support for multistep / staged planner execution with periodic planner communication.
+- Added runtime delay generation via `delayConfig` in the input JSON.
+- Added delay interval output (`delayIntervals`) to the output JSON for `outputScreen <= 2`.
+- Added `--prettyPrintJson` option to write human-readable formatted JSON output.
+- Added configurable action counter support via `maxCounter` in the input JSON and `agentMaxCounter` in the output JSON.
+- Added compressed path segment metadata in the output JSON via `outputSegmentSize`.
+
+Changed:
+- Updated the simulator to use an executor-driven planning/execution flow instead of directly consuming returned actions.
+- Updated the action model to support the new collision checking model based on agent footprint (`agentSize`) rather than point occupancy only.
+- Updated the output JSON to include delay information, segmented path metadata, and the current starter-kit version string.
+- Updated timing controls to distinguish preprocessing time, initial planning time, planner communication interval, per-action execution time, and executor plan-processing time.
+- Updated the input format documentation to describe `delayConfig`, `maxCounter`, `--prettyPrintJson`, and delay interval output.
+
 Version 2.1.2 - 2025-01-19
 ----------------------------
 Fixed:
