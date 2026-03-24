@@ -174,6 +174,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         if (!started && remain_communication_time <= 0)
         {
             //process new plan in simulator
+            simulator.sync_shared_env(env);
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
