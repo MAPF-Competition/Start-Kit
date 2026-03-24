@@ -58,6 +58,7 @@ struct StepResolveContext
     int& seen_token;
     vector<int>& recursion_stack;
     vector<int>& stack_pos;
+    list<std::tuple<std::string, int, int, int>>& errors;
     Logger* logger;
     int time;
 };
@@ -119,8 +120,14 @@ string format_cycle_description(int current_agent, int cycle_agent, const StepRe
     return msg;
 }
 
-void log_actionmodel_message(const StepResolveContext& ctx, const string& msg)
+void record_actionmodel_message(const StepResolveContext& ctx, const string& msg, int agent1, int agent2)
 {
+    ctx.errors.push_back(std::make_tuple(msg, agent1, agent2, ctx.time));
+}
+
+void log_actionmodel_message(const StepResolveContext& ctx, const string& msg, int agent1 = -1, int agent2 = -1)
+{
+    record_actionmodel_message(ctx, msg, agent1, agent2);
     if (ctx.logger != nullptr)
         ctx.logger->log_warning(msg, ctx.time);
     else
@@ -347,7 +354,7 @@ bool try_commit_candidate(int agent_id,
                     ctx.requested_fail_reasons,
                     agent_id,
                     cycle_desc);
-                log_actionmodel_message(ctx, cycle_desc);
+                log_actionmodel_message(ctx, cycle_desc, agent_id, j);
             }
             return false;
         }
@@ -728,6 +735,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
         seen_token,
         recursion_stack,
         stack_pos,
+        errors,
         logger,
         time
     };
@@ -743,6 +751,11 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
             _wait_agents[i] = 1;
             string reason = requested_fail_reasons[i].empty() ? "requested motion rejected by recursive dependency resolution" : requested_fail_reasons[i];
             std::cout << "Agent " << i << "'s state: " << prev[i] << ", requested action: " << requested_actions[i] << ", reason for waiting: " << reason << std::endl;
+            errors.push_back(std::make_tuple(
+                "Agent waits instead of " + action_to_string(requested_actions[i]) + ": " + reason,
+                i,
+                -1,
+                time));
 
             if (logger != nullptr)
                 logger->log_warning("Agent " + std::to_string(i) + " waits instead of " + action_to_string(requested_actions[i]) + ": " + reason, time);
