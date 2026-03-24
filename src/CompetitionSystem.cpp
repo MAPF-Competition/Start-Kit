@@ -14,8 +14,11 @@ void BaseSystem::sync_shared_env()
     if (!started)
     {
         env->goal_locations.resize(num_of_agents);
+        exec_env->goal_locations.resize(num_of_agents);
         task_manager.sync_shared_env(env);
+        task_manager.sync_shared_env(exec_env);
         simulator.sync_shared_env(env);
+        simulator.sync_shared_env(exec_env);
 
         // if (simulator.get_curr_timestep() == 0)
         // {
@@ -174,7 +177,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         if (!started && remain_communication_time <= 0)
         {
             //process new plan in simulator
-            simulator.sync_shared_env(env);
+            simulator.sync_shared_env(exec_env);
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
@@ -191,7 +194,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         }
 
         //while the planner is running, move from previous plans
-        simulator.sync_shared_env(env);
+        simulator.sync_shared_env(exec_env);
         auto move_start = std::chrono::steady_clock::now();
         curr_states = simulator.move(simulator_time_limit);
         auto move_end = std::chrono::steady_clock::now();
@@ -216,6 +219,15 @@ void BaseSystem::initialize()
     env->action_time = simulator_time_limit;
     env->max_counter = simulator.get_max_counter();
 
+    exec_env->num_of_agents = num_of_agents;
+    exec_env->rows = map.rows;
+    exec_env->cols = map.cols;
+    exec_env->map = map.map;    
+
+    exec_env->min_planner_communication_time = min_comm_time;
+    exec_env->action_time = simulator_time_limit;
+    exec_env->max_counter = simulator.get_max_counter();
+
 
     
     // // bool succ = load_records(); // continue simulating from the records
@@ -229,6 +241,7 @@ void BaseSystem::initialize()
 
     auto init_start_time = std::chrono::steady_clock::now();
     env->plan_start_time = init_start_time;
+    exec_env->plan_start_time = init_start_time;
     auto init_deadline   = init_start_time + std::chrono::milliseconds(preprocess_time_limit);
     std::thread init_td(std::move(init_task), preprocess_time_limit);
 
@@ -256,9 +269,11 @@ void BaseSystem::initialize()
     sync_shared_env();
 
     env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
+    exec_env->new_freeagents.reserve(num_of_agents);
     for (int i = 0; i < num_of_agents; i++)
     {
         env->new_freeagents.push_back(i);
+        exec_env->new_freeagents.push_back(i);
     }
 
     solution_costs.resize(num_of_agents);

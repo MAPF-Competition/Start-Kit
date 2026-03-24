@@ -112,7 +112,7 @@ int main(int argc, char **argv)
         planner = new PyEntry();
 #else
         planner = new Entry();
-        executor = new Executor(planner->env);
+        executor = new Executor();
 #endif
 #endif
 
@@ -134,6 +134,7 @@ int main(int argc, char **argv)
     Grid grid(base_folder + map_path);
 
     planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);
+    executor->env->map_name = planner->env->map_name;
 
 
     string file_storage_path = vm["fileStoragePath"].as<std::string>();
@@ -145,12 +146,15 @@ int main(int argc, char **argv)
     }
 
     // check if the path exists;
-    if (file_storage_path!="" &&!std::filesystem::exists(file_storage_path)){
+    if (file_storage_path!="" &&!std::filesystem::exists(file_storage_path))
+    {
       std::ostringstream stringStream;
       stringStream << "fileStoragePath (" << file_storage_path << ") is not valid";
       logger->log_warning(stringStream.str());
     }
+
     planner->env->file_storage_path = file_storage_path;
+    executor->env->file_storage_path = file_storage_path;
 
     float agent_size = read_param_json<float>(data, "agentSize", 1.0f);
     if (agent_size <= 0.0f)
