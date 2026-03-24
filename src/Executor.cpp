@@ -97,20 +97,20 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
 
 void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> & agent_command)
 {
-    // cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
-    // // //always go if there are staged actions
-    // for (int i = 0; i < env->curr_states.size(); i++)
-    // {
-    //     if (!env->staged_actions[i].empty())
-    //     {
-    //         agent_command[i] = ExecutionCommand::GO;
-    //     }
-    //     else
-    //     {
-    //         agent_command[i] = ExecutionCommand::STOP;
-    //     }
-    // }
-    // return;
+    cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
+    // //always go if there are staged actions
+    for (int i = 0; i < env->curr_states.size(); i++)
+    {
+        if (!env->staged_actions[i].empty())
+        {
+            agent_command[i] = ExecutionCommand::GO;
+        }
+        else
+        {
+            agent_command[i] = ExecutionCommand::STOP;
+        }
+    }
+    return;
 
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
