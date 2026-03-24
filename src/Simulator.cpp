@@ -1,6 +1,91 @@
 #include "Simulator.h"
 #include "nlohmann/json.hpp"
+#include <sstream>
+#include <stdexcept>
 using json = nlohmann::ordered_json;
+
+namespace {
+
+std::vector<Action> normalize_plan_actions(const std::vector<Action>& actions)
+{
+    std::vector<Action> normalized;
+    normalized.reserve(actions.size());
+    for (Action action : actions)
+    {
+        if (action != Action::W && action != Action::NA)
+        {
+            normalized.push_back(action);
+        }
+    }
+    return normalized;
+}
+
+std::string actions_to_string(const std::vector<Action>& actions)
+{
+    std::ostringstream oss;
+    oss << "[";
+    for (size_t i = 0; i < actions.size(); i++)
+    {
+        if (i > 0)
+        {
+            oss << ", ";
+        }
+        switch (actions[i])
+        {
+            case Action::FW: oss << "FW"; break;
+            case Action::CR: oss << "CR"; break;
+            case Action::CCR: oss << "CCR"; break;
+            case Action::W: oss << "W"; break;
+            case Action::NA: oss << "NA"; break;
+            default: oss << "?"; break;
+        }
+    }
+    oss << "]";
+    return oss.str();
+}
+
+void validate_staged_actions_prefix(
+    const std::vector<std::vector<Action>>& previous_staged_actions,
+    const std::vector<std::vector<Action>>& planned_actions,
+    const std::vector<std::vector<Action>>& returned_staged_actions)
+{
+    if (planned_actions.size() != previous_staged_actions.size() ||
+        returned_staged_actions.size() != previous_staged_actions.size())
+    {
+        throw std::runtime_error("Executor returned staged actions with unexpected agent count");
+    }
+
+    for (size_t agent = 0; agent < previous_staged_actions.size(); agent++)
+    {
+        std::vector<Action> expected = previous_staged_actions[agent];
+        std::vector<Action> normalized = normalize_plan_actions(planned_actions[agent]);
+        expected.insert(expected.end(), normalized.begin(), normalized.end());
+
+        const auto& actual = returned_staged_actions[agent];
+        if (actual.size() > expected.size())
+        {
+            std::ostringstream oss;
+            oss << "Executor returned too many staged actions for agent " << agent
+                << ": expected a prefix of " << actions_to_string(expected)
+                << ", got " << actions_to_string(actual);
+            throw std::runtime_error(oss.str());
+        }
+
+        for (size_t idx = 0; idx < actual.size(); idx++)
+        {
+            if (actual[idx] != expected[idx])
+            {
+                std::ostringstream oss;
+                oss << "Executor returned invalid staged actions for agent " << agent
+                    << ": expected a prefix of " << actions_to_string(expected)
+                    << ", got " << actions_to_string(actual);
+                throw std::runtime_error(oss.str());
+            }
+        }
+    }
+}
+
+} // namespace
 
 bool Simulator::initialise_executor(int preprocess_time_limit)
 {
@@ -14,11 +99,16 @@ bool Simulator::initialise_executor(int preprocess_time_limit)
 
 void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) 
 {
+    const std::vector<std::vector<Action>> previous_staged_actions = staged_actions;
+    const std::vector<std::vector<Action>> planned_actions = plan.convert_to_actions();
+
     //call executor to process the new plan and get staged actions
     auto process_start = std::chrono::steady_clock::now();
-    //todo: change plan to vector<vector<Action>>
-    predict_states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
+    predict_states = executor->process_new_plan(sync_time_limit, plan, staged_actions);
     auto process_end = std::chrono::steady_clock::now();
+
+    validate_staged_actions_prefix(previous_staged_actions, planned_actions, staged_actions);
+
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - overtime_runtime;
     //timeout execute all wait
     while (diff > 0)
