@@ -20,7 +20,7 @@ public:
     Logger* logger = nullptr;
 
 	BaseSystem(Grid &grid, Entry* planner, Executor* executor, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model, int max_counter = 10):
-      map(grid), planner(planner), env(planner->env),
+      map(grid), planner(planner), env(planner->env), exec_env(executor->env),
       task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor,max_counter)
     {
         num_of_agents = start_locs.size();
@@ -47,6 +47,10 @@ public:
         if (planner != nullptr)
         {
             delete planner;
+        }
+        if (exec_env != nullptr)
+        {
+            delete exec_env;
         }
     };
 
@@ -92,6 +96,7 @@ protected:
 
     Entry* planner;
     SharedEnvironment* env;
+    SharedEnvironment* exec_env;
 
     int preprocess_time_limit=10;
 
