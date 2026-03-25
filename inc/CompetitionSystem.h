@@ -130,7 +130,8 @@ protected:
     TaskManager task_manager;
     Simulator simulator;
     // deque<Task> task_queue;
-    virtual void sync_shared_env();
+    virtual void sync_shared_env_planner();
+    virtual void sync_shared_env_executor();
 
     void move(vector<Action>& actions);
     bool valid_moves(vector<State>& prev, vector<Action>& next);
