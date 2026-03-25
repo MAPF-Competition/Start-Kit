@@ -457,44 +457,60 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     int new_orientation = prev.orientation;
     State next = prev;
     next.timestep = prev.timestep + 1;
-    if (action == Action::FW)
+    Action executed_action = action;
+    if (prev.counter.count > 0 && prev.current_action != Action::NA)
+    {
+        // Once an action has started, only a wait can pause it; any other command
+        // must continue the in-progress action until completion.
+        if (action == Action::W)
+        {
+            return next;
+        }
+        executed_action = prev.current_action;
+    }
+
+    if (executed_action == Action::FW)
     {
         if(next.counter.tick())
         {
             new_location = new_location += moves[prev.orientation];
-            next.moveType = State::None;
+            next.current_action = Action::NA;
         }
         else
         {
-            next.moveType = State::Transition;
+            next.current_action = Action::FW;
         }
     }
-    else if (action == Action::CR)
+    else if (executed_action == Action::CR)
     {
         if(next.counter.tick())
         {
             new_orientation = (prev.orientation + 1) % 4;
-            next.moveType = State::None;
+            next.current_action = Action::NA;
         }
         else
         {
-            next.moveType = State::Rotation;
+            next.current_action = Action::CR;
         }
   
     }
-    else if (action == Action::CCR)
+    else if (executed_action == Action::CCR)
     {
         if(next.counter.tick())
         {
             new_orientation = (prev.orientation - 1) % 4;
             if (new_orientation == -1)
                 new_orientation = 3;
-            next.moveType = State::None;
+            next.current_action = Action::NA;
         }
         else
         {
-            next.moveType = State::Rotation;
+            next.current_action = Action::CCR;
         }
+    }
+    else
+    {
+        next.current_action = prev.counter.count > 0 ? prev.current_action : Action::NA;
     }
     next.location = new_location;
     next.orientation = new_orientation;
@@ -515,8 +531,8 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
         float x = static_cast<float>(col);
         float y = static_cast<float>(row);
 
-        // Only Transition states produce translational offset; rotations keep the agent in its grid cell.
-        if (s.moveType == State::Transition && s.counter.maxCount > 0 && s.counter.count > 0)
+        // Only a forward action in progress produces translational offset; rotations stay in-cell.
+        if (s.current_action == Action::FW && s.counter.maxCount > 0 && s.counter.count > 0)
         {
             const float frac = static_cast<float>(s.counter.count) / static_cast<float>(s.counter.maxCount);
             switch (s.orientation)
