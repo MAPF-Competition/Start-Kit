@@ -8,37 +8,16 @@
 
 using json = nlohmann::ordered_json;
 
-
-void BaseSystem::sync_shared_env() 
+void BaseSystem::sync_shared_env_planner() 
 {
-    if (!started)
-    {
-        env->goal_locations.resize(num_of_agents);
-        exec_env->goal_locations.resize(num_of_agents);
-        task_manager.sync_shared_env(env);
-        task_manager.sync_shared_env(exec_env);
-        simulator.sync_shared_env(env);
-        simulator.sync_shared_env(exec_env);
+    env->goal_locations.resize(num_of_agents);
+    task_manager.sync_shared_env(env);
+    simulator.sync_shared_env(env);
+}
 
-        // if (simulator.get_curr_timestep() == 0)
-        // {
-        //     env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
-        //     for (int i = 0; i < num_of_agents; i++)
-        //     {
-        //         env->new_freeagents.push_back(i);
-        //     }
-        // }
-        // //update proposed action to all wait
-        // proposed_actions.clear();
-        // proposed_actions.resize(num_of_agents, Action::W);
-        // //update proposed schedule to previous assignment
-        // proposed_schedule = env->curr_task_schedule;
-        
-    }
-    else
-    {
-        env->curr_timestep = simulator.get_curr_timestep();
-    }
+void BaseSystem::sync_shared_env_executor() 
+{
+    simulator.sync_shared_env(exec_env);
 }
 
 
@@ -177,11 +156,11 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         if (!started && remain_communication_time <= 0)
         {
             //process new plan in simulator
-            simulator.sync_shared_env(exec_env);
+            sync_shared_env_executor();
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
-            sync_shared_env();
+            sync_shared_env_planner();
             plan_time_limit = min_comm_time;
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
             future = task.get_future();
@@ -194,7 +173,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         }
 
         //while the planner is running, move from previous plans
-        simulator.sync_shared_env(exec_env);
+        sync_shared_env_executor();
         auto move_start = std::chrono::steady_clock::now();
         curr_states = simulator.move(simulator_time_limit);
         auto move_end = std::chrono::steady_clock::now();
@@ -228,12 +207,6 @@ void BaseSystem::initialize()
     exec_env->action_time = simulator_time_limit;
     exec_env->max_counter = simulator.get_max_counter();
 
-
-    
-    // // bool succ = load_records(); // continue simulating from the records
-    // timestep = 0;
-    // curr_states = starts;
-
     int timestep = simulator.get_curr_timestep();
 
     std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, std::placeholders::_1));
@@ -266,7 +239,8 @@ void BaseSystem::initialize()
     // initialize_goal_locations();
     task_manager.reveal_tasks(timestep); //this also intialize env->new_tasks
 
-    sync_shared_env();
+    sync_shared_env_planner(); // sync the new tasks and new_free_agents to the shared environment for the planner to use in the first planning
+    sync_shared_env_executor(); // sync the new tasks and new_free_agents to the shared environment for the executor to use in the first move
 
     env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
     exec_env->new_freeagents.reserve(num_of_agents);
