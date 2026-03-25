@@ -3,27 +3,45 @@
 
 #include "pibt.h"
 
+#include <cstdint>
+
 
 
 
 
 namespace DefaultPlanner{
 
+// Global counters for heuristic calls within PIBT
+std::uint64_t PIBT_CNT_get_dist_2_path = 0;
+std::uint64_t PIBT_CNT_get_heuristic   = 0;
+std::uint64_t PIBT_CNT_manhattan       = 0;
+
 int get_gp_h(TrajLNS& lns, int ai, int target){
     int min_heuristic;
 
     if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
-        min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors));	
+	{
+		++PIBT_CNT_get_dist_2_path;
+		min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors)); 
+		// std::cout<<"Using dist2path heuristic: "<<min_heuristic<<std::endl;
+	}
     else if (!lns.heuristics[lns.tasks.at(ai)].empty())
-        min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
+	{
+		++PIBT_CNT_get_heuristic;
+		min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
+		// std::cout<<"Using heuristic table: "<<min_heuristic<<std::endl;
+	}
     else
-        min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
-    
+    {
+		++PIBT_CNT_manhattan;
+		min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
+		// std::cout<<"Using Manhattan distance heuristic: "<<min_heuristic<<std::endl;
+    }
     return min_heuristic;
 }
 
 bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
-	 std::vector<State>& next_states,
+	  std::vector<State>& next_states,
       std::vector<int>& prev_decision, std::vector<int>& decision, 
 	  std::vector<bool>& occupied, TrajLNS& lns
 	  ){
@@ -164,8 +182,6 @@ Action getAction(State& prev, int next_loc, SharedEnvironment* env){
 		return Action::CR;
 	}
 	assert(false);
-
-
 
 }
 

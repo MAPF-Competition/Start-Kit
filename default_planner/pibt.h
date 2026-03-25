@@ -6,6 +6,7 @@
 #include <list>
 #include <unordered_set>
 #include <tuple>
+#include <cstdint>
 #include "Types.h"
 #include "utils.h"
 #include "heuristics.h"
@@ -17,7 +18,10 @@
 
 
 namespace DefaultPlanner{
-
+// Global counters for heuristic calls within PIBT (defined in pibt.cpp)
+extern std::uint64_t PIBT_CNT_get_dist_2_path;
+extern std::uint64_t PIBT_CNT_get_heuristic;
+extern std::uint64_t PIBT_CNT_manhattan;
 int get_gp_h(TrajLNS& lns, int ai, int target);
 
 
