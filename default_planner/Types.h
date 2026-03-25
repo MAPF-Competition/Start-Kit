@@ -9,6 +9,7 @@
 #include <fstream>
 #include <cassert>
 #include <unordered_set>
+#include <unordered_map>
 
 
 #define MAX_TIMESTEP INT_MAX/2
@@ -76,7 +77,8 @@ namespace DefaultPlanner{
 		};
 
 	struct HeuristicTable{
-		std::vector<int> htable;
+		// std::vector<int> htable;
+		std::unordered_map<int, int> htable;
 		std::deque<HNode> open;
 		
 		bool empty(){
@@ -97,7 +99,8 @@ namespace DefaultPlanner{
 
 	struct Dist2Path{
 		int label = 0;
-		std::vector<d2p> dist2path;
+		// std::vector<d2p> dist2path;
+		std::unordered_map<int, d2p> dist2path;
 		std::deque<d2p> open;
 		
 		bool empty(){

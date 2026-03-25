@@ -18,7 +18,7 @@ void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_locatio
 
 int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighbors* ns);
 
-int get_h(SharedEnvironment* env, int source, int target);
+int get_h(SharedEnvironment* env, int source, int target, bool useManhattan);
 
 
 void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path);
