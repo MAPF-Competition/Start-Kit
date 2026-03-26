@@ -2,23 +2,10 @@
 
 void Executor::initialize(int preprocess_time_limit)
 {
-    tpg.resize(env->map.size());
-    previous_locations.resize(env->num_of_agents, -1);
-    if (process_plan_type == APPEND_WINDOW)
-    {
-        window_size = env->min_planner_communication_time / (env->action_time*env->max_counter); //calculate the window size based on the communication time limit and action execution time
-        if (window_size < 1)
-            window_size = 1;
-    }
-    else if (process_plan_type == APPEND_ONE)
-    {
+    window_size = env->min_planner_communication_time / (env->action_time*env->max_counter); //calculate the window size based on the communication time limit and action execution time
+    if (window_size < 1)
         window_size = 1;
-    }
-    else
-    {
-        window_size = INT_MAX;
-    }
-    // cout<<"executor initialized with window size: "<<window_size<<endl;
+    previous_locations.resize(env->num_of_agents, -1);
 }
 
 vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct, vector<vector<Action>> & staged_actions)
@@ -29,44 +16,32 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
         predicted_states = env->system_states;
     }
 
-    auto curr_states = predicted_states;
-
-    if (env->system_timestep == 0)
+    for (int i = 0; i < env->num_of_agents; i++)
     {
-        //insert start locations to tpg
-        for (int i = 0; i < env->num_of_agents; i++)
+        previous_locations[i] = env->system_states[i].location; //for use of keep track of tpg in move function
+        if (env->system_timestep == 0)//insert start location to tpg
         {
             tpg[env->curr_states[i].location].push_back(i);
-            previous_locations[i] = env->system_states[i].location;
         }
     }
+
+    auto curr_states = predicted_states;
 
     int moves[4] = {1, env->cols, -1, -env->cols};
     std::vector<std::vector<Action>> plan = plan_struct.actions;
 
-    // //check how many actions we need to insert to ensure agents have enough actions to execute within the communication time limit.
-    // int current_left_action_size = INT_MAX;
-    // for (int i = 0; i < env->num_of_agents; i++)
-    // {
-    //     current_left_action_size = min(current_left_action_size, (int)staged_actions[i].size());
-    // }
-    // int num_insert_timesteps = window_size - current_left_action_size;
-
-    // cout<<"current_left_action_size: "<<current_left_action_size<<endl;
-    // cout<<"num_insert_timesteps: "<<num_insert_timesteps<<endl;
-
-    //apppend actions to window size
-    for (int timestep = 0; timestep < plan[0].size(); timestep++)
+    //first apppend all actions and tpg location to window size
+    for (int timestep = 0; timestep < plan[0].size() && timestep < window_size; timestep++)
     {
         for (int i = 0; i < plan.size(); i++)
         {
             int new_location = curr_states[i].location;
             int new_orientation = curr_states[i].orientation;
+
             if (plan[i][timestep] == Action::FW)
             {
                 new_location = new_location + moves[curr_states[i].orientation];
                 tpg[new_location].push_back(i);
-                // cout<<"insert "<<i<<" to tpg at "<<new_location<<endl;
             }
             else if (plan[i][timestep] == Action::CR)
             {
@@ -80,38 +55,108 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
             }
             // cout<<"agent "<<i<<" current prediceted state location from last iteration "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
             // cout<<"agent "<<i<<" action "<<(plan[i][timestep] == Action::FW ? "FW" : (plan[i][timestep] == Action::CR ? "CR" : (plan[i][timestep] == Action::CCR ? "CCR" : (plan[i][timestep] == Action::NA ? "NA" : "W"))))<<" new prediceted state location "<<new_location<<" orientation "<<new_orientation<<endl;
-            predicted_states[i].location = new_location;
-            predicted_states[i].orientation = new_orientation;
-            predicted_states[i].timestep+=1;
-            curr_states[i] = predicted_states[i];
-            // cout<<"agent "<<i<<" predicted state location "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<" timestep "<<predicted_states[i].timestep<<endl;
+            curr_states[i].location = new_location;
+            curr_states[i].orientation = new_orientation;   
+            curr_states[i].timestep+=1;
+
             if (plan[i][timestep] != Action::NA && plan[i][timestep] != Action::W)
             {
                 staged_actions[i].push_back(plan[i][timestep]);
             }
-            //cout<<" t "<<timestep<<" agent "<<i<<" current location "<<curr_states[i].location<<" predict location "<<predicted_states[i].location<<endl;
         }
     }
+
+    //now run a mcp simulation assuming no delays for a windowed size, and obtain the actions
+    vector<int> action_index(env->num_of_agents,0); //keep track of the next action index for each agent in the staged actions 
+    curr_states = env->system_states;
+    temp_tpg.clear();
+
+    for (int t = 0; t < window_size; t++)
+    {
+        auto pre_states = curr_states;
+        for (int i = 0; i < env->num_of_agents; i++)
+        {
+
+            if (staged_actions[i].size() <= action_index[i])//no action left to proceed
+            {
+                curr_states[i].timestep++;//treat as wait
+                continue;
+            }
+
+            //simulate with mcp (no delay)
+            Action curr_action = staged_actions[i][action_index[i]];
+            int curr_location = curr_states[i].location;
+            int curr_orientation = curr_states[i].orientation;
+            int new_location = curr_location;
+            int new_orientation = curr_orientation;
+
+            assert(tpg[curr_location].front() == i);
+
+            if (curr_action == Action::FW)
+            {
+                new_location = curr_location + moves[curr_orientation];
+                assert(!tpg[new_location].empty());
+                if (tpg[new_location].front() == i)
+                {
+                    //you can go
+                    action_index[i]++;
+                }
+                else
+                {
+                    new_location = curr_location; //cannot move because of the dependency, stay at the current location
+                }
+            }
+            else if (curr_action == Action::CR)
+            {
+                new_orientation = (curr_orientation + 1) % 4;
+                //you can go because it's just rotation
+                action_index[i]++;
+            }
+            else if (curr_action == Action::CCR)
+            {
+                new_orientation = (curr_orientation - 1) % 4;
+                if (new_orientation == -1)
+                    new_orientation = 3;
+                //you can go because it's just rotation
+                action_index[i]++;
+            }
+            curr_states[i].location = new_location;
+            curr_states[i].orientation = new_orientation;   
+        }
+        //clear dependency
+        for (int i = 0; i < env->num_of_agents; i++)
+        {
+            if (t == 0)
+            {
+                temp_tpg[pre_states[i].location].push_back(i);
+                // cout<<"inserting "<<i<<" into tpg loc "<<pre_states[i].location<<endl;
+            }
+
+            if (pre_states[i].location != curr_states[i].location) //agent move
+            {
+                //insert location into temp tpg, and pop the current location from tpg
+                assert(tpg[pre_states[i].location].front() == i);
+                tpg[pre_states[i].location].pop_front();
+                temp_tpg[curr_states[i].location].push_back(i);
+                // cout<<"inserting "<<i<<" into tpg loc "<<curr_states[i].location<<endl;
+            }
+        }
+    }
+    for (int i = 0; i < env->num_of_agents; i++)
+    {
+        if (action_index[i] < staged_actions[i].size())
+        {
+            staged_actions[i].resize(action_index[i]);//remove the actions that are not executed in the windowed simulation
+            // cout<<"resizing staged actions for agent "<<i<<" to "<<action_index[i]<<endl;
+        }
+    }
+    predicted_states = curr_states;
+    tpg = temp_tpg;
     return predicted_states;
 }
 
 void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> & agent_command)
 {
-    // cout<<"executor next_command with exec_time_limit: "<<exec_time_limit<<endl;
-    // // //always go if there are staged actions
-    // for (int i = 0; i < env->curr_states.size(); i++)
-    // {
-    //     if (!env->staged_actions[i].empty())
-    //     {
-    //         agent_command[i] = ExecutionCommand::GO;
-    //     }
-    //     else
-    //     {
-    //         agent_command[i] = ExecutionCommand::STOP;
-    //     }
-    // }
-    // return;
-
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
     {
@@ -127,32 +172,26 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
             previous_locations[i] = curr_location;
         }
     }
-    vector<bool> decided(env->num_of_agents, false);
-    //temp_tpg = tpg; //copy the tpg to temp_tpg for current timestep processing, we will update temp_tpg during mcp but keep tpg unchanged
     for (int i = 0; i < env->system_states.size(); i++)
     {
-        // always try to go and clear orders because we don't know the current delay
-        if (!decided[i])
-            mcp(i, decided, agent_command);
+        mcp(i, agent_command);
     }
     
 }
 
-bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<ExecutionCommand> & agent_command)
+bool Executor::mcp(int agent_id, std::vector<ExecutionCommand> & agent_command)
 {
     // cout<<"mcp for "<<agent_id<<endl;
     if (env->staged_actions[agent_id].empty())
     {
         //no action, just stop and wait for the next plan, no tpg order clear
         agent_command[agent_id] = ExecutionCommand::STOP;
-        curr_decision[agent_id] = true;
         return false;
     }
     else if (env->staged_actions[agent_id].front() != Action::FW) 
     {
         //try to go but still stay at current location because it's not move forward, no tpg order clear
         agent_command[agent_id] = ExecutionCommand::GO;
-        curr_decision[agent_id] = true;
         return false;
     }
     else
@@ -169,7 +208,6 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
             // if (!tpg[curr_location].empty())
             //     tpg[curr_location].pop_front();
 
-            curr_decision[agent_id] = true;
             // cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
             return true;
         }
@@ -220,7 +258,6 @@ bool Executor::mcp(int agent_id, vector<bool> & curr_decision, std::vector<Execu
             // {
                 //the blocking agent cannot go, so we cannot go
                 agent_command[agent_id] = ExecutionCommand::STOP;
-                curr_decision[agent_id] = true;
                 return false;
             // }
         }
