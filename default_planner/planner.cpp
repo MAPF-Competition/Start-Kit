@@ -91,12 +91,22 @@ namespace DefaultPlanner{
         for(int i=0; i<env->num_of_agents; i++)
         {
             // initialise heuristic tables for goals
+            // if (std::chrono::steady_clock::now() < flow_end_time){
+            //     for(int j=0; j<env->goal_locations[i].size(); j++)
+            //     {
+            //         int goal_loc = env->goal_locations[i][j].first;
+            //         if (trajLNS.heuristics.at(goal_loc).empty()){
+            //             init_heuristic(trajLNS.heuristics[goal_loc],env,goal_loc);
+            //         }
+            //     }
+            // }
             if (std::chrono::steady_clock::now() < flow_end_time){
-                for(int j=0; j<env->goal_locations[i].size(); j++)
+                for (int j = 0; j < env->goal_locations[i].size(); j++)
                 {
                     int goal_loc = env->goal_locations[i][j].first;
-                    if (trajLNS.heuristics.at(goal_loc).empty()){
-                        init_heuristic(trajLNS.heuristics[goal_loc],env,goal_loc);
+                    if (trajLNS.heuristics.find(goal_loc) == trajLNS.heuristics.end() ||
+                        trajLNS.heuristics[goal_loc].empty()){
+                        init_heuristic(trajLNS.heuristics[goal_loc], env, goal_loc);
                     }
                 }
             }

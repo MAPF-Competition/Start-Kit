@@ -29,7 +29,7 @@ void update_dist_2_path(TrajLNS& lns, int i);
 void init_dist_table(TrajLNS& lns, int amount);
 
 //update traj and distance table for agent i
-void update_traj(TrajLNS& lns, int i);
+bool update_traj(TrajLNS& lns, int i, const TimePoint* deadline = nullptr);
 
 
 }
