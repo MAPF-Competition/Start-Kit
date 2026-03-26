@@ -144,8 +144,11 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
     }
     for (int i = 0; i < env->num_of_agents; i++)
     {
-        staged_actions[i].resize(action_index[i]);//remove the actions that are not executed in the windowed simulation
-        // cout<<"resizing staged actions for agent "<<i<<" to "<<action_index[i]<<endl;
+        if (action_index[i] < staged_actions[i].size())
+        {
+            staged_actions[i].resize(action_index[i]);//remove the actions that are not executed in the windowed simulation
+            // cout<<"resizing staged actions for agent "<<i<<" to "<<action_index[i]<<endl;
+        }
     }
     predicted_states = curr_states;
     tpg = temp_tpg;
