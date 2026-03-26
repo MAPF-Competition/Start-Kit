@@ -163,9 +163,17 @@ namespace DefaultPlanner{
             if (std::chrono::steady_clock::now() > flow_end_time)
                 break;
             if (require_guide_path[i]){
+                std::vector<int> old_traj = trajLNS.trajs[i];
                 if (!trajLNS.trajs[i].empty())
                     remove_traj(trajLNS, i);
-                update_traj(trajLNS, i);
+                if (!update_traj(trajLNS, i, &flow_end_time)){
+                    trajLNS.trajs[i] = old_traj;
+                    if (!old_traj.empty()){
+                        add_traj(trajLNS, i);
+                    }
+                    std::cout << "Time limit reached during guide path replanning " << i << "/" << env->num_of_agents << std::endl;
+                    break;
+                }
             }
         }
 
@@ -336,10 +344,12 @@ namespace DefaultPlanner{
         }
 
         const auto episode_start = std::chrono::steady_clock::now();
+        const TimePoint episode_deadline = episode_start + std::chrono::milliseconds(std::max(0, time_limit));
         int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents/100;
         if (pibt_time <= 0){
             pibt_time = 1;
         }
+        std::cout << "PIBT time = " << pibt_time * num_steps << std::endl;
         const int flow_budget_ms = std::max(0, time_limit - pibt_time * num_steps - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
         TimePoint flow_end_time = episode_start + std::chrono::milliseconds(flow_budget_ms);
 
@@ -360,72 +370,21 @@ namespace DefaultPlanner{
 
         const auto after_setup = std::chrono::steady_clock::now();
         const auto setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
-        std::cout << "[DefaultPlanner::plan] timing: time_limit=" << time_limit
-              << "ms, pibt_time_hint=" << pibt_time
-              << "ms, flow_budget=" << flow_budget_ms
-              << "ms, setup_elapsed=" << setup_elapsed_ms << "ms" << std::endl;
-
         // commit only cross-episode priority update (internal rollout keeps using local_priority only)
         p = local_priority;
 
         for (int step = 0; step < num_steps; step++){
+            if (std::chrono::steady_clock::now() >= episode_deadline){
+                std::cout << "Time limit reached before multi-step PIBT step " << step << std::endl;
+                break;
+            }
             std::vector<Action> one_step_actions;
-
             // After step 0, only run PIBT + rollout (no guide path recompute and no FW)
             if (step > 0){
                 refresh_multistep_step_state(env, local_priority);
             }
-
             run_multistep_pibt_once(env, local_priority, one_step_actions);
-
             append_actions_and_rollout_states(env, actions, one_step_actions);
-        }
-
-        std::cout << "[DefaultPlanner::plan] computed actions for "
-                  << env->num_of_agents << " agents over " << num_steps << " steps" << std::endl;
-        for (int aid = 0; aid < env->num_of_agents; aid++){
-            if (aid != 47) continue;
-            int curr_loc = env->curr_states[aid].location;
-            int goal_loc = -1;
-            if (!env->goal_locations[aid].empty()) {
-                goal_loc = env->goal_locations[aid].front().first;
-            }
-            // Use curr_task_schedule and task_pool for assigned task info
-            int assigned_task_id = -1;
-            std::string task_details = "N/A";
-            if (aid < env->curr_task_schedule.size()) {
-                assigned_task_id = env->curr_task_schedule[aid];
-                auto it = env->task_pool.find(assigned_task_id);
-                if (it != env->task_pool.end()) {
-                    const auto& task = it->second;
-                    std::ostringstream oss;
-                    oss << "task_id=" << task.task_id
-                        << ", t_revealed=" << task.t_revealed
-                        << ", t_completed=" << task.t_completed
-                        << ", agent_assigned=" << task.agent_assigned
-                        << ", idx_next_loc=" << task.idx_next_loc
-                        << ", locations=[";
-                    for (size_t i = 0; i < task.locations.size(); ++i) {
-                        oss << task.locations[i];
-                        if (i + 1 < task.locations.size()) oss << ",";
-                    }
-                    oss << "]";
-                    const bool task_finished = (task.idx_next_loc >= static_cast<int>(task.locations.size()));
-                    if (!task_finished) {
-                        oss << ", next_loc=" << task.locations[task.idx_next_loc];
-                    }
-                    task_details = oss.str();
-                }
-            }
-            std::cout << "  agent " << aid
-                      << ": loc=" << curr_loc
-                      << ", goal=" << goal_loc
-                      << ", assigned_task_id=" << assigned_task_id
-                      << ", task_details=[" << task_details << "]:";
-            for (int step = 0; step < static_cast<int>(actions[aid].size()); step++){
-                std::cout << (step == 0 ? " " : ", ") << debug_action_to_string(actions[aid][step]);
-            }
-            std::cout << std::endl;
         }
 
         // restore env state after internal rollout simulation

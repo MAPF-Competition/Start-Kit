@@ -167,7 +167,7 @@ void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> &
         if (prev_location != curr_location && tpg[prev_location].front() == i)
         {
             //remove the agent from the previous location in tpg
-            // cout<<"pop agent "<<i<<" from location "<< prev_location<<" current at "<<curr_location<<endl;
+            cout<<"pop agent "<<i<<" from location "<< prev_location<<" current at "<<curr_location<<endl;
             tpg[prev_location].pop_front();
             previous_locations[i] = curr_location;
         }
