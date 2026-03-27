@@ -70,8 +70,6 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     this->simulation_time = simulation_time;
 
-    // sync_shared_env();
-
     vector<State> curr_states = simulator.get_current_state();
 
     int timestep = simulator.get_curr_timestep();
@@ -104,7 +102,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         logger->log_info("planner cannot run because the previous run is still running", timestep);
         auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
-        simulator.move(simulator_time_limit);
+        simulator.move_all_wait(1);
         auto move_end = std::chrono::steady_clock::now();
         while(deadline < move_end)
         {

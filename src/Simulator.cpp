@@ -16,17 +16,20 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
 {
     //call executor to process the new plan and get staged actions
     auto process_start = std::chrono::steady_clock::now();
-    //todo: change plan to vector<vector<Action>>
     predict_states =  executor->process_new_plan(sync_time_limit, plan, staged_actions);
     auto process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - overtime_runtime;
     //timeout execute all wait
     while (diff > 0)
     {
-        auto dummy_actions = std::vector<Action>(num_of_agents, Action::W);
-        move(overtime_runtime);
+        move_all_wait(1); //all agents wait for one timestep
         diff -= overtime_runtime;
     }   
+}
+
+vector<State> Simulator::move_all_wait(int steps) //move only wait action for all agents, used for timeout movement when processing new plan
+{
+    timestep+=steps;
 }
 
 vector<State> Simulator::move(int move_time_limit) //move one single 100ms step 
@@ -53,7 +56,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
             record_planned_movements(Action::NA, i);
             record_actual_movements(curr_states[i], Action::W, i);
         }
-        timestep++; //all agents wait for one timestep
+        move_all_wait(1); //all agents wait for one timestep
         diff -= move_time_limit;
         simulate_delay();
     } 
