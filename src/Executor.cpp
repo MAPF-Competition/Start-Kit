@@ -14,16 +14,22 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
         predicted_states = env->system_states;
     }
 
-    for (int i = 0; i < env->num_of_agents; i++)
+    if (first_execution)
     {
-        previous_locations[i] = env->system_states[i].location; //for use of keep track of tpg in move function
-        if (tpg.empty())//empty yet, insert start location to tpg
+        for (int i = 0; i < env->num_of_agents; i++)
         {
             if (tpg.find(env->curr_states[i].location) == tpg.end())
             {
                 tpg[env->curr_states[i].location].push_back(i);
             }
         }
+        first_execution = false;
+    }
+
+
+    for (int i = 0; i < env->num_of_agents; i++)
+    {
+        previous_locations[i] = env->system_states[i].location; //for use of keep track of tpg in move function
     }
 
     auto curr_states = predicted_states;
@@ -90,6 +96,8 @@ vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct,
             int curr_orientation = curr_states[i].orientation;
             int new_location = curr_location;
             int new_orientation = curr_orientation;
+            // cout<<"agent "<<i<<" current prediceted state location from last iteration "<<predicted_states[i].location<<" orientation "<<predicted_states[i].orientation<<endl;
+            // cout<<"agent "<<i<<" action "<<(curr_action == Action::FW ? "FW" : (curr_action == Action::CR ? "CR" : (curr_action == Action::CCR ? "CCR" : (curr_action == Action::NA ? "NA" : "W"))))<<" current state location "<<curr_location<<" orientation "<<curr_orientation<<endl;
 
             assert(tpg[curr_location].front() == i);
 

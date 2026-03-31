@@ -72,8 +72,6 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     vector<State> curr_states = simulator.get_current_state();
 
-    int timestep = simulator.get_curr_timestep();
-
     //start initial planning
     plan_time_limit = initial_plan_time_limit;
     std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
@@ -88,18 +86,18 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         task_td.join();
         started = false;
         auto res = future.get();
-        logger->log_info("planner returns", timestep);
+        logger->log_info("planner returns", simulator.get_curr_timestep());
     }
     else
     {
-        logger->log_info("planner timeout", timestep);
+        logger->log_info("planner timeout", simulator.get_curr_timestep());
     }
 
     //initial planning timeout
     while (started)
     {
         //wait for initial planning to finish and at the same time move all wait
-        logger->log_info("planner cannot run because the previous run is still running", timestep);
+        logger->log_info("planner (initilal planning) cannot run because the previous run is still running", simulator.get_curr_timestep());
         auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
         simulator.move_all_wait(1);
@@ -117,11 +115,11 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
             task_td.join();
             started = false;
             auto res = future.get();
-            logger->log_info("planner returns", timestep);
+            logger->log_info("planner (initilal planning) returns", simulator.get_curr_timestep());
         } 
         else 
         {
-            logger->log_info("planner timeout", timestep);
+            logger->log_info("planner (initilal planning) timeout", simulator.get_curr_timestep());
         }
     }
 
@@ -131,7 +129,6 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     while (simulator.get_curr_timestep() < simulation_time)
     {
-        timestep = simulator.get_curr_timestep();
         //check if planenr finished
         if (remain_communication_time <= 0 && started)
         {
@@ -142,11 +139,11 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
                 task_td.join();
                 started = false;
                 auto res = future.get();
-                logger->log_info("planner returns", timestep);
+                logger->log_info("planner returns", simulator.get_curr_timestep());
             } 
             else 
             {
-                logger->log_info("planner timeout", timestep);
+                logger->log_info("planner timeout", simulator.get_curr_timestep());
             }
         }
 
