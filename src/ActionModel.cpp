@@ -660,7 +660,6 @@ void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
 vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Action> & actions, int timestep)
 {
     (void)timestep;
-    errors.clear();
     _wait_agents.assign(prev.size(), 0);
     if (prev.size() != actions.size())
     {
@@ -766,7 +765,6 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
         {
             _wait_agents[i] = 1;
             string reason = requested_fail_reasons[i].empty() ? "requested motion rejected by recursive dependency resolution" : requested_fail_reasons[i];
-            std::cout << "Agent " << i << "'s state: " << prev[i] << ", requested action: " << requested_actions[i] << ", reason for waiting: " << reason << std::endl;
             errors.push_back(std::make_tuple(
                 "Agent waits instead of " + action_to_string(requested_actions[i]) + ": " + reason,
                 i,
