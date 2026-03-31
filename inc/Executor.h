@@ -27,6 +27,7 @@ public:
 
     // the default process plan type is to keep a windoed actions to staged actions, window = min_planner_communication_time/simulator_time_limit, which means we will only execute the part of the plan that can be executed within the communication time limit.
     int window_size;
+    bool first_execution = true;
 
     bool mcp(int agent_id, std::vector<ExecutionCommand> & agent_command);
 
