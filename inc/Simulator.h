@@ -59,7 +59,7 @@ public:
     void process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) ;
 
     vector<State> move(int move_time_limit);
-    vector<State> move_all_wait(int steps); 
+    void move_all_wait(int steps); 
 
     void simulate_delay();
 

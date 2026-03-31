@@ -119,7 +119,7 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
     }   
 }
 
-vector<State> Simulator::move_all_wait(int steps) //move only wait action for all agents, used for timeout movement when processing new plan
+void Simulator::move_all_wait(int steps) //move only wait action for all agents, used for timeout movement when processing new plan
 {
     timestep+=steps;
 }

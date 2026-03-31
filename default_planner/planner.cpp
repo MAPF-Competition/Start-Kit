@@ -4,6 +4,7 @@
 #include "pibt.h"
 #include "flow.h"
 #include "const.h"
+#include <chrono>
 #include <iostream>
 
 
@@ -219,6 +220,7 @@ namespace DefaultPlanner{
     static void run_multistep_pibt_once(SharedEnvironment* env, std::vector<double>& local_priority,
                                         std::vector<Action>& one_step_actions)
     {
+        const auto start_time = std::chrono::steady_clock::now();
         std::sort(ids.begin(), ids.end(), [&](int a, int b) {
                 return local_priority.at(a) > local_priority.at(b);
             }
@@ -256,6 +258,10 @@ namespace DefaultPlanner{
         }
 
         prev_states = next_states;
+
+        const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - start_time).count();
+        std::cout << "run_multistep_pibt_once took " << elapsed_us << " us" << std::endl;
     }
 
     static void append_actions_and_rollout_states(SharedEnvironment* env,
@@ -365,8 +371,11 @@ namespace DefaultPlanner{
 
         // --- One-time setup for this planning episode ---
         initialize_dummy_goals_if_needed(env);
+        std::cout << "initialized dummy goals" << std::endl;
         setup_multistep_episode_state(env, flow_end_time, local_priority);
+        std::cout << "finished episode state setup" << std::endl;
         update_guide_paths_once_for_multistep(env, flow_end_time);
+        std::cout << "finished guide path update" << std::endl;
 
         const auto after_setup = std::chrono::steady_clock::now();
         const auto setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
@@ -384,7 +393,9 @@ namespace DefaultPlanner{
                 refresh_multistep_step_state(env, local_priority);
             }
             run_multistep_pibt_once(env, local_priority, one_step_actions);
+            std::cout << "finished multi-step PIBT step " << step << std::endl;
             append_actions_and_rollout_states(env, actions, one_step_actions);
+            std::cout << "finished multi-step rollout step " << step << std::endl;
         }
 
         // restore env state after internal rollout simulation
