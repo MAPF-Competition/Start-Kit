@@ -114,10 +114,14 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
     //timeout execute all wait
     while (diff > 0)
     {
-        auto dummy_actions = std::vector<Action>(num_of_agents, Action::W);
-        move(overtime_runtime);
+        move_all_wait(1); //all agents wait for one timestep
         diff -= overtime_runtime;
     }   
+}
+
+vector<State> Simulator::move_all_wait(int steps) //move only wait action for all agents, used for timeout movement when processing new plan
+{
+    timestep+=steps;
 }
 
 vector<State> Simulator::move(int move_time_limit) //move one single 100ms step 
@@ -144,7 +148,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
             record_planned_movements(Action::NA, i);
             record_actual_movements(curr_states[i], Action::W, i);
         }
-        timestep++; //all agents wait for one timestep
+        move_all_wait(1); //all agents wait for one timestep
         diff -= move_time_limit;
         simulate_delay();
     } 
