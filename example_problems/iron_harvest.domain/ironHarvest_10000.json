@@ -1,13 +1,13 @@
 {
-    "mapFile": "maps/scene_sp_sax_04.map",
-    "agentFile": "agents/ironHarvestTest_sp_sax_04_10000.agents",
+    "mapFile": "maps/scene_mp_2p_01.map",
+    "agentFile": "agents/ironHarvestTest_10000.agents",
     "teamSize": 10000,
-    "taskFile": "tasks/ironHarvestTest_sp_sax_04.tasks",
+    "taskFile": "tasks/ironHarvestTest.tasks",
     "numTasksReveal": 1.0,
-    "agentCounter": 10,
+    "maxCounter": 3,
     "agentSize": 1.0,
     "version": "2026 LoRR",
-        "delayConfig": {
+    "delayConfig": {
         "seed": 0,
         "minDelay": 1,
         "maxDelay": 20,
