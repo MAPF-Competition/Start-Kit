@@ -261,7 +261,7 @@ namespace DefaultPlanner{
 
         const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - start_time).count();
-        std::cout << "run_multistep_pibt_once took " << elapsed_us << " us" << std::endl;
+        std::cout << "run_multistep_pibt_once took " << (float)(elapsed_us/1000.0) << " ms" << std::endl;
     }
 
     static void append_actions_and_rollout_states(SharedEnvironment* env,
@@ -355,6 +355,7 @@ namespace DefaultPlanner{
         if (pibt_time <= 0){
             pibt_time = 1;
         }
+        std::cout << "num_steps = " << num_steps << std::endl;
         std::cout << "PIBT time = " << pibt_time * num_steps << std::endl;
         const int flow_budget_ms = std::max(0, time_limit - pibt_time * num_steps - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
         TimePoint flow_end_time = episode_start + std::chrono::milliseconds(flow_budget_ms);
