@@ -4,7 +4,7 @@
     "teamSize": 10000,
     "taskFile": "tasks/ironHarvestTest.tasks",
     "numTasksReveal": 1.0,
-    "maxCounter": 3,
+    "maxCounter": 10,
     "agentSize": 1.0,
     "version": "2026 LoRR",
     "delayConfig": {
