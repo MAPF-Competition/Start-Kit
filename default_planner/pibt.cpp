@@ -10,34 +10,35 @@
 
 
 namespace DefaultPlanner{
-
-// Global counters for heuristic calls within PIBT
-std::uint64_t PIBT_CNT_get_dist_2_path = 0;
-std::uint64_t PIBT_CNT_get_heuristic   = 0;
-std::uint64_t PIBT_CNT_manhattan       = 0;
-
 int get_gp_h(TrajLNS& lns, int ai, int target){
     int min_heuristic;
 
-    if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
-	{
-		++PIBT_CNT_get_dist_2_path;
-		min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors)); 
-		// std::cout<<"Using dist2path heuristic: "<<min_heuristic<<std::endl;
+	if (lns.env->is_large_map()){
+		if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
+		{
+			min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors)); 
+		}
+		else
+		{
+			min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
+		}
+		return min_heuristic;
 	}
-    // else if (!lns.heuristics[lns.tasks.at(ai)].empty())
-	// {
-	// 	// ++PIBT_CNT_get_heuristic;
-	// 	// min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
-	// 	// std::cout<<"Using heuristic table: "<<min_heuristic<<std::endl;
-	// }
-    else
-    {
-		++PIBT_CNT_manhattan;
-		min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
-		// std::cout<<"Using Manhattan distance heuristic: "<<min_heuristic<<std::endl;
-    }
-    return min_heuristic;
+	else{
+		if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
+		{
+			min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors)); 
+		}
+		else if (!lns.heuristics[lns.tasks.at(ai)].empty())
+		{
+			min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
+		}
+		else
+		{
+			min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
+		}
+		return min_heuristic;
+	}
 }
 
 bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
@@ -71,13 +72,11 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 		assert(validateMove(prev_loc, neighbor, lns.env));
 
 		int min_heuristic = get_gp_h(lns, curr_id, neighbor);
-		// int min_heuristic = manhattanDistance(neighbor, curr_id, lns.env);
 
 		successors.emplace_back(neighbor,min_heuristic,-1,rand());
 	}
 
 	int wait_heuristic = get_gp_h(lns, curr_id, prev_loc);
-	// int wait_heuristic = manhattanDistance(prev_loc, curr_id, lns.env);
 
 	successors.emplace_back(prev_loc, wait_heuristic,-1,rand());
 

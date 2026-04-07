@@ -59,7 +59,7 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
             // iterate over the locations (errands) of the task to compute the makespan to finish the task
             // makespan: the time for the agent to complete all the errands of the task t_id in order
             for (int loc : env->task_pool[t_id].locations){
-                dist += DefaultPlanner::get_h(env, c_loc, loc, true);
+                dist += DefaultPlanner::get_h(env, c_loc, loc);
                 c_loc = loc;
             }
 

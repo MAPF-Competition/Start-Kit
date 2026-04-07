@@ -49,4 +49,8 @@ public:
     int max_counter; // information of the max counter value for agents, which is the number of time ticks that agents have to spend to finish one action
 
     SharedEnvironment(){}
+    bool is_large_map()
+    {
+        return rows * cols > 1000000;
+    }
 };
