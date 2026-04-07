@@ -18,11 +18,15 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     int generated=0;
     int h;
 
-    h = manhattanDistance(start,goal,env);
-    // if(ht.empty())
-    //     h = manhattanDistance(start,goal,env);
-    // else
-    //     h = get_heuristic(ht,env, start, ns);
+    if (env->is_large_map()){
+        h = manhattanDistance(start,goal,env);
+    }
+    else{
+        if(ht.empty())
+            h = manhattanDistance(start,goal,env);
+        else
+            h = get_heuristic(ht,env, start, ns);
+    }
     
 
     
@@ -80,11 +84,15 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             op_flow = 0;
             all_vertex_flow = 0;
 
-            h = manhattanDistance(start,goal,env);
-            // if(ht.empty())
-            //     h = manhattanDistance(next,goal,env);
-            // else
-            //     h = get_heuristic(ht,env, next, ns);
+            if(env->is_large_map()){
+                h = manhattanDistance(next,goal,env);
+            }
+            else{
+                if(ht.empty())
+                    h = manhattanDistance(next,goal,env);
+                else
+                    h = get_heuristic(ht,env, next, ns);
+            }
 
             diff = next - curr->id;
             d = get_d(diff,env);

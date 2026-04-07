@@ -92,15 +92,6 @@ namespace DefaultPlanner{
         for(int i=0; i<env->num_of_agents; i++)
         {
             // initialise heuristic tables for goals
-            // if (std::chrono::steady_clock::now() < flow_end_time){
-            //     for(int j=0; j<env->goal_locations[i].size(); j++)
-            //     {
-            //         int goal_loc = env->goal_locations[i][j].first;
-            //         if (trajLNS.heuristics.at(goal_loc).empty()){
-            //             init_heuristic(trajLNS.heuristics[goal_loc],env,goal_loc);
-            //         }
-            //     }
-            // }
             if (std::chrono::steady_clock::now() < flow_end_time){
                 for (int j = 0; j < env->goal_locations[i].size(); j++)
                 {
@@ -160,7 +151,6 @@ namespace DefaultPlanner{
         // one-time guide-path update for goal-changed agents
         for (int i = 0; i < env->num_of_agents; i++)
         {
-            //cout<<"agent "<<i<<" start "<<env->curr_states[i].location<<" goal "<<trajLNS.tasks[i]<<endl;
             if (std::chrono::steady_clock::now() > flow_end_time)
                 break;
             if (require_guide_path[i]){
@@ -172,7 +162,6 @@ namespace DefaultPlanner{
                     if (!old_traj.empty()){
                         add_traj(trajLNS, i);
                     }
-                    std::cout << "Time limit reached during guide path replanning " << i << "/" << env->num_of_agents << std::endl;
                     break;
                 }
             }
@@ -261,7 +250,6 @@ namespace DefaultPlanner{
 
         const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - start_time).count();
-        std::cout << "run_multistep_pibt_once took " << (float)(elapsed_us/1000.0) << " ms" << std::endl;
     }
 
     static void append_actions_and_rollout_states(SharedEnvironment* env,
@@ -355,8 +343,6 @@ namespace DefaultPlanner{
         if (pibt_time <= 0){
             pibt_time = 1;
         }
-        std::cout << "num_steps = " << num_steps << std::endl;
-        std::cout << "PIBT time = " << pibt_time * num_steps << std::endl;
         const int flow_budget_ms = std::max(0, time_limit - pibt_time * num_steps - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
         TimePoint flow_end_time = episode_start + std::chrono::milliseconds(flow_budget_ms);
 
@@ -372,11 +358,8 @@ namespace DefaultPlanner{
 
         // --- One-time setup for this planning episode ---
         initialize_dummy_goals_if_needed(env);
-        std::cout << "initialized dummy goals" << std::endl;
         setup_multistep_episode_state(env, flow_end_time, local_priority);
-        std::cout << "finished episode state setup" << std::endl;
         update_guide_paths_once_for_multistep(env, flow_end_time);
-        std::cout << "finished guide path update" << std::endl;
 
         const auto after_setup = std::chrono::steady_clock::now();
         const auto setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
@@ -385,7 +368,6 @@ namespace DefaultPlanner{
 
         for (int step = 0; step < num_steps; step++){
             if (std::chrono::steady_clock::now() >= episode_deadline){
-                std::cout << "Time limit reached before multi-step PIBT step " << step << std::endl;
                 break;
             }
             std::vector<Action> one_step_actions;
@@ -394,9 +376,7 @@ namespace DefaultPlanner{
                 refresh_multistep_step_state(env, local_priority);
             }
             run_multistep_pibt_once(env, local_priority, one_step_actions);
-            std::cout << "finished multi-step PIBT step " << step << std::endl;
             append_actions_and_rollout_states(env, actions, one_step_actions);
-            std::cout << "finished multi-step rollout step " << step << std::endl;
         }
 
         // restore env state after internal rollout simulation

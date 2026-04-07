@@ -92,8 +92,8 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 		return MAX_TIMESTEP;
 }
 
-int get_h(SharedEnvironment* env, int source, int target, bool useManhattan){
-	if (useManhattan)
+int get_h(SharedEnvironment* env, int source, int target){
+	if (env->is_large_map())
 		return manhattanDistance(source, target, env);
 	else{
 		// if (global_heuristictable.empty()){
