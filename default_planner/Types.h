@@ -17,6 +17,8 @@
 #include "SharedEnv.h"
 #include "ActionModel.h"
 
+#include "Plan.h"
+
 namespace DefaultPlanner{
 
 	
