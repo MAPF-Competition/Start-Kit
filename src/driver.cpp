@@ -58,6 +58,8 @@ int main(int argc, char **argv)
         ("prettyPrintJson", po::bool_switch()->default_value(false), "pretty-print the output JSON instead of writing it on one line")
         ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
+        ("taskTrendFile", po::value<std::string>()->default_value(""), "write task-finish trend snapshots to a text file")
+        ("taskTrendInterval", po::value<int>()->default_value(100), "sample task-finish trend every N ticks")
         ("planCommTimeLimit,t", po::value<int>()->default_value(1000), "the minimal communication time limit for planner in milliseconds")
         ("outputActionWindow,w", po::value<int>()->default_value(100), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
         ("executorProcessPlanTimeLimit,x", po::value<int>()->default_value(100), "the time limit for process new plan in milliseconds")
@@ -180,6 +182,13 @@ int main(int argc, char **argv)
     system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model, read_param_json<int>(data, "maxCounter", 10));
 
     system_ptr->set_logger(logger);
+    const int task_trend_interval = vm["taskTrendInterval"].as<int>();
+    if (task_trend_interval <= 0)
+    {
+        logger->log_fatal("taskTrendInterval must be a positive integer", 0);
+        _exit(1);
+    }
+    system_ptr->set_task_trend_output(vm["taskTrendFile"].as<std::string>(), task_trend_interval);
     system_ptr->set_plan_time_limit(vm["initialPlanTimeLimit"].as<int>(),vm["planCommTimeLimit"].as<int>(),vm["actionMoveTimeLimit"].as<int>(),vm["executorProcessPlanTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 

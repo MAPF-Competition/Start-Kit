@@ -5,8 +5,53 @@
 #include "nlohmann/json.hpp"
 #include <functional>
 #include <Logger.h>
+#include <fstream>
 
 using json = nlohmann::ordered_json;
+
+void BaseSystem::set_task_trend_output(const std::string& file_name, int interval)
+{
+    task_trend_output_file = file_name;
+    task_trend_interval = interval;
+}
+
+void BaseSystem::write_task_trend_snapshot(int timestep, bool force)
+{
+    if (task_trend_output_file.empty())
+    {
+        return;
+    }
+
+    if (!force)
+    {
+        if (task_trend_interval <= 0 || timestep <= 0 || timestep % task_trend_interval != 0)
+        {
+            return;
+        }
+    }
+
+    if (timestep == last_task_trend_timestep)
+    {
+        return;
+    }
+
+    std::ofstream out(task_trend_output_file, std::ios::app);
+    if (!out.is_open())
+    {
+        if (logger != nullptr)
+        {
+            logger->log_warning("Failed to open task trend output file: " + task_trend_output_file, timestep);
+        }
+        return;
+    }
+
+    const int cumulative_finished = task_manager.num_of_task_finish;
+    const int interval_finished = cumulative_finished - last_task_trend_finished;
+    out << timestep << " " << cumulative_finished << " " << interval_finished << "\n";
+
+    last_task_trend_timestep = timestep;
+    last_task_trend_finished = cumulative_finished;
+}
 
 void BaseSystem::sync_shared_env_planner() 
 {
@@ -178,12 +223,34 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
         //update tasks
         task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
+        write_task_trend_snapshot(simulator.get_curr_timestep());
     }
+
+    write_task_trend_snapshot(simulator.get_curr_timestep(), true);
 }
 
 
 void BaseSystem::initialize()
 {
+    last_task_trend_timestep = 0;
+    last_task_trend_finished = 0;
+
+    if (!task_trend_output_file.empty())
+    {
+        std::ofstream out(task_trend_output_file, std::ios::trunc);
+        if (!out.is_open())
+        {
+            if (logger != nullptr)
+            {
+                logger->log_warning("Failed to initialize task trend output file: " + task_trend_output_file);
+            }
+        }
+        else
+        {
+            out << "timestep cumulative_finished interval_finished\n";
+        }
+    }
+
     env->num_of_agents = num_of_agents;
     env->rows = map.rows;
     env->cols = map.cols;

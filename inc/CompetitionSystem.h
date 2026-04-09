@@ -13,6 +13,7 @@
 #include <future>
 #include "Simulator.h"
 #include <memory>
+#include <string>
 
 class BaseSystem
 {
@@ -78,6 +79,7 @@ public:
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen, bool pretty_print = false) const;
+    void set_task_trend_output(const std::string& file_name, int interval);
 
 
 protected:
@@ -122,9 +124,15 @@ protected:
     list<double> planner_times; 
     bool fast_mover_feasible = true;
 
+    std::string task_trend_output_file;
+    int task_trend_interval = 100;
+    int last_task_trend_timestep = 0;
+    int last_task_trend_finished = 0;
+
 
     void initialize();
     bool planner_initialize();
+    void write_task_trend_snapshot(int timestep, bool force = false);
 
 
     TaskManager task_manager;
