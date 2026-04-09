@@ -13,4 +13,4 @@ cmake-build-*/
 build*
 proposal/
 viz_ticks.ndjson
-cmake-build-*/
+cmake-build-*/test_iron_harvest.json
