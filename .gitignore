@@ -16,3 +16,4 @@ viz_ticks.ndjson
 cmake-build-*/test_iron_harvest.json
 task_trend.png
 task_trend.txt
+test*.json
