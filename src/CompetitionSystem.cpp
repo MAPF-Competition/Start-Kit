@@ -200,6 +200,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
+            task_manager.set_task_assignment(proposed_schedule);
             sync_shared_env_planner();
             plan_time_limit = min_comm_time;
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
