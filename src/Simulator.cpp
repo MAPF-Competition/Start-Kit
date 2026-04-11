@@ -347,13 +347,6 @@ void Simulator::sync_shared_env(SharedEnvironment* env)
     env->system_timestep = timestep;
 
     env->staged_actions = staged_actions;
-    
-
-    // make sure executor uses the same shared environment
-    if (executor != nullptr)
-    {
-        executor->env = env;
-    }
 }
 
 json Simulator::actual_path_to_json() const

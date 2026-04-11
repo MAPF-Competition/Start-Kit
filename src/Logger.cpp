@@ -38,13 +38,13 @@ void Logger::log_info(std::string input)
 
 void Logger::log_info(std::string input, int timestep)
 {
-    log_info("[timestep=" + std::to_string(timestep) + "] " + input);
+    log_info("[timetick=" + std::to_string(timestep) + "] " + input);
 }
 
 
 void Logger::log_fatal(std::string input, int timestep)
 {
-    log_fatal("[timestep=" + std::to_string(timestep) + "] " + input);
+    log_fatal("[timetick=" + std::to_string(timestep) + "] " + input);
 }
 
 
@@ -64,5 +64,5 @@ void Logger::log_warning(std::string input)
 
 void Logger::log_warning(std::string input, int timestep)
 {
-    log_warning("[time=" + std::to_string((static_cast<float>(timestep)/10.0f)) + "] " + input);
+    log_warning("[timetick=" + std::to_string(timestep) + "] " + input);
 }

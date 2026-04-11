@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     if (agents.size() > tasks.size())
         logger->log_warning("Not enough tasks for robots (number of tasks < team size)");
 
-    system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model, read_param_json<int>(data, "maxCounter", 10));
+    system_ptr = std::make_unique<BaseSystem>(grid, planner, executor, agents, tasks, model, read_param_json<int>(data, "agentCounter", 10));
 
     system_ptr->set_logger(logger);
     const int task_trend_interval = vm["taskTrendInterval"].as<int>();
@@ -189,6 +189,8 @@ int main(int argc, char **argv)
         _exit(1);
     }
     system_ptr->set_task_trend_output(vm["taskTrendFile"].as<std::string>(), task_trend_interval);
+
+    system_ptr->set_logger(logger);
     system_ptr->set_plan_time_limit(vm["initialPlanTimeLimit"].as<int>(),vm["planCommTimeLimit"].as<int>(),vm["actionMoveTimeLimit"].as<int>(),vm["executorProcessPlanTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
 
