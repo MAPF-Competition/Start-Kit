@@ -173,7 +173,6 @@ vector<State> execute_process_new_plan(int sync_time_limit, Plan& plan_struct, v
     }
     predicted_states = curr_states;
     tpg = temp_tpg;
-    cout<<"done process new plan"<<endl;
     return predicted_states;
 }
 
@@ -182,7 +181,6 @@ void execute_next_command(int exec_time_limit, std::vector<ExecutionCommand> & a
     //update the tpg based on the current system states from last tick
     for (int i = 0; i < env->system_states.size(); i++)
     {
-        cout<<"tpg for agent "<<i<<" prev loc "<< previous_locations[i]<<" tpg first "<<tpg[previous_locations[i]].front()<<endl;
         int prev_location = previous_locations[i];
         int curr_location = env->system_states[i].location;
         // cout<<"tpg for agent "<<i<<" prev loc "<< prev_location<<" tpg first "<<tpg[prev_location].front()<<endl;
@@ -196,7 +194,6 @@ void execute_next_command(int exec_time_limit, std::vector<ExecutionCommand> & a
     }
     for (int i = 0; i < env->system_states.size(); i++)
     {
-        cout<<"mcp for agent "<<i<<endl;
 
         mcp(i, agent_command, env);
     }
