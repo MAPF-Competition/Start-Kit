@@ -175,6 +175,16 @@ int main(int argc, char **argv)
         _exit(1);
     }
 
+    const std::string delay_event_distribution =
+        delay_config.eventModel == DelayConfig::EventModel::Bernoulli ? "bernoulli" : "poisson";
+    const std::string delay_time_distribution =
+        delay_config.durationModel == DelayConfig::DurationModel::Uniform ? "uniform" : "gaussian";
+
+    planner->env->delay_event_distribution = delay_event_distribution;
+    planner->env->delay_time_distribution = delay_time_distribution;
+    executor->env->delay_event_distribution = delay_event_distribution;
+    executor->env->delay_time_distribution = delay_time_distribution;
+
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
     std::vector<list<int>> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     if (agents.size() > tasks.size())
