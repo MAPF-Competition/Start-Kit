@@ -13,10 +13,7 @@
 #include <future>
 #include "Simulator.h"
 #include <memory>
-<<<<<<< HEAD
 #include <string>
-=======
->>>>>>> origin/yue_dev_2026
 
 class BaseSystem
 {
@@ -127,7 +124,6 @@ protected:
     list<double> planner_times; 
     bool fast_mover_feasible = true;
 
-<<<<<<< HEAD
     std::string task_trend_output_file;
     int task_trend_interval = 100;
     int last_task_trend_timestep = 0;
@@ -137,11 +133,6 @@ protected:
     void initialize();
     bool planner_initialize();
     void write_task_trend_snapshot(int timestep, bool force = false);
-=======
-
-    void initialize();
-    bool planner_initialize();
->>>>>>> origin/yue_dev_2026
 
 
     TaskManager task_manager;
