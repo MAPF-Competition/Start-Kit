@@ -169,7 +169,7 @@ This system exposes two useful “views” of robot states:
 
 - `system_states`: the **current physical states** in the executor loop (tick-by-tick).
 - `curr_states`: the **planning snapshot states** used for planning updates.
-  These may be predicted/processed states (e.g., after staging a plan window),
+  It refers to the predicted states returned by the executor (e.g., after staging a plan window),
   and may differ from `system_states`.
 
 Also available:
@@ -351,9 +351,11 @@ You are free to use third-party libraries or other dependencies in your implemen
 - Specify dependency packages in apt.txt. These packages must be available for installation through apt-get on Ubuntu 22.
 
 ## Python Interface
-The Python interface is not ready for this competition stage and is currently not supported for submission use.
 
-We plan to provide a fully supported Python interface for the main round.
+The start-kit includes a Python interface (built on pybind11) that lets you implement your planner, scheduler, and/or executor in Python — any combination of Python and C++ components is supported.
+Enable Python components at runtime with CLI flags (`--plannerPython`, `--schedulerPython`, `--executorPython`).
+
+For full details — APIs, file layout, zero-copy bindings, and the MAPF module reference — see **[Python_Interface.md](./Python_Interface.md)**.
 
 ## Evaluation
 

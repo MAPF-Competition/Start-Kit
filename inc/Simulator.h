@@ -36,10 +36,6 @@ public:
 
         actual_movements.resize(num_of_agents);
         planner_movements.resize(num_of_agents);
-        // chunked_actual_movements.resize(num_of_agents);
-        // chunked_planner_movements.resize(num_of_agents);
-        // chunked_snapshot_states.resize(num_of_agents);
-        // prepare staged actions container for each agent
         staged_actions.resize(num_of_agents);
 
         // if no executor provided, create a default one (its env will be set later via sync_shared_env)
@@ -63,11 +59,13 @@ public:
     void process_new_plan(int sync_time_limit, int overtime_runtime, Plan& plan) ;
 
     vector<State> move(int move_time_limit);
+    void move_all_wait(int steps); 
 
     void simulate_delay();
 
     void validate_actions_with_delay(vector<Action>& actions);
 
+    void set_executor_validation(bool enabled) { executor_validation = enabled; }
     void set_delay_enabled(bool enabled);
     void set_delay_generator(std::unique_ptr<DelayGenerator> generator)
     {
@@ -172,6 +170,7 @@ private:
 
     std::unique_ptr<DelayGenerator> delay_generator;
     bool delay_enabled = true;
+    bool executor_validation = true;
     
     int max_counter;
 };

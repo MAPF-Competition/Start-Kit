@@ -38,6 +38,12 @@ public:
         return ready;
     }
 
+    // Total number of nodes allocated in the pool
+    int capacity() const { return size; }
+
+    // Approximate bytes held by the pool's backing array (excluding object overhead)
+    size_t bytes() const { return static_cast<size_t>(size) * sizeof(s_node); }
+
     bool has_node(int id){
         if (id >= size)
         {
