@@ -89,6 +89,9 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
             planner_schedule[a].push_back(make_pair(curr_timestep,assignment[a]));
         }
     }
+
+    validate_task_assignment(assignment);
+
     // if (! validate_task_assignment(assignment))
     // {
     //     return false;
