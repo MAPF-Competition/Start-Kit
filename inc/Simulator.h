@@ -66,6 +66,10 @@ public:
     void validate_actions_with_delay(vector<Action>& actions);
 
     void set_delay_enabled(bool enabled);
+    void set_staged_action_validation_enabled(bool enabled)
+    {
+        staged_action_validation_enabled = enabled;
+    }
     void set_delay_generator(std::unique_ptr<DelayGenerator> generator)
     {
         delay_generator = std::move(generator);
@@ -169,6 +173,7 @@ private:
 
     std::unique_ptr<DelayGenerator> delay_generator;
     bool delay_enabled = true;
+    bool staged_action_validation_enabled = true;
     
     int max_counter;
 };

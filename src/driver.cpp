@@ -57,6 +57,7 @@ int main(int argc, char **argv)
         ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
         ("prettyPrintJson", po::bool_switch()->default_value(false), "pretty-print the output JSON instead of writing it on one line")
         ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
+        ("disableStagedActionValidation", po::bool_switch()->default_value(false), "disable validation that executor staged actions remain a prefix of the previous staged actions plus the new plan")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
         ("taskTrendFile", po::value<std::string>()->default_value(""), "write task-finish trend snapshots to a text file")
         ("taskTrendInterval", po::value<int>()->default_value(100), "sample task-finish trend every N ticks")
@@ -193,6 +194,7 @@ int main(int argc, char **argv)
     system_ptr->set_logger(logger);
     system_ptr->set_plan_time_limit(vm["initialPlanTimeLimit"].as<int>(),vm["planCommTimeLimit"].as<int>(),vm["actionMoveTimeLimit"].as<int>(),vm["executorProcessPlanTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
+    system_ptr->set_staged_action_validation_enabled(!vm["disableStagedActionValidation"].as<bool>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
