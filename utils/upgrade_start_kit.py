@@ -55,7 +55,7 @@ def fetch_release(repo_root, version):
     return tag
 
 
-def load_manifest(repo_root, version, raw_ref=None):
+def load_manifest(repo_root, version, raw_ref=None, local_first=True):
     local_manifest = (
         repo_root
         / "utils"
@@ -64,19 +64,42 @@ def load_manifest(repo_root, version, raw_ref=None):
         / version
         / "manifest.json"
     )
-    if local_manifest.exists():
-        with local_manifest.open("r", encoding="utf-8") as f:
-            return json.load(f), str(local_manifest)
-
     ref_name = raw_ref or f"v{version}"
     encoded_ref = urllib.parse.quote(ref_name, safe="")
     url = f"{RAW_BASE}/{encoded_ref}/utils/upgrades/releases/{version}/manifest.json"
-    try:
+
+    def read_local_manifest():
+        if local_manifest.exists():
+            with local_manifest.open("r", encoding="utf-8") as f:
+                return json.load(f), str(local_manifest)
+        return None
+
+    def read_remote_manifest():
         with urllib.request.urlopen(url) as r:
             return json.loads(r.read().decode("utf-8")), url
-    except Exception as ex:
+
+    if local_first:
+        local = read_local_manifest()
+        if local is not None:
+            return local
+        try:
+            return read_remote_manifest()
+        except Exception as ex:
+            raise RuntimeError(
+                f"Failed to load manifest for version {version}. Tried: {local_manifest} and {url}.\n{ex}"
+            )
+
+    try:
+        return read_remote_manifest()
+    except Exception as remote_ex:
+        local = read_local_manifest()
+        if local is not None:
+            eprint(
+                f"Warning: failed to load remote manifest ({url}). Falling back to local manifest."
+            )
+            return local
         raise RuntimeError(
-            f"Failed to load manifest for version {version}. Tried: {local_manifest} and {url}.\n{ex}"
+            f"Failed to load manifest for version {version}. Tried: {url} and {local_manifest}.\n{remote_ex}"
         )
 
 
@@ -238,13 +261,12 @@ def merge_participant_file(repo_root, rel_path, prev_ref, curr_ref):
             check=False,
         )
 
-        if proc.returncode > 1:
-            return "error", (proc.stderr or "").strip()
-
         merged = ours_file.read_text(encoding="utf-8")
         target.write_text(merged, encoding="utf-8")
 
-        if proc.returncode == 1:
+        # git merge-file exits with the number of conflict hunks (0 means clean merge).
+        # So any positive code indicates conflicts, not a hard tool failure.
+        if proc.returncode > 0:
             return "conflict", ""
         return "merged", ""
 
@@ -302,7 +324,10 @@ def main():
             fetch_tag(repo_root, local_version)
 
             manifest, manifest_source = load_manifest(
-                repo_root, target_version, raw_ref=args.source_branch
+                repo_root,
+                target_version,
+                raw_ref=args.source_branch,
+                local_first=False,
             )
             previous_ref = f"v{local_version}"
             restore_paths = build_restore_set(manifest)
