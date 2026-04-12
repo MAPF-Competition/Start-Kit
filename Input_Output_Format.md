@@ -34,7 +34,7 @@ All paths here is the relative path relative to the location of input JSON file
 | `teamSize` | Int | The number of robots in the simulation  |
 | `numTasksReveal` | Float | The multiplier of tasks revealed in the task pool. We always keep numTasksReveal times teamSize of tasks revealed in the task pool. If in one timestep, k tasks are finished, then the system will add k tasks into the task pool |
 | `agentSize` | Float | Size of the robot safety square for overlap-based collision checking (default `1.0`). Must be > 0. |
-| `maxCounter` | Int | Number of execution ticks required to complete one **Forward/Rotate** action (default `10`). |                                                                                                                                                                                   |
+| `agentCounter` | Int | Number of execution ticks required to complete one **Forward/Rotate** action (default `10`). |                                                                                                                                                                                   |
 
 Example input shown below:
 
@@ -93,7 +93,7 @@ The following table defines the properties that appear in the output file.
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | actionModel     | String <br /> The name of the action model used for the robots in the simulator, this value is always "MAPF_T" which indicates MAPF with Turnings (i.e. robots can be orientated in any of the 4 cardinal directions, the avaliable actions are forward, clockwise turn, counter-clockwise turn, and wait)                                                                                                                                                                                                                                                                                                  |
 | teamSize        | Int <br /> The number of robots in the simulation                                                                                                                                                                                                                                                                                                                                                     |
-| agentMaxCounter | Int | The `maxCounter` used in this run (ticks per Forward/Rotate action) |
+| agentMaxCounter | Int | The `agentCounter` used in this run (ticks per Forward/Rotate action) |
 | outputSegmentSize | Int | Segment/window length used for compressed path output |
 | delayIntervals | List | A list of `n` per-agent delay interval lists, where `n` is the number of robots. Each interval is stored as `[start_timestep, end_timestep]`. Included only when `outputScreen <= 2`. |
 | start           | List <br />A list of start locations. The length of the list is the number of robots.                                                                                                                                                                                                                                                                                           |
