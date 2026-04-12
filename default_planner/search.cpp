@@ -10,7 +10,7 @@ std::chrono::nanoseconds t;
 
 s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     HeuristicTable& ht, Traj& traj,
-    MemoryPool& mem, int start, int goal, Neighbors* ns, const TimePoint* deadline)
+    MemoryPool& mem, int start, int goal, Neighbors* ns)
 {
     mem.reset();
 
@@ -18,15 +18,10 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     int generated=0;
     int h;
 
-    if (env->is_large_map()){
+    if(ht.empty())
         h = manhattanDistance(start,goal,env);
-    }
-    else{
-        if(ht.empty())
-            h = manhattanDistance(start,goal,env);
-        else
-            h = get_heuristic(ht,env, start, ns);
-    }
+    else
+        h = get_heuristic(ht,env, start, ns);
     
 
     
@@ -55,9 +50,6 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
 
 
     while (open.size() > 0){
-        if (deadline != nullptr && std::chrono::steady_clock::now() >= *deadline){
-            return s_node();
-        }
         s_node* curr = open.pop();
         curr->close();
 
@@ -84,15 +76,10 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             op_flow = 0;
             all_vertex_flow = 0;
 
-            if(env->is_large_map()){
+            if(ht.empty())
                 h = manhattanDistance(next,goal,env);
-            }
-            else{
-                if(ht.empty())
-                    h = manhattanDistance(next,goal,env);
-                else
-                    h = get_heuristic(ht,env, next, ns);
-            }
+            else
+                h = get_heuristic(ht,env, next, ns);
 
             diff = next - curr->id;
             d = get_d(diff,env);
@@ -185,3 +172,4 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     return *goal_node;
 }
 }
+

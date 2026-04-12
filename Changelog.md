@@ -1,19 +1,5 @@
 # Changelog
 
-Version 3.1.0 - 2026-04-11
-----------------------------
-Added:
-- Added a new Python interface layer with unified bindings for planner, scheduler, and executor (`python/common`) plus Python user templates and package init files.
-- Added large benchmark/example instance sets for maze, room, and iron harvest domains.
-
-Changed:
-- Refactored execution pipeline and shared environment synchronization to improve staged-plan execution and assignment/update ordering.
-- Improved default planner/scheduler behavior for larger maps and higher agent counts.
-
-Fixed:
-- Fixed race-condition and timeout-control issues in scheduling/execution flow.
-- Fixed robustness issues in action validation and executor error handling under delayed and windowed execution.
-
 Version 3.0.0 - 2026-03-13
 ----------------------------
 Added:

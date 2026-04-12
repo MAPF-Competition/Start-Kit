@@ -19,11 +19,8 @@ default_planner/planner.h, default_planner/search.cpp, default_planner/utils.cpp
 default_planner/flow.cpp, default_planner/heuristics.cpp, default_planner/pibt.h, default_planner/scheduler.cpp,
 default_planner/search.h, default_planner/utils.h, default_planner/Types.h, default_planner/flow.h,
 default_planner/heuristics.h, default_planner/planner.cpp, default_planner/scheduler.h,  
-python/common/MAPFbinding.cpp, python/common/opaque_types.h, python/common/pyEntry.hpp,
-python/common/pyExecutor.cpp, python/common/pyExecutor.hpp, python/common/pyMAPFPlanner.cpp,
-python/common/pyMAPFPlanner.hpp, python/common/pyTaskScheduler.cpp, python/common/pyTaskScheduler.hpp,
-python/default_planner/pyMAPFPlanner.cpp, 
-python/default_scheduler/pyTaskScheduler.hpp, python/user_scheduler/pyTaskScheduler.cpp, python/default_planner/pyMAPFPlanner.hpp, python/user_planner/pyMAPFPlanner.cpp, 
+python/common/MAPFbinding.cpp, python/default_planner/pyMAPFPlanner.cpp, 
+python/default_scheduler/pyTaskScheduler.hpp, python/user_scheduler/pyTaskScheduler.cpp, python/common/pyEntry.hpp, python/default_planner/pyMAPFPlanner.hpp, python/user_planner/pyMAPFPlanner.cpp, 
 python/user_scheduler/pyTaskScheduler.hpp, python/common/pyEnvironment.hpp, 
 python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.hpp, python/set_track.bash        
 ```

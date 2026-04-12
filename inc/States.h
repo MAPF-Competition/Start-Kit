@@ -6,12 +6,13 @@
 
 struct State
 {
+    enum MoveType{ Transition, Rotation, None };
     int location;
     int timestep;
     int orientation;  // 0:east, 1:south, 2:west, 3:north
     Counter counter;
     Delay delay;
-    Action current_action;
+    MoveType moveType;
 
     struct Hasher
     {
@@ -22,8 +23,8 @@ struct State
             size_t ori_hash = std::hash<int>()(n.orientation);
             size_t counter_hash = std::hash<int>()(n.counter.count);
             size_t delay_hash = std::hash<bool>()(n.delay.inDelay);
-            size_t action_hash = std::hash<int>()(static_cast<int>(n.current_action));
-            return (time_hash ^ (loc_hash << 1) ^ (ori_hash << 2) ^ (counter_hash << 3) ^ (delay_hash << 4) ^ (action_hash << 5));
+            size_t moveType_hash = std::hash<int>()(n.moveType);
+            return (time_hash ^ (loc_hash << 1) ^ (ori_hash << 2) ^ (counter_hash << 3) ^ (delay_hash << 4) ^ (moveType_hash << 5));
         }
     };
 
@@ -34,25 +35,25 @@ struct State
         orientation = other.orientation;
         counter = other.counter;
         delay = other.delay;
-        current_action = other.current_action;
+        moveType = other.moveType;
     }
 
     bool operator == (const State& other) const
     {
-        return timestep == other.timestep && location == other.location && orientation == other.orientation && counter.count == other.counter.count && delay.inDelay == other.delay.inDelay && current_action == other.current_action;
+        return timestep == other.timestep && location == other.location && orientation == other.orientation && counter.count == other.counter.count && delay.inDelay == other.delay.inDelay && moveType == other.moveType;
     }
 
     bool operator != (const State& other) const
     {
-        return timestep != other.timestep || location != other.location || orientation != other.orientation || counter.count != other.counter.count || delay.inDelay != other.delay.inDelay || current_action != other.current_action;
+        return timestep != other.timestep || location != other.location || orientation != other.orientation || counter.count != other.counter.count || delay.inDelay != other.delay.inDelay || moveType != other.moveType;
     }
 
-    State(): location(-1), timestep(-1), orientation(-1), counter(Counter()), delay(Delay()), current_action(Action::NA) {}
+    State(): location(-1), timestep(-1), orientation(-1), counter(Counter()), delay(Delay()), moveType(None) {}
 
-    State(int location, int timestep = -1, int orientation = -1, int max_counter = 10, Delay delay = Delay(), Action current_action = Action::NA):
-        location(location), timestep(timestep), orientation(orientation), counter(Counter(max_counter)), delay(delay), current_action(current_action) {}
+    State(int location, int timestep = -1, int orientation = -1, int max_counter = 10, Delay delay = Delay(), MoveType moveType = None):
+        location(location), timestep(timestep), orientation(orientation), counter(Counter(max_counter)), delay(delay), moveType(moveType) {}
     State(const State& other):
-        location(other.location), timestep(other.timestep), orientation(other.orientation), counter(other.counter), delay(other.delay), current_action(other.current_action) {}
+        location(other.location), timestep(other.timestep), orientation(other.orientation), counter(other.counter), delay(other.delay), moveType(other.moveType) {}
 };
 
 inline std::ostream & operator << (std::ostream &out, const State &s)
