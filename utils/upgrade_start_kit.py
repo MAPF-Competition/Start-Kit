@@ -174,10 +174,32 @@ def build_restore_set(manifest):
     return dedupe_keep_order([*managed, *protected])
 
 
+def parse_status_paths(status_text):
+    paths = []
+    for line in status_text.splitlines():
+        if not line:
+            continue
+        entry = line[3:]
+        if " -> " in entry:
+            entry = entry.split(" -> ", 1)[1]
+        paths.append(entry.strip())
+    return paths
+
+
 def ensure_clean_or_warn(repo_root, allow_dirty, apply_mode):
-    status = git(["status", "--porcelain"], repo_root).stdout.strip()
-    if not status:
+    status_text = git(["status", "--porcelain"], repo_root).stdout.strip()
+    if not status_text:
         return
+
+    dirty_paths = parse_status_paths(status_text)
+    ignorable_dirty_paths = {"upgrade_start_kit.sh"}
+    relevant_dirty_paths = [p for p in dirty_paths if p not in ignorable_dirty_paths]
+
+    if not relevant_dirty_paths:
+        if not apply_mode:
+            eprint("Warning: ignoring local changes to upgrade_start_kit.sh during dry-run.")
+        return
+
     if apply_mode and not allow_dirty:
         raise RuntimeError(
             "Working tree is not clean. Commit/stash changes or use --allow-dirty to proceed."
