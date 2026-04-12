@@ -45,6 +45,10 @@ using std::priority_queue;
 
 enum heuristics_type { NONE, CG, DG, WDG, STRATEGY_COUNT };
 
+enum Action : int {FW, CR, CCR, W, NA};
+
+enum ExecutionCommand {GO, STOP};
+
 typedef tuple<int, int, int, int, bool> Constraint;
 typedef tuple<int, int, int, int, int> Conflict;
 // typedef vector<unordered_set<std::pair<int,int> > > ConstraintTable;

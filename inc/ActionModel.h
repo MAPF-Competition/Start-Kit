@@ -4,17 +4,6 @@
 #include "States.h"
 #include "Logger.h"
 
-/*
-  FW  - forward
-  CR  - Clockwise rotate
-  CCR - Counter clockwise rotate
-  W   - Wait
-  NA  - Not applicable
-*/
-enum Action {FW, CR, CCR, W, NA};
-
-enum ExecutionCommand {GO, STOP};
-
 std::ostream& operator<<(std::ostream &stream, const Action &action);
 
 class ActionModelWithRotate

@@ -89,10 +89,10 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
             planner_schedule[a].push_back(make_pair(curr_timestep,assignment[a]));
         }
     }
-    // if (! validate_task_assignment(assignment))
-    // {
-    //     return false;
-    // }
+    if (! validate_task_assignment(assignment))
+    {
+        return false;
+    }
 
     //reset all the agent_assigned to -1, so that any droped task->agent_assignment will be -1
     for (int a = 0; a < assignment.size(); a++)
@@ -217,7 +217,6 @@ void TaskManager::reveal_tasks(int timestep)
 void TaskManager::update_tasks(vector<State>& states, vector<int>& assignment, int timestep)
 {
     curr_timestep = timestep;
-    set_task_assignment(assignment);
     list<int> finsihed_agents = check_finished_tasks(states,timestep);
     for (int agent_id: finsihed_agents)
     {
