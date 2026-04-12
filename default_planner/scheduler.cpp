@@ -1,3 +1,9 @@
+// Default scheduler baseline implementation.
+//
+// Keeps persistent sets of free agents and free tasks across timesteps, then
+// greedily matches each free agent to the task with minimum heuristic distance
+// makespan. This is intentionally simple and serves as a reference scheduler.
+
 #include "scheduler.h"
 
 namespace DefaultPlanner{
