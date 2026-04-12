@@ -96,7 +96,7 @@ namespace DefaultPlanner{
         dummy_goals.resize(env->num_of_agents);
         for(int i=0; i<env->num_of_agents; i++)
         {
-            dummy_goals.at(i) = env->curr_states.at(i).location;
+            dummy_goals.at(i) = env->start_states.at(i).location;
         }
     }
 
@@ -134,12 +134,12 @@ namespace DefaultPlanner{
                 require_guide_path[i] = true;
 
             // update per-agent transient planning state
-            assert(env->curr_states[i].location >=0);
-            prev_states[i] = env->curr_states[i];
+            assert(env->start_states[i].location >=0);
+            prev_states[i] = env->start_states[i];
             next_states[i] = State();
-            prev_decision[env->curr_states[i].location] = i;
+            prev_decision[env->start_states[i].location] = i;
             if (decided[i].loc == -1){
-                decided[i].loc = env->curr_states[i].location;
+                decided[i].loc = env->start_states[i].location;
                 assert(decided[i].state == DONE::DONE);
             }
             if (prev_states[i].location == decided[i].loc){
@@ -156,7 +156,7 @@ namespace DefaultPlanner{
             else if (!env->goal_locations[i].empty())
                 local_priority[i] = local_priority[i]+1;
 
-            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->curr_states[i].location].size() == 1){
+            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->start_states[i].location].size() == 1){
                 local_priority[i] = local_priority[i] + 10;
             }
         }
@@ -203,10 +203,10 @@ namespace DefaultPlanner{
                 local_priority[i] = local_priority[i] + 1;
             }
 
-            assert(env->curr_states[i].location >=0);
-            prev_states[i] = env->curr_states[i];
+            assert(env->start_states[i].location >=0);
+            prev_states[i] = env->start_states[i];
             next_states[i] = State();
-            prev_decision[env->curr_states[i].location] = i;
+            prev_decision[env->start_states[i].location] = i;
 
             if (prev_states[i].location == decided[i].loc){
                 decided[i].state = DONE::DONE;
@@ -216,7 +216,7 @@ namespace DefaultPlanner{
                 next_states[i] = State(decided[i].loc,-1,-1);
             }
 
-            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->curr_states[i].location].size() == 1){
+            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->start_states[i].location].size() == 1){
                 local_priority[i] = local_priority[i] + 10;
             }
         }
@@ -278,9 +278,9 @@ namespace DefaultPlanner{
 
         std::vector<State> rolled_states(env->num_of_agents);
         for (int aid = 0; aid < env->num_of_agents; aid++){
-            rolled_states[aid] = rollout_next_state(env->curr_states[aid], one_step_actions[aid], env);
+            rolled_states[aid] = rollout_next_state(env->start_states[aid], one_step_actions[aid], env);
         }
-        env->curr_states = rolled_states;
+        env->start_states = rolled_states;
         env->curr_timestep += 1;
     }
 
@@ -364,7 +364,7 @@ namespace DefaultPlanner{
 
         std::vector<double> local_priority = p;
 
-        const std::vector<State> original_states = env->curr_states;
+        const std::vector<State> original_states = env->start_states;
         const int original_timestep = env->curr_timestep;
         const std::vector<DCR> original_decided = decided;
 
@@ -396,7 +396,7 @@ namespace DefaultPlanner{
         }
 
         // restore env state after internal rollout simulation
-        env->curr_states = original_states;
+        env->start_states = original_states;
         env->curr_timestep = original_timestep;
         decided = original_decided;
     }
