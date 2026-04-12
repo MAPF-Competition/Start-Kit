@@ -1,0 +1,58 @@
+{
+    "maze-example_40": {
+        "task_count": 160,
+        "average_task_len": 2.0,
+        "average_distance_per_errand": 21.48125,
+        "task_dist": "random",
+        "event_model": "bernoulli",
+        "duration_model": "gaussian"
+    },
+    "room-example_250": {
+        "task_count": 1375,
+        "average_task_len": 2.0,
+        "average_distance_per_errand": 42.410909090909094,
+        "task_dist": "random",
+        "event_model": "poisson",
+        "duration_model": "uniform"
+    },
+    "random-example_400": {
+        "task_count": 3200,
+        "average_task_len": 2.9928125,
+        "average_distance_per_errand": 42.73263289948252,
+        "task_dist": "random",
+        "event_model": "bernoulli",
+        "duration_model": "uniform"
+    },
+    "fulfill-example_2500": {
+        "task_count": 22500,
+        "average_task_len": 2.4989777777777777,
+        "average_distance_per_errand": 147.65283007679307,
+        "task_dist": "distance",
+        "event_model": "poisson",
+        "duration_model": "gaussian"
+    },
+    "iron-example_10000": {
+        "task_count": 25000,
+        "average_task_len": 2.0,
+        "average_distance_per_errand": 1025.50888,
+        "task_dist": "random",
+        "event_model": "bernoulli",
+        "duration_model": "uniform"
+    },
+    "bos-example_600": {
+        "task_count": 3600,
+        "average_task_len": 2.0,
+        "average_distance_per_errand": 171.84722222222223,
+        "task_dist": "random",
+        "event_model": "poisson",
+        "duration_model": "gaussian"
+    },
+    "orz-example_1800": {
+        "task_count": 7200,
+        "average_task_len": 2.0,
+        "average_distance_per_errand": 471.0311111111111,
+        "task_dist": "random",
+        "event_model": "bernoulli",
+        "duration_model": "gaussian"
+    }
+}
