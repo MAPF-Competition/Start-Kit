@@ -164,6 +164,12 @@ It contains:
 - `action_time`: time budget per execution tick (ms)
 - `max_counter`: number of ticks needed to complete one action (FW/CR/CCR)
 
+### Delay model info
+- `delay_event_distribution`: delay event model name exposed at runtime (`bernoulli` or `poisson`)
+- `delay_time_distribution`: delay duration model name exposed at runtime (`uniform` or `gaussian`)
+
+These fields expose only the distribution family names. Hidden evaluator parameters such as probabilities, rates, and delay-duration bounds are not exposed through `SharedEnvironment`.
+
 ### Robot state views
 This system exposes two useful “views” of robot states:
 

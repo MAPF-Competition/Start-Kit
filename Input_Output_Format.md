@@ -60,6 +60,8 @@ Example input shown below:
 | `gaussMeanRatio` | Float | Relative mean position inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
 | `gaussStdRatio` | Float | Relative standard deviation inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
 
+For participant code at runtime, the shared environment exposes only the model names via `env->delay_event_distribution` and `env->delay_time_distribution`. The numeric `delayConfig` parameters are not exposed through `SharedEnvironment`.
+
 ## Map File Format
 
 \* We linearize the a 2-D coordinate and use a single integer to represent a location. Given a location (row,column) and the map height (total number of rows) and width (total number of columns), the linearized location = row*width+column.
