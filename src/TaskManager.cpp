@@ -89,10 +89,7 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
             planner_schedule[a].push_back(make_pair(curr_timestep,assignment[a]));
         }
     }
-    if (! validate_task_assignment(assignment))
-    {
-        return false;
-    }
+    validate_task_assignment(assignment);
 
     //reset all the agent_assigned to -1, so that any droped task->agent_assignment will be -1
     for (int a = 0; a < assignment.size(); a++)
