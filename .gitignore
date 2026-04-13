@@ -13,6 +13,9 @@ cmake-build-*/
 build*
 proposal/
 viz_ticks.ndjson
+log*
+test*
+__pycache__
 cmake-build-*/test_iron_harvest.json
 task_trend.png
 task_trend.txt

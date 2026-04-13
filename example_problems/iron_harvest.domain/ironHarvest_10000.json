@@ -1,0 +1,21 @@
+{
+    "mapFile": "maps/scene_mp_2p_01.map",
+    "agentFile": "agents/ironHarvestTest_10000.agents",
+    "teamSize": 10000,
+    "taskFile": "tasks/ironHarvestTest.tasks",
+    "numTasksReveal": 1.0,
+    "agentCounter": 3,
+    "agentSize": 1.0,
+    "version": "2026 LoRR",
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 1,
+        "maxDelay": 100,
+        "eventModel": "bernoulli",
+        "pDelay": 0.02,
+        "poissonLambda": 2.0,
+        "durationModel": "gaussian",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.35
+    }
+}

@@ -107,10 +107,8 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
     predict_states = executor->process_new_plan(sync_time_limit, plan, staged_actions);
     auto process_end = std::chrono::steady_clock::now();
 
-    if (staged_action_validation_enabled)
-    {
+    if (executor_validation)
         validate_staged_actions_prefix(previous_staged_actions, planned_actions, staged_actions);
-    }
 
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - overtime_runtime;
     //timeout execute all wait

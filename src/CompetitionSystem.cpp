@@ -68,7 +68,13 @@ void BaseSystem::sync_shared_env_executor()
 
 bool BaseSystem::planner_wrapper()
 {
-    planner->compute(plan_time_limit, proposed_plan, proposed_schedule);
+    planner->compute(min_comm_time, proposed_plan, proposed_schedule);
+    return true;
+}
+
+bool BaseSystem::planner_wrapper_init()
+{
+    planner->compute(initial_plan_time_limit, proposed_plan, proposed_schedule);
     return true;
 }
 
@@ -119,7 +125,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     //start initial planning
     plan_time_limit = initial_plan_time_limit;
-    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
+    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper_init, this));
     future = task.get_future();
     env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
@@ -195,6 +201,10 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         //planner finished and min communication time reached, launch new planning
         if (!started && remain_communication_time <= 0)
         {
+            //apply proposed schedule to task_manager before syncing,
+            //so that env->curr_task_schedule reflects the latest accepted assignments.
+            task_manager.set_task_assignment(proposed_schedule);
+
             //process new plan in simulator
             sync_shared_env_executor();
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);

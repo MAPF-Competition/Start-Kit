@@ -65,6 +65,7 @@ public:
 
     void validate_actions_with_delay(vector<Action>& actions);
 
+    void set_executor_validation(bool enabled) { executor_validation = enabled; }
     void set_delay_enabled(bool enabled);
     void set_staged_action_validation_enabled(bool enabled)
     {
@@ -173,7 +174,7 @@ private:
 
     std::unique_ptr<DelayGenerator> delay_generator;
     bool delay_enabled = true;
-    bool staged_action_validation_enabled = true;
+    bool executor_validation = true;
     
     int max_counter;
 };

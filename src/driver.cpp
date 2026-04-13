@@ -10,14 +10,8 @@
 #include <stdexcept>
 
 
-#ifdef PYTHON
-#if PYTHON
-#include "pyMAPFPlanner.hpp"
 #include <pybind11/embed.h>
 #include "pyEntry.hpp"
-#include "pyTaskScheduler.hpp"
-#endif
-#endif
 
 namespace po = boost::program_options;
 using json = nlohmann::json;
@@ -38,11 +32,7 @@ void sigint_handler(int a)
 
 int main(int argc, char **argv)
 {
-#ifdef PYTHON
-#if PYTHON
     pybind11::initialize_interpreter();
-#endif
-#endif
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")
@@ -64,6 +54,10 @@ int main(int argc, char **argv)
         ("planCommTimeLimit,t", po::value<int>()->default_value(1000), "the minimal communication time limit for planner in milliseconds")
         ("outputActionWindow,w", po::value<int>()->default_value(100), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
         ("executorProcessPlanTimeLimit,x", po::value<int>()->default_value(100), "the time limit for process new plan in milliseconds")
+        ("plannerPython", po::value<bool>()->default_value(false), "use Python MAPFPlanner implementation")
+        ("schedulerPython", po::value<bool>()->default_value(false), "use Python TaskScheduler implementation")
+        ("executorPython", po::value<bool>()->default_value(false), "use Python Executor implementation")
+        ("executor-validation-off", po::bool_switch()->default_value(false), "skip executor staged-actions prefix validation")
         ;
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -105,14 +99,18 @@ int main(int argc, char **argv)
     Entry *planner = nullptr;
     Executor *executor = nullptr;
 
-#ifdef PYTHON
-#if PYTHON
-        planner = new PyEntry();
-#else
+    bool use_py_planner   = vm["plannerPython"].as<bool>();
+    bool use_py_scheduler = vm["schedulerPython"].as<bool>();
+    bool use_py_executor  = vm["executorPython"].as<bool>();
+
+    if (use_py_planner || use_py_scheduler || use_py_executor) {
+        auto *pe = new pyEntry(use_py_planner, use_py_scheduler, use_py_executor);
+        executor = pe->get_executor();
+        planner = pe;
+    } else {
         planner = new Entry();
         executor = new Executor();
-#endif
-#endif
+    }
 
     auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
@@ -208,6 +206,9 @@ int main(int argc, char **argv)
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
 
+    if (vm["executor-validation-off"].as<bool>())
+        system_ptr->set_executor_validation(false);
+
     try
     {
         system_ptr->set_delay_generator(std::make_unique<DelayGenerator>(delay_config, team_size));
@@ -220,7 +221,11 @@ int main(int argc, char **argv)
 
     signal(SIGINT, sigint_handler);
 
-    system_ptr->simulate(vm["simulationTime"].as<int>(),100);
+    // Release GIL so worker threads in simulate() can acquire it for Python calls
+    {
+        pybind11::gil_scoped_release release;
+        system_ptr->simulate(vm["simulationTime"].as<int>(),100);
+    }
 
     system_ptr->saveResults(
         vm["output"].as<std::string>(),

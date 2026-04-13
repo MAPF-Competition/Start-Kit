@@ -49,10 +49,8 @@ public:
         {
             delete planner;
         }
-        if (exec_env != nullptr)
-        {
-            delete exec_env;
-        }
+        // exec_env is a non-owning alias of executor->env.
+        // ~Simulator deletes executor, whose destructor deletes its env.
     };
 
     void set_num_tasks_reveal(float num){task_manager.set_num_tasks_reveal(num);};
@@ -78,8 +76,14 @@ public:
         simulator.set_staged_action_validation_enabled(enabled);
     }
 
+    void set_executor_validation(bool enabled)
+    {
+        simulator.set_executor_validation(enabled);
+    }
+
     void simulate(int simulation_time,int chunk_size);
     bool planner_wrapper();
+    bool planner_wrapper_init();
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen, bool pretty_print = false) const;

@@ -1,3 +1,16 @@
+<<<<<<< HEAD
+=======
+// Default executor baseline implementation.
+//
+// The planner returns multi-step intent. This executor stages a window of actions,
+// predicts future states for the next planning snapshot, and emits GO/STOP commands
+// every execution tick using a Temporal Dependency Graph (TPG).
+//
+// Reference:
+//   Ma, H., Kumar, T. S., & Koenig, S. (2017). Multi-agent path finding with
+//   delay probabilities. AAAI Conference on Artificial Intelligence, Vol. 31.
+
+>>>>>>> origin/comm-time-fix
 #include "default_executor.h"
 
 namespace DefaultPlanner{
@@ -226,14 +239,18 @@ bool mcp(int agent_id, std::vector<ExecutionCommand> & agent_command, SharedEnvi
         {
             //try to go and can go, clear the tpg order
             agent_command[agent_id] = ExecutionCommand::GO;
+<<<<<<< HEAD
             // if (!tpg[curr_location].empty())
             //     tpg[curr_location].pop_front();
+=======
+>>>>>>> origin/comm-time-fix
 
             // cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
             return true;
         }
         else
         {
+<<<<<<< HEAD
             // //try to go by recursion
             // int blocking_agent_id = temp_tpg[next_location].front();
 
@@ -281,6 +298,11 @@ bool mcp(int agent_id, std::vector<ExecutionCommand> & agent_command, SharedEnvi
                 agent_command[agent_id] = ExecutionCommand::STOP;
                 return false;
             // }
+=======
+                //the blocking agent cannot go, so we cannot go
+                agent_command[agent_id] = ExecutionCommand::STOP;
+                return false;
+>>>>>>> origin/comm-time-fix
         }
     }
     
