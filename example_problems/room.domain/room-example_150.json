@@ -1,7 +1,7 @@
 {
     "mapFile": "maps/room-64-64-16.map",
     "agentFile": "agents/room-example_250.agents",
-    "teamSize": 250,
+    "teamSize": 150,
     "taskFile": "tasks/room-example_250.tasks",
     "numTasksReveal": 1.5,
     "version": "2026 LoRR",

@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 // Default executor baseline implementation.
 //
 // The planner returns multi-step intent. This executor stages a window of actions,
@@ -10,7 +8,6 @@
 //   Ma, H., Kumar, T. S., & Koenig, S. (2017). Multi-agent path finding with
 //   delay probabilities. AAAI Conference on Artificial Intelligence, Vol. 31.
 
->>>>>>> origin/comm-time-fix
 #include "default_executor.h"
 
 namespace DefaultPlanner{
@@ -239,70 +236,15 @@ bool mcp(int agent_id, std::vector<ExecutionCommand> & agent_command, SharedEnvi
         {
             //try to go and can go, clear the tpg order
             agent_command[agent_id] = ExecutionCommand::GO;
-<<<<<<< HEAD
-            // if (!tpg[curr_location].empty())
-            //     tpg[curr_location].pop_front();
-=======
->>>>>>> origin/comm-time-fix
 
             // cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
             return true;
         }
         else
         {
-<<<<<<< HEAD
-            // //try to go by recursion
-            // int blocking_agent_id = temp_tpg[next_location].front();
-
-            // cout<<"agent "<<agent_id<<" next loc "<<next_location<<" tpg blocking agent "<<blocking_agent_id<<endl;
-
-            // int next_id=-1;
-            // auto it = temp_tpg[next_location].begin();
-            // if (it != temp_tpg[next_location].end()) 
-            // {
-            //     auto it2 = std::next(it);
-            //     if (it2 != temp_tpg[next_location].end()) 
-            //     {
-            //         // *it2 is the second element
-            //         next_id = *it2;
-            //     }
-            // }
-
-            // assert(next_id != -1); 
-            
-            // if (curr_decision[blocking_agent_id] || next_id != agent_id)
-            // {                
-            //     //the blocking agent has already made the decision or current agent is not on the second order, so we cannot go
-            //     agent_command[agent_id] = ExecutionCommand::STOP;
-            //     curr_decision[agent_id] = true;
-            //     return false;       
-            // }
-
-            // //try to simulate to see if the agent can go by pushing blocking agent
-            // curr_decision[agent_id] = true;
-            // if (!temp_tpg[curr_location].empty())
-            //     temp_tpg[curr_location].pop_front(); //temporarily pop the current agent from temp_tpg to simulate the move
-
-            // if (mcp(blocking_agent_id, curr_decision, agent_command) && temp_tpg[next_location].front() == agent_id)
-            // {
-
-            //     //now agent can go and clear the tpg order
-            //     agent_command[agent_id] = ExecutionCommand::GO;
-            //     cout<<"mcp true, agent "<<agent_id<<" decided to move to "<<next_location<<endl;
-            //     // curr_decision[agent_id] = true;
-            //     return true;
-            // }
-            // else
-            // {
                 //the blocking agent cannot go, so we cannot go
                 agent_command[agent_id] = ExecutionCommand::STOP;
                 return false;
-            // }
-=======
-                //the blocking agent cannot go, so we cannot go
-                agent_command[agent_id] = ExecutionCommand::STOP;
-                return false;
->>>>>>> origin/comm-time-fix
         }
     }
     

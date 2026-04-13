@@ -1,7 +1,5 @@
 
 
-<<<<<<< HEAD
-=======
 
 // Default executor baseline used by src/Executor.cpp.
 //
@@ -17,7 +15,6 @@
 // Reference:
 //   Ma, H., Kumar, T. S., & Koenig, S. (2017). Multi-agent path finding with
 //   delay probabilities. AAAI Conference on Artificial Intelligence, Vol. 31.
->>>>>>> origin/comm-time-fix
 #include "Types.h"
 
 namespace DefaultPlanner{
