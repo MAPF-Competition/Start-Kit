@@ -61,7 +61,7 @@ void validate_staged_actions_prefix(
         std::vector<Action> normalized = normalize_plan_actions(planned_actions[agent]);
         expected.insert(expected.end(), normalized.begin(), normalized.end());
 
-        const auto& actual = returned_staged_actions[agent];
+        std::vector<Action> actual = normalize_plan_actions(returned_staged_actions[agent]);
         if (actual.size() > expected.size())
         {
             std::ostringstream oss;

@@ -22,7 +22,7 @@ Added:
 - Added runtime delay generation via `delayConfig` in the input JSON.
 - Added delay interval output (`delayIntervals`) to the output JSON for `outputScreen <= 2`.
 - Added `--prettyPrintJson` option to write human-readable formatted JSON output.
-- Added configurable action counter support via `maxCounter` in the input JSON and `agentMaxCounter` in the output JSON.
+- Added configurable action counter support via `agentCounter` in the input JSON and `agentMaxCounter` in the output JSON.
 - Added compressed path segment metadata in the output JSON via `outputSegmentSize`.
 
 Changed:
@@ -30,7 +30,7 @@ Changed:
 - Updated the action model to support the new collision checking model based on agent footprint (`agentSize`) rather than point occupancy only.
 - Updated the output JSON to include delay information, segmented path metadata, and the current starter-kit version string.
 - Updated timing controls to distinguish preprocessing time, initial planning time, planner communication interval, per-action execution time, and executor plan-processing time.
-- Updated the input format documentation to describe `delayConfig`, `maxCounter`, `--prettyPrintJson`, and delay interval output.
+- Updated the input format documentation to describe `delayConfig`, `agentCounter`, `--prettyPrintJson`, and delay interval output.
 
 Version 2.1.2 - 2025-01-19
 ----------------------------

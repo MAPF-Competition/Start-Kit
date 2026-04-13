@@ -65,8 +65,11 @@ public:
 
     void validate_actions_with_delay(vector<Action>& actions);
 
-    void set_executor_validation(bool enabled) { executor_validation = enabled; }
     void set_delay_enabled(bool enabled);
+    void set_staged_action_validation_enabled(bool enabled)
+    {
+        executor_validation = enabled;
+    }
     void set_delay_generator(std::unique_ptr<DelayGenerator> generator)
     {
         delay_generator = std::move(generator);

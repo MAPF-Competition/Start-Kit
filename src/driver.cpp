@@ -47,6 +47,7 @@ int main(int argc, char **argv)
         ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")
         ("prettyPrintJson", po::bool_switch()->default_value(false), "pretty-print the output JSON instead of writing it on one line")
         ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
+        ("disableStagedActionValidation", po::bool_switch()->default_value(false), "disable validation that executor staged actions remain a prefix of the previous staged actions plus the new plan")
         ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
         ("taskTrendFile", po::value<std::string>()->default_value(""), "write task-finish trend snapshots to a text file")
         ("taskTrendInterval", po::value<int>()->default_value(100), "sample task-finish trend every N ticks")
@@ -56,7 +57,6 @@ int main(int argc, char **argv)
         ("plannerPython", po::value<bool>()->default_value(false), "use Python MAPFPlanner implementation")
         ("schedulerPython", po::value<bool>()->default_value(false), "use Python TaskScheduler implementation")
         ("executorPython", po::value<bool>()->default_value(false), "use Python Executor implementation")
-        ("executor-validation-off", po::bool_switch()->default_value(false), "skip executor staged-actions prefix validation")
         ;
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -172,6 +172,16 @@ int main(int argc, char **argv)
         _exit(1);
     }
 
+    const std::string delay_event_distribution =
+        delay_config.eventModel == DelayConfig::EventModel::Bernoulli ? "bernoulli" : "poisson";
+    const std::string delay_time_distribution =
+        delay_config.durationModel == DelayConfig::DurationModel::Uniform ? "uniform" : "gaussian";
+
+    planner->env->delay_event_distribution = delay_event_distribution;
+    planner->env->delay_time_distribution = delay_time_distribution;
+    executor->env->delay_event_distribution = delay_event_distribution;
+    executor->env->delay_time_distribution = delay_time_distribution;
+
     std::vector<int> agents = read_int_vec(base_folder + read_param_json<std::string>(data, "agentFile"), team_size);
     std::vector<list<int>> tasks = read_int_vec(base_folder + read_param_json<std::string>(data, "taskFile"));
     if (agents.size() > tasks.size())
@@ -191,11 +201,9 @@ int main(int argc, char **argv)
     system_ptr->set_logger(logger);
     system_ptr->set_plan_time_limit(vm["initialPlanTimeLimit"].as<int>(),vm["planCommTimeLimit"].as<int>(),vm["actionMoveTimeLimit"].as<int>(),vm["executorProcessPlanTimeLimit"].as<int>());
     system_ptr->set_preprocess_time_limit(vm["preprocessTimeLimit"].as<int>());
+    system_ptr->set_staged_action_validation_enabled(!vm["disableStagedActionValidation"].as<bool>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
-
-    if (vm["executor-validation-off"].as<bool>())
-        system_ptr->set_executor_validation(false);
 
     try
     {
