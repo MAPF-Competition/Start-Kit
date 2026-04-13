@@ -57,7 +57,6 @@ int main(int argc, char **argv)
         ("plannerPython", po::value<bool>()->default_value(false), "use Python MAPFPlanner implementation")
         ("schedulerPython", po::value<bool>()->default_value(false), "use Python TaskScheduler implementation")
         ("executorPython", po::value<bool>()->default_value(false), "use Python Executor implementation")
-        ("executor-validation-off", po::bool_switch()->default_value(false), "skip executor staged-actions prefix validation")
         ;
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -205,9 +204,6 @@ int main(int argc, char **argv)
     system_ptr->set_staged_action_validation_enabled(!vm["disableStagedActionValidation"].as<bool>());
 
     system_ptr->set_num_tasks_reveal(read_param_json<float>(data, "numTasksReveal", 1));
-
-    if (vm["executor-validation-off"].as<bool>())
-        system_ptr->set_executor_validation(false);
 
     try
     {

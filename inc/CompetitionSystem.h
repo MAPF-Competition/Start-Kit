@@ -76,11 +76,6 @@ public:
         simulator.set_staged_action_validation_enabled(enabled);
     }
 
-    void set_executor_validation(bool enabled)
-    {
-        simulator.set_executor_validation(enabled);
-    }
-
     void simulate(int simulation_time,int chunk_size);
     bool planner_wrapper();
     bool planner_wrapper_init();
