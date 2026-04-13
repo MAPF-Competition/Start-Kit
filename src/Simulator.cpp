@@ -57,7 +57,7 @@ void validate_staged_actions_prefix(
 
     for (size_t agent = 0; agent < previous_staged_actions.size(); agent++)
     {
-        std::vector<Action> expected = previous_staged_actions[agent];
+        std::vector<Action> expected = normalize_plan_actions(previous_staged_actions[agent]);
         std::vector<Action> normalized = normalize_plan_actions(planned_actions[agent]);
         expected.insert(expected.end(), normalized.begin(), normalized.end());
 
