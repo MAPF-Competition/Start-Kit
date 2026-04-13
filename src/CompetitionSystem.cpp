@@ -203,7 +203,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         {
             //apply proposed schedule to task_manager before syncing,
             //so that env->curr_task_schedule reflects the latest accepted assignments.
-            task_manager.set_task_assignment(proposed_schedule);
+            task_manager.set_task_assignment(proposed_schedule,simulator.get_curr_timestep());
 
             //process new plan in simulator
             sync_shared_env_executor();

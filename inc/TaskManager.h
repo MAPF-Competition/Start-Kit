@@ -32,7 +32,7 @@ public:
     void set_logger(Logger* logger){this->logger = logger;}
 
     bool validate_task_assignment(vector<int>& assignment); // validate the task assignment
-    bool set_task_assignment( vector<int>&  assignment); // set the task assignment; return true if task is valid
+    bool set_task_assignment( vector<int>&  assignment, int timestep); // set the task assignment; return true if task is valid
 
     int get_number_errors() const {return schedule_errors.size();}
 
