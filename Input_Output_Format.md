@@ -14,11 +14,15 @@
 | `--simulationTime` / `-s` | Int | Maximum number of **execution ticks** to simulate (planning horizon). |
 | `--preprocessTimeLimit` / `-p` | Int (ms) | Preprocessing time limit (loading / precomputation before simulation). |
 | `--actionMoveTimeLimit` / `-a` | Int (ms) | **Execution tick** duration / per-tick time budget. The executor is called every tick under this budget. |
-| `--initialPlanTimeLimit` / `-n` | Int (ms) | Time budget for the **first** planning call. |
-| `--planCommTimeLimit` / `-t` | Int (ms) | Minimum communication interval between planning updates (planner is called periodically, not every tick). |
-| `--executorProcessPlanTimeLimit` / `-x` | Int (ms) | Time budget for processing/staging a returned plan (plan adoption step). |
-| `--outputActionWindow` / `-w` | Int | Path output compression window size (default 100). Output paths are chunked in windows of this many ticks. *(In this branch, the driver currently uses 100 as the chunk size.)* |
+| `--initialPlanTimeLimit` / `-n` | Int (ms) | Time budget for the **first** planning call (default `1000`). |
+| `--planCommTimeLimit` / `-t` | Int (ms) | Minimum communication interval between planning updates (default `1000`). The planner is called periodically, not every tick. |
+| `--executorProcessPlanTimeLimit` / `-x` | Int (ms) | Time budget for processing/staging a returned plan (default `100`). |
+| `--outputActionWindow` / `-w` | Int | Path output compression window size (default `1000`). Output paths are chunked in windows of this many ticks. |
 | `--evaluationMode` / `-m` | Bool | Evaluate an existing output file (used by tooling / evaluation scripts). |
+| `--plannerPython` | Bool | Use a Python `MAPFPlanner` implementation instead of the C++ one (default `false`). |
+| `--schedulerPython` | Bool | Use a Python `TaskScheduler` implementation instead of the C++ one (default `false`). |
+| `--executorPython` | Bool | Use a Python `Executor` implementation instead of the C++ one (default `false`). |
+| `--disableStagedActionValidation` | Flag | Disable validation that executor staged actions remain a prefix of the previous staged actions plus the new plan (default off). |
 
 
 ## Input Problem File (in JSON format)

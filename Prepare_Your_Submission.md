@@ -261,7 +261,7 @@ Files: `inc/Executor.h`, `src/Executor.cpp`
 - `Executor::next_command(int exec_time_limit, vector<ExecutionCommand>& agent_command)`
 
 Return:
-- `process_new_plan(...)` updates `staged_actions` and returns predicted states.
+- `process_new_plan(...)` updates `staged_actions` and returns predicted states. **Note that, in the Execution Track, the predicted states must match the ending states of `staged_actions` and the staged actions must remain a prefix of the previous staged actions plus the new plan (excluding any wait actions).** This validation can be turned off for combined track through cli flag `--disableStagedActionValidation`.
 - `next_command(...)` outputs `GO/STOP` per agent for the next tick.
 
 ## Understand the default components

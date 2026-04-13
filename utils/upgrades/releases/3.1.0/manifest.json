@@ -70,16 +70,12 @@
       "python/common/pyMAPFPlanner.hpp",
       "python/common/pyTaskScheduler.cpp",
       "python/common/pyTaskScheduler.hpp",
-      "python/default_planner/pyMAPFPlanner.cpp",
-      "python/default_scheduler/pyTaskScheduler.hpp",
-      "python/user_scheduler/pyTaskScheduler.cpp",
-      "python/default_planner/pyMAPFPlanner.hpp",
-      "python/user_planner/pyMAPFPlanner.cpp",
-      "python/user_scheduler/pyTaskScheduler.hpp",
-      "python/common/pyEnvironment.hpp",
-      "python/default_scheduler/pyTaskScheduler.cpp",
-      "python/user_planner/pyMAPFPlanner.hpp",
-      "python/set_track.bash"
+      "tests/delay_generator_test.cpp",
+      "tests/multi_step_plan_test.cpp",
+      "tests/python_interface_test.cpp",
+      "tests/python_test_fixtures/dummy_executor.py",
+      "tests/python_test_fixtures/dummy_planner.py",
+      "tests/python_test_fixtures/dummy_scheduler.py"
   ],
   "participant_modifiable_files": [
     "CMakeLists.txt",
