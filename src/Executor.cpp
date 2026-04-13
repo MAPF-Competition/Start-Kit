@@ -12,7 +12,6 @@ void Executor::initialize(int preprocess_time_limit)
 vector<State> Executor::process_new_plan(int sync_time_limit, Plan& plan_struct, vector<vector<Action>> & staged_actions)
 {
     return DefaultPlanner::execute_process_new_plan(sync_time_limit, plan_struct, staged_actions, env);
-
 }
 
 void Executor::next_command(int exec_time_limit, std::vector<ExecutionCommand> & agent_command)

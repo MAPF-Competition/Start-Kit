@@ -71,6 +71,10 @@ public:
     {
         simulator.set_delay_generator(std::move(generator));
     }
+    void set_staged_action_validation_enabled(bool enabled)
+    {
+        simulator.set_staged_action_validation_enabled(enabled);
+    }
 
     void set_executor_validation(bool enabled)
     {
