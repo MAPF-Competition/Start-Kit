@@ -68,7 +68,13 @@ void BaseSystem::sync_shared_env_executor()
 
 bool BaseSystem::planner_wrapper()
 {
-    planner->compute(plan_time_limit, proposed_plan, proposed_schedule);
+    planner->compute(min_comm_time, proposed_plan, proposed_schedule);
+    return true;
+}
+
+bool BaseSystem::planner_wrapper_init()
+{
+    planner->compute(initial_plan_time_limit, proposed_plan, proposed_schedule);
     return true;
 }
 
@@ -119,7 +125,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     //start initial planning
     plan_time_limit = initial_plan_time_limit;
-    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
+    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper_init, this));
     future = task.get_future();
     env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));

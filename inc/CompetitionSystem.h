@@ -79,6 +79,7 @@ public:
 
     void simulate(int simulation_time,int chunk_size);
     bool planner_wrapper();
+    bool planner_wrapper_init();
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen, bool pretty_print = false) const;
