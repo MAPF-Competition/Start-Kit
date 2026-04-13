@@ -46,5 +46,6 @@ protected:
 
 private:
     float _agent_size;
+    float _overlap_eps = 1e-4f;
     vector<char> _wait_agents;
 };

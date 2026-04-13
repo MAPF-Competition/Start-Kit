@@ -597,7 +597,10 @@ void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
                 obstacle.min_y = static_cast<float>(rr);
                 obstacle.max_x = obstacle.min_x + 1.0f;
                 obstacle.max_y = obstacle.min_y + 1.0f;
-                if (rects_overlap(r, obstacle))
+                const bool obs_overlap =
+                    r.min_x < obstacle.max_x - _overlap_eps && r.max_x > obstacle.min_x + _overlap_eps &&
+                    r.min_y < obstacle.max_y - _overlap_eps && r.max_y > obstacle.min_y + _overlap_eps;
+                if (obs_overlap)
                 {
                     throw std::runtime_error(
                         "Sanity check failed: agent " + std::to_string(i) + " overlaps hard obstacle");
@@ -646,7 +649,14 @@ void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
                 rj.min_y = real[j].y;
                 rj.max_x = real[j].x + _agent_size;
                 rj.max_y = real[j].y + _agent_size;
-                if (rects_overlap(ri, rj))
+
+                // Epsilon tolerance consistent with moving_boxes_collide:
+                // agents whose boxes merely touch (overlap <= eps) are not
+                // in conflict — avoids false positives from float rounding.
+                const bool overlap =
+                    ri.min_x < rj.max_x - _overlap_eps && ri.max_x > rj.min_x + _overlap_eps &&
+                    ri.min_y < rj.max_y - _overlap_eps && ri.max_y > rj.min_y + _overlap_eps;
+                if (overlap)
                 {
                     throw std::runtime_error(
                         "Sanity check failed after dependency resolution: agent " + std::to_string(i) +
