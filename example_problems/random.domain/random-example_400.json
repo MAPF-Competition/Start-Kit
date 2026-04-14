@@ -13,7 +13,6 @@
         "maxDelay": 4,
         "eventModel": "bernoulli",
         "pDelay": 0.003,
-        "poissonLambda": 1.2,
         "durationModel": "uniform",
         "gaussMeanRatio": 0.5,
         "gaussStdRatio": 0.22

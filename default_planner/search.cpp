@@ -18,7 +18,7 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     int generated=0;
     int h;
 
-    if (env->is_large_map()){
+    if (is_large_map(env)){
         h = manhattanDistance(start,goal,env);
     }
     else{
@@ -84,7 +84,7 @@ s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
             op_flow = 0;
             all_vertex_flow = 0;
 
-            if(env->is_large_map()){
+            if(is_large_map(env)){
                 h = manhattanDistance(next,goal,env);
             }
             else{

@@ -12,8 +12,7 @@ int main()
         config.minDelay = 1;
         config.maxDelay = 3;
         config.eventModel = DelayConfig::EventModel::Poisson;
-        config.poissonLambda = 2.0;
-        config.pDelay = 0.4;
+        config.pDelay = 0.2;
         config.durationModel = DelayConfig::DurationModel::Gaussian;
         config.gaussMeanRatio = 0.5;
         config.gaussStdRatio = 0.22;
@@ -36,7 +35,6 @@ int main()
         config.maxDelay = 2;
         config.eventModel = DelayConfig::EventModel::Bernoulli;
         config.pDelay = 1.0;
-        config.poissonLambda = 0.0;
         config.durationModel = DelayConfig::DurationModel::Uniform;
         config.gaussMeanRatio = 0.5;
         config.gaussStdRatio = 0.0;

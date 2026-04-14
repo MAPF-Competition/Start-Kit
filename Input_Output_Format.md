@@ -58,8 +58,7 @@ Example input shown below:
 | `minDelay` | Int | Minimum sampled delay duration. |
 | `maxDelay` | Int | Maximum sampled delay duration. |
 | `eventModel` | String | Delay event model: `bernoulli` or `poisson`. |
-| `pDelay` | Float | Per-agent delay probability when using the `bernoulli` model. |
-| `poissonLambda` | Float | Poisson rate when using the `poisson` model. |
+| `pDelay` | Float | Per-agent delay probability. For `bernoulli`, it is sampled independently for each available agent. For `poisson`, the runtime derives the Poisson rate as `teamSize * pDelay`. |
 | `durationModel` | String | Delay duration model: `uniform` or `gaussian`. |
 | `gaussMeanRatio` | Float | Relative mean position inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
 | `gaussStdRatio` | Float | Relative standard deviation inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |

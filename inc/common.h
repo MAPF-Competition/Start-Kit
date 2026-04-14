@@ -234,7 +234,6 @@ inline DelayConfig parse_delay_config(const nlohmann::json& data)
     }
 
     config.pDelay = read_required_json_param<double>(delay_json, "pDelay", "delayConfig");
-    config.poissonLambda = read_required_json_param<double>(delay_json, "poissonLambda", "delayConfig");
 
     const std::string duration_model = read_required_json_param<std::string>(delay_json, "durationModel", "delayConfig");
     if (duration_model == "uniform")
