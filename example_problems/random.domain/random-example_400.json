@@ -12,7 +12,7 @@
         "minDelay": 1,
         "maxDelay": 4,
         "eventModel": "bernoulli",
-        "pDelay": 0.003,
+        "pDelay": 0.01,
         "durationModel": "uniform",
         "gaussMeanRatio": 0.5,
         "gaussStdRatio": 0.22
