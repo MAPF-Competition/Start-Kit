@@ -28,15 +28,9 @@ void DelayGenerator::validate_config() const
     {
         throw std::invalid_argument("DelayConfig.maxDelay must be >= minDelay");
     }
-    if (config.eventModel == DelayConfig::EventModel::Bernoulli &&
-        (config.pDelay < 0.0 || config.pDelay > 1.0))
+    if (config.pDelay < 0.0 || config.pDelay > 1.0)
     {
-        throw std::invalid_argument("DelayConfig.pDelay must be in [0, 1] for bernoulli");
-    }
-    if (config.eventModel == DelayConfig::EventModel::Poisson &&
-        config.poissonLambda < 0.0)
-    {
-        throw std::invalid_argument("DelayConfig.poissonLambda must be >= 0 for poisson");
+        throw std::invalid_argument("DelayConfig.pDelay must be in [0, 1]");
     }
     if (config.durationModel == DelayConfig::DurationModel::Gaussian)
     {
@@ -111,7 +105,8 @@ std::vector<int> DelayGenerator::sample_agents_for_delay(const std::vector<int>&
         return selected_agents;
     }
 
-    std::poisson_distribution<int> count_dist(config.poissonLambda);
+    const double poisson_lambda = static_cast<double>(num_of_agents) * config.pDelay;
+    std::poisson_distribution<int> count_dist(poisson_lambda);
     const int sampled_count = count_dist(rng);
     const int selected_count = std::min(sampled_count, static_cast<int>(available_agents.size()));
     if (selected_count <= 0)

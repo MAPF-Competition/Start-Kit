@@ -1,5 +1,19 @@
 # Changelog
 
+Version 3.1.0 - 2026-04-11
+----------------------------
+Added:
+- Added a new Python interface layer with unified bindings for planner, scheduler, and executor (`python/common`) plus Python user templates and package init files.
+- Added large benchmark/example instance sets for maze, room, and iron harvest domains.
+
+Changed:
+- Refactored execution pipeline and shared environment synchronization to improve staged-plan execution and assignment/update ordering.
+- Improved default planner/scheduler behavior for larger maps and higher agent counts.
+
+Fixed:
+- Fixed race-condition and timeout-control issues in scheduling/execution flow.
+- Fixed robustness issues in action validation and executor error handling under delayed and windowed execution.
+
 Version 3.0.0 - 2026-03-13
 ----------------------------
 Added:
@@ -8,7 +22,7 @@ Added:
 - Added runtime delay generation via `delayConfig` in the input JSON.
 - Added delay interval output (`delayIntervals`) to the output JSON for `outputScreen <= 2`.
 - Added `--prettyPrintJson` option to write human-readable formatted JSON output.
-- Added configurable action counter support via `maxCounter` in the input JSON and `agentMaxCounter` in the output JSON.
+- Added configurable action counter support via `agentCounter` in the input JSON and `agentMaxCounter` in the output JSON.
 - Added compressed path segment metadata in the output JSON via `outputSegmentSize`.
 
 Changed:
@@ -16,7 +30,7 @@ Changed:
 - Updated the action model to support the new collision checking model based on agent footprint (`agentSize`) rather than point occupancy only.
 - Updated the output JSON to include delay information, segmented path metadata, and the current starter-kit version string.
 - Updated timing controls to distinguish preprocessing time, initial planning time, planner communication interval, per-action execution time, and executor plan-processing time.
-- Updated the input format documentation to describe `delayConfig`, `maxCounter`, `--prettyPrintJson`, and delay interval output.
+- Updated the input format documentation to describe `delayConfig`, `agentCounter`, `--prettyPrintJson`, and delay interval output.
 
 Version 2.1.2 - 2025-01-19
 ----------------------------

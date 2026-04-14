@@ -1,0 +1,20 @@
+{
+    "mapFile": "maps/scene_mp_2p_01.map",
+    "agentFile": "agents/iron-example_10000.agents",
+    "teamSize": 10000,
+    "taskFile": "tasks/iron-example_10000.tasks",
+    "numTasksReveal": 1.0,
+    "version": "2026 LoRR",
+    "agentCounter": 3,
+    "agentSize": 1.0,
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 15,
+        "maxDelay": 40,
+        "eventModel": "bernoulli",
+        "pDelay": 0.001,
+        "durationModel": "uniform",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.22
+    }
+}

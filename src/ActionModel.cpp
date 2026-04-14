@@ -58,6 +58,7 @@ struct StepResolveContext
     int& seen_token;
     vector<int>& recursion_stack;
     vector<int>& stack_pos;
+    list<std::tuple<std::string, int, int, int>>& errors;
     Logger* logger;
     int time;
 };
@@ -119,8 +120,14 @@ string format_cycle_description(int current_agent, int cycle_agent, const StepRe
     return msg;
 }
 
-void log_actionmodel_message(const StepResolveContext& ctx, const string& msg)
+void record_actionmodel_message(const StepResolveContext& ctx, const string& msg, int agent1, int agent2)
 {
+    ctx.errors.push_back(std::make_tuple(msg, agent1, agent2, ctx.time));
+}
+
+void log_actionmodel_message(const StepResolveContext& ctx, const string& msg, int agent1 = -1, int agent2 = -1)
+{
+    record_actionmodel_message(ctx, msg, agent1, agent2);
     if (ctx.logger != nullptr)
         ctx.logger->log_warning(msg, ctx.time);
     else
@@ -347,7 +354,7 @@ bool try_commit_candidate(int agent_id,
                     ctx.requested_fail_reasons,
                     agent_id,
                     cycle_desc);
-                log_actionmodel_message(ctx, cycle_desc);
+                log_actionmodel_message(ctx, cycle_desc, agent_id, j);
             }
             return false;
         }
@@ -450,44 +457,60 @@ State ActionModelWithRotate::result_state(const State & prev, Action action)
     int new_orientation = prev.orientation;
     State next = prev;
     next.timestep = prev.timestep + 1;
-    if (action == Action::FW)
+    Action executed_action = action;
+    if (prev.counter.count > 0 && prev.current_action != Action::NA)
+    {
+        // Once an action has started, only a wait can pause it; any other command
+        // must continue the in-progress action until completion.
+        if (action == Action::W)
+        {
+            return next;
+        }
+        executed_action = prev.current_action;
+    }
+
+    if (executed_action == Action::FW)
     {
         if(next.counter.tick())
         {
             new_location = new_location += moves[prev.orientation];
-            next.moveType = State::None;
+            next.current_action = Action::NA;
         }
         else
         {
-            next.moveType = State::Transition;
+            next.current_action = Action::FW;
         }
     }
-    else if (action == Action::CR)
+    else if (executed_action == Action::CR)
     {
         if(next.counter.tick())
         {
             new_orientation = (prev.orientation + 1) % 4;
-            next.moveType = State::None;
+            next.current_action = Action::NA;
         }
         else
         {
-            next.moveType = State::Rotation;
+            next.current_action = Action::CR;
         }
   
     }
-    else if (action == Action::CCR)
+    else if (executed_action == Action::CCR)
     {
         if(next.counter.tick())
         {
             new_orientation = (prev.orientation - 1) % 4;
             if (new_orientation == -1)
                 new_orientation = 3;
-            next.moveType = State::None;
+            next.current_action = Action::NA;
         }
         else
         {
-            next.moveType = State::Rotation;
+            next.current_action = Action::CCR;
         }
+    }
+    else
+    {
+        next.current_action = prev.counter.count > 0 ? prev.current_action : Action::NA;
     }
     next.location = new_location;
     next.orientation = new_orientation;
@@ -508,8 +531,8 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
         float x = static_cast<float>(col);
         float y = static_cast<float>(row);
 
-        // Only Transition states produce translational offset; rotations keep the agent in its grid cell.
-        if (s.moveType == State::Transition && s.counter.maxCount > 0 && s.counter.count > 0)
+        // Only a forward action in progress produces translational offset; rotations stay in-cell.
+        if (s.current_action == Action::FW && s.counter.maxCount > 0 && s.counter.count > 0)
         {
             const float frac = static_cast<float>(s.counter.count) / static_cast<float>(s.counter.maxCount);
             switch (s.orientation)
@@ -574,7 +597,10 @@ void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
                 obstacle.min_y = static_cast<float>(rr);
                 obstacle.max_x = obstacle.min_x + 1.0f;
                 obstacle.max_y = obstacle.min_y + 1.0f;
-                if (rects_overlap(r, obstacle))
+                const bool obs_overlap =
+                    r.min_x < obstacle.max_x - _overlap_eps && r.max_x > obstacle.min_x + _overlap_eps &&
+                    r.min_y < obstacle.max_y - _overlap_eps && r.max_y > obstacle.min_y + _overlap_eps;
+                if (obs_overlap)
                 {
                     throw std::runtime_error(
                         "Sanity check failed: agent " + std::to_string(i) + " overlaps hard obstacle");
@@ -623,7 +649,14 @@ void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
                 rj.min_y = real[j].y;
                 rj.max_x = real[j].x + _agent_size;
                 rj.max_y = real[j].y + _agent_size;
-                if (rects_overlap(ri, rj))
+
+                // Epsilon tolerance consistent with moving_boxes_collide:
+                // agents whose boxes merely touch (overlap <= eps) are not
+                // in conflict — avoids false positives from float rounding.
+                const bool overlap =
+                    ri.min_x < rj.max_x - _overlap_eps && ri.max_x > rj.min_x + _overlap_eps &&
+                    ri.min_y < rj.max_y - _overlap_eps && ri.max_y > rj.min_y + _overlap_eps;
+                if (overlap)
                 {
                     throw std::runtime_error(
                         "Sanity check failed after dependency resolution: agent " + std::to_string(i) +
@@ -728,6 +761,7 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
         seen_token,
         recursion_stack,
         stack_pos,
+        errors,
         logger,
         time
     };
@@ -743,6 +777,11 @@ vector<State> ActionModelWithRotate::step(const vector<State>& prev, vector<Acti
             _wait_agents[i] = 1;
             string reason = requested_fail_reasons[i].empty() ? "requested motion rejected by recursive dependency resolution" : requested_fail_reasons[i];
             std::cout << "Agent " << i << "'s state: " << prev[i] << ", requested action: " << requested_actions[i] << ", reason for waiting: " << reason << std::endl;
+            errors.push_back(std::make_tuple(
+                "Agent waits instead of " + action_to_string(requested_actions[i]) + ": " + reason,
+                i,
+                -1,
+                time));
 
             if (logger != nullptr)
                 logger->log_warning("Agent " + std::to_string(i) + " waits instead of " + action_to_string(requested_actions[i]) + ": " + reason, time);

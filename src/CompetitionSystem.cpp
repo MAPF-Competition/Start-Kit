@@ -5,43 +5,76 @@
 #include "nlohmann/json.hpp"
 #include <functional>
 #include <Logger.h>
+#include <fstream>
 
 using json = nlohmann::ordered_json;
 
-
-void BaseSystem::sync_shared_env() 
+void BaseSystem::set_task_trend_output(const std::string& file_name, int interval)
 {
-    if (!started)
-    {
-        env->goal_locations.resize(num_of_agents);
-        task_manager.sync_shared_env(env);
-        simulator.sync_shared_env(env);
+    task_trend_output_file = file_name;
+    task_trend_interval = interval;
+}
 
-        // if (simulator.get_curr_timestep() == 0)
-        // {
-        //     env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
-        //     for (int i = 0; i < num_of_agents; i++)
-        //     {
-        //         env->new_freeagents.push_back(i);
-        //     }
-        // }
-        // //update proposed action to all wait
-        // proposed_actions.clear();
-        // proposed_actions.resize(num_of_agents, Action::W);
-        // //update proposed schedule to previous assignment
-        // proposed_schedule = env->curr_task_schedule;
-        
-    }
-    else
+void BaseSystem::write_task_trend_snapshot(int timestep, bool force)
+{
+    if (task_trend_output_file.empty())
     {
-        env->curr_timestep = simulator.get_curr_timestep();
+        return;
     }
+
+    if (!force)
+    {
+        if (task_trend_interval <= 0 || timestep <= 0 || timestep % task_trend_interval != 0)
+        {
+            return;
+        }
+    }
+
+    if (timestep == last_task_trend_timestep)
+    {
+        return;
+    }
+
+    std::ofstream out(task_trend_output_file, std::ios::app);
+    if (!out.is_open())
+    {
+        if (logger != nullptr)
+        {
+            logger->log_warning("Failed to open task trend output file: " + task_trend_output_file, timestep);
+        }
+        return;
+    }
+
+    const int cumulative_finished = task_manager.num_of_task_finish;
+    const int interval_finished = cumulative_finished - last_task_trend_finished;
+    out << timestep << " " << cumulative_finished << " " << interval_finished << "\n";
+
+    last_task_trend_timestep = timestep;
+    last_task_trend_finished = cumulative_finished;
+}
+
+void BaseSystem::sync_shared_env_planner() 
+{
+    env->goal_locations.resize(num_of_agents);
+    task_manager.sync_shared_env(env);
+    simulator.sync_shared_env(env);
+}
+
+void BaseSystem::sync_shared_env_executor() 
+{
+    simulator.sync_shared_env(exec_env);
 }
 
 
 bool BaseSystem::planner_wrapper()
 {
-    planner->compute(plan_time_limit, proposed_plan, proposed_schedule);
+    planner->compute(min_comm_time, proposed_plan, proposed_schedule);
+    return true;
+}
+
+bool BaseSystem::planner_wrapper_init()
+{
+    planner->compute(initial_plan_time_limit, proposed_plan, proposed_schedule);
     return true;
 }
 
@@ -88,15 +121,11 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     this->simulation_time = simulation_time;
 
-    // sync_shared_env();
-
     vector<State> curr_states = simulator.get_current_state();
-
-    int timestep = simulator.get_curr_timestep();
 
     //start initial planning
     plan_time_limit = initial_plan_time_limit;
-    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
+    std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper_init, this));
     future = task.get_future();
     env->plan_start_time = std::chrono::steady_clock::now();
     task_td = std::thread(std::move(task));
@@ -108,21 +137,21 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         task_td.join();
         started = false;
         auto res = future.get();
-        logger->log_info("planner returns", timestep);
+        logger->log_info("planner returns", simulator.get_curr_timestep());
     }
     else
     {
-        logger->log_info("planner timeout", timestep);
+        logger->log_info("planner timeout", simulator.get_curr_timestep());
     }
 
     //initial planning timeout
     while (started)
     {
         //wait for initial planning to finish and at the same time move all wait
-        logger->log_info("planner cannot run because the previous run is still running", timestep);
+        logger->log_info("planner (initilal planning) cannot run because the previous run is still running", simulator.get_curr_timestep());
         auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
-        simulator.move(simulator_time_limit);
+        simulator.move_all_wait(1);
         auto move_end = std::chrono::steady_clock::now();
         while(deadline < move_end)
         {
@@ -137,11 +166,11 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
             task_td.join();
             started = false;
             auto res = future.get();
-            logger->log_info("planner returns", timestep);
+            logger->log_info("planner (initilal planning) returns", simulator.get_curr_timestep());
         } 
         else 
         {
-            logger->log_info("planner timeout", timestep);
+            logger->log_info("planner (initilal planning) timeout", simulator.get_curr_timestep());
         }
     }
 
@@ -151,7 +180,6 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
     while (simulator.get_curr_timestep() < simulation_time)
     {
-        timestep = simulator.get_curr_timestep();
         //check if planenr finished
         if (remain_communication_time <= 0 && started)
         {
@@ -162,22 +190,27 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
                 task_td.join();
                 started = false;
                 auto res = future.get();
-                logger->log_info("planner returns", timestep);
+                logger->log_info("planner returns", simulator.get_curr_timestep());
             } 
             else 
             {
-                logger->log_info("planner timeout", timestep);
+                logger->log_info("planner timeout", simulator.get_curr_timestep());
             }
         }
 
         //planner finished and min communication time reached, launch new planning
         if (!started && remain_communication_time <= 0)
         {
+            //apply proposed schedule to task_manager before syncing,
+            //so that env->curr_task_schedule reflects the latest accepted assignments.
+            task_manager.set_task_assignment(proposed_schedule,simulator.get_curr_timestep());
+
             //process new plan in simulator
+            sync_shared_env_executor();
             simulator.process_new_plan(process_new_plan_time_limit, simulator_time_limit, proposed_plan);
 
             //launch new planning task
-            sync_shared_env();
+            sync_shared_env_planner();
             plan_time_limit = min_comm_time;
             std::packaged_task<bool()> task(std::bind(&BaseSystem::planner_wrapper, this));
             future = task.get_future();
@@ -190,7 +223,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         }
 
         //while the planner is running, move from previous plans
-        simulator.sync_shared_env(env);
+        sync_shared_env_executor();
         auto move_start = std::chrono::steady_clock::now();
         curr_states = simulator.move(simulator_time_limit);
         auto move_end = std::chrono::steady_clock::now();
@@ -200,12 +233,34 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
         //update tasks
         task_manager.update_tasks(curr_states, proposed_schedule, simulator.get_curr_timestep());
+        write_task_trend_snapshot(simulator.get_curr_timestep());
     }
+
+    write_task_trend_snapshot(simulator.get_curr_timestep(), true);
 }
 
 
 void BaseSystem::initialize()
 {
+    last_task_trend_timestep = 0;
+    last_task_trend_finished = 0;
+
+    if (!task_trend_output_file.empty())
+    {
+        std::ofstream out(task_trend_output_file, std::ios::trunc);
+        if (!out.is_open())
+        {
+            if (logger != nullptr)
+            {
+                logger->log_warning("Failed to initialize task trend output file: " + task_trend_output_file);
+            }
+        }
+        else
+        {
+            out << "timestep cumulative_finished interval_finished\n";
+        }
+    }
+
     env->num_of_agents = num_of_agents;
     env->rows = map.rows;
     env->cols = map.cols;
@@ -215,11 +270,14 @@ void BaseSystem::initialize()
     env->action_time = simulator_time_limit;
     env->max_counter = simulator.get_max_counter();
 
+    exec_env->num_of_agents = num_of_agents;
+    exec_env->rows = map.rows;
+    exec_env->cols = map.cols;
+    exec_env->map = map.map;    
 
-    
-    // // bool succ = load_records(); // continue simulating from the records
-    // timestep = 0;
-    // curr_states = starts;
+    exec_env->min_planner_communication_time = min_comm_time;
+    exec_env->action_time = simulator_time_limit;
+    exec_env->max_counter = simulator.get_max_counter();
 
     int timestep = simulator.get_curr_timestep();
 
@@ -228,6 +286,7 @@ void BaseSystem::initialize()
 
     auto init_start_time = std::chrono::steady_clock::now();
     env->plan_start_time = init_start_time;
+    exec_env->plan_start_time = init_start_time;
     auto init_deadline   = init_start_time + std::chrono::milliseconds(preprocess_time_limit);
     std::thread init_td(std::move(init_task), preprocess_time_limit);
 
@@ -252,12 +311,15 @@ void BaseSystem::initialize()
     // initialize_goal_locations();
     task_manager.reveal_tasks(timestep); //this also intialize env->new_tasks
 
-    sync_shared_env();
+    sync_shared_env_planner(); // sync the new tasks and new_free_agents to the shared environment for the planner to use in the first planning
+    sync_shared_env_executor(); // sync the new tasks and new_free_agents to the shared environment for the executor to use in the first move
 
     env->new_freeagents.reserve(num_of_agents); //new free agents are empty in task_manager on initialization, set it after task_manager sync
+    exec_env->new_freeagents.reserve(num_of_agents);
     for (int i = 0; i < num_of_agents; i++)
     {
         env->new_freeagents.push_back(i);
+        exec_env->new_freeagents.push_back(i);
     }
 
     solution_costs.resize(num_of_agents);

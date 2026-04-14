@@ -19,6 +19,8 @@ void getNeighbors_nowait(const SharedEnvironment* env, std::vector<std::pair<int
 void getNeighborLocs(const Neighbors* ns, std::vector<int>& neighbors, int location) ;
 
 void getNeighborLocs(const Neighbors* ns, int neighbors[], int location) ;
+
+bool is_large_map(const SharedEnvironment* env);
 }
 
 #endif

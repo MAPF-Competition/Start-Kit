@@ -1,9 +1,26 @@
+// Default planner baseline implementation.
+//
+// For each planning episode, this module updates guide paths with a bounded
+// traffic-flow phase (Frank-Wolfe optimisation), then runs PIBT to produce
+// a multi-step plan. Internal rollout builds future steps; the environment
+// snapshot is restored after planning.
+//
+// References:
+//   Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024). Traffic flow
+//   optimisation for lifelong multi-agent path finding. AAAI Conference on
+//   Artificial Intelligence, Vol. 38, No. 18, pp. 20674-20682.
+//   https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856
+//
+//   Okumura, K., et al. (2022). Priority Inheritance with Backtracking (PIBT)
+//   for iterative multi-agent path finding. Artificial Intelligence, Vol. 310.
+
 #include "planner.h"
 #include "heuristics.h"
 #include "SharedEnv.h"
 #include "pibt.h"
 #include "flow.h"
 #include "const.h"
+#include <chrono>
 #include <iostream>
 
 
@@ -79,7 +96,7 @@ namespace DefaultPlanner{
         dummy_goals.resize(env->num_of_agents);
         for(int i=0; i<env->num_of_agents; i++)
         {
-            dummy_goals.at(i) = env->curr_states.at(i).location;
+            dummy_goals.at(i) = env->start_states.at(i).location;
         }
     }
 
@@ -92,11 +109,12 @@ namespace DefaultPlanner{
         {
             // initialise heuristic tables for goals
             if (std::chrono::steady_clock::now() < flow_end_time){
-                for(int j=0; j<env->goal_locations[i].size(); j++)
+                for (int j = 0; j < env->goal_locations[i].size(); j++)
                 {
                     int goal_loc = env->goal_locations[i][j].first;
-                    if (trajLNS.heuristics.at(goal_loc).empty()){
-                        init_heuristic(trajLNS.heuristics[goal_loc],env,goal_loc);
+                    if (trajLNS.heuristics.find(goal_loc) == trajLNS.heuristics.end() ||
+                        trajLNS.heuristics[goal_loc].empty()){
+                        init_heuristic(trajLNS.heuristics[goal_loc], env, goal_loc);
                     }
                 }
             }
@@ -116,12 +134,12 @@ namespace DefaultPlanner{
                 require_guide_path[i] = true;
 
             // update per-agent transient planning state
-            assert(env->curr_states[i].location >=0);
-            prev_states[i] = env->curr_states[i];
+            assert(env->start_states[i].location >=0);
+            prev_states[i] = env->start_states[i];
             next_states[i] = State();
-            prev_decision[env->curr_states[i].location] = i;
+            prev_decision[env->start_states[i].location] = i;
             if (decided[i].loc == -1){
-                decided[i].loc = env->curr_states[i].location;
+                decided[i].loc = env->start_states[i].location;
                 assert(decided[i].state == DONE::DONE);
             }
             if (prev_states[i].location == decided[i].loc){
@@ -138,7 +156,7 @@ namespace DefaultPlanner{
             else if (!env->goal_locations[i].empty())
                 local_priority[i] = local_priority[i]+1;
 
-            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->curr_states[i].location].size() == 1){
+            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->start_states[i].location].size() == 1){
                 local_priority[i] = local_priority[i] + 10;
             }
         }
@@ -149,13 +167,19 @@ namespace DefaultPlanner{
         // one-time guide-path update for goal-changed agents
         for (int i = 0; i < env->num_of_agents; i++)
         {
-            //cout<<"agent "<<i<<" start "<<env->curr_states[i].location<<" goal "<<trajLNS.tasks[i]<<endl;
             if (std::chrono::steady_clock::now() > flow_end_time)
                 break;
             if (require_guide_path[i]){
+                std::vector<int> old_traj = trajLNS.trajs[i];
                 if (!trajLNS.trajs[i].empty())
                     remove_traj(trajLNS, i);
-                update_traj(trajLNS, i);
+                if (!update_traj(trajLNS, i, &flow_end_time)){
+                    trajLNS.trajs[i] = old_traj;
+                    if (!old_traj.empty()){
+                        add_traj(trajLNS, i);
+                    }
+                    break;
+                }
             }
         }
 
@@ -179,10 +203,10 @@ namespace DefaultPlanner{
                 local_priority[i] = local_priority[i] + 1;
             }
 
-            assert(env->curr_states[i].location >=0);
-            prev_states[i] = env->curr_states[i];
+            assert(env->start_states[i].location >=0);
+            prev_states[i] = env->start_states[i];
             next_states[i] = State();
-            prev_decision[env->curr_states[i].location] = i;
+            prev_decision[env->start_states[i].location] = i;
 
             if (prev_states[i].location == decided[i].loc){
                 decided[i].state = DONE::DONE;
@@ -192,7 +216,7 @@ namespace DefaultPlanner{
                 next_states[i] = State(decided[i].loc,-1,-1);
             }
 
-            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->curr_states[i].location].size() == 1){
+            if (!env->goal_locations[i].empty() && trajLNS.neighbors[env->start_states[i].location].size() == 1){
                 local_priority[i] = local_priority[i] + 10;
             }
         }
@@ -201,6 +225,7 @@ namespace DefaultPlanner{
     static void run_multistep_pibt_once(SharedEnvironment* env, std::vector<double>& local_priority,
                                         std::vector<Action>& one_step_actions)
     {
+        const auto start_time = std::chrono::steady_clock::now();
         std::sort(ids.begin(), ids.end(), [&](int a, int b) {
                 return local_priority.at(a) > local_priority.at(b);
             }
@@ -238,6 +263,9 @@ namespace DefaultPlanner{
         }
 
         prev_states = next_states;
+
+        const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - start_time).count();
     }
 
     static void append_actions_and_rollout_states(SharedEnvironment* env,
@@ -250,9 +278,9 @@ namespace DefaultPlanner{
 
         std::vector<State> rolled_states(env->num_of_agents);
         for (int aid = 0; aid < env->num_of_agents; aid++){
-            rolled_states[aid] = rollout_next_state(env->curr_states[aid], one_step_actions[aid], env);
+            rolled_states[aid] = rollout_next_state(env->start_states[aid], one_step_actions[aid], env);
         }
-        env->curr_states = rolled_states;
+        env->start_states = rolled_states;
         env->curr_timestep += 1;
     }
 
@@ -326,16 +354,17 @@ namespace DefaultPlanner{
         }
 
         const auto episode_start = std::chrono::steady_clock::now();
+        const TimePoint episode_deadline = episode_start + std::chrono::milliseconds(std::max(0, time_limit));
         int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents/100;
         if (pibt_time <= 0){
             pibt_time = 1;
         }
-        const int flow_budget_ms = std::max(0, time_limit - pibt_time * num_steps - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
+        const int flow_budget_ms = std::max(0, time_limit - std::max(MIN_PIBT_TIME, pibt_time * num_steps) - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
         TimePoint flow_end_time = episode_start + std::chrono::milliseconds(flow_budget_ms);
 
         std::vector<double> local_priority = p;
 
-        const std::vector<State> original_states = env->curr_states;
+        const std::vector<State> original_states = env->start_states;
         const int original_timestep = env->curr_timestep;
         const std::vector<DCR> original_decided = decided;
 
@@ -350,76 +379,24 @@ namespace DefaultPlanner{
 
         const auto after_setup = std::chrono::steady_clock::now();
         const auto setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
-        std::cout << "[DefaultPlanner::plan] timing: time_limit=" << time_limit
-              << "ms, pibt_time_hint=" << pibt_time
-              << "ms, flow_budget=" << flow_budget_ms
-              << "ms, setup_elapsed=" << setup_elapsed_ms << "ms" << std::endl;
-
         // commit only cross-episode priority update (internal rollout keeps using local_priority only)
         p = local_priority;
 
         for (int step = 0; step < num_steps; step++){
+            if (std::chrono::steady_clock::now() >= episode_deadline){
+                break;
+            }
             std::vector<Action> one_step_actions;
-
             // After step 0, only run PIBT + rollout (no guide path recompute and no FW)
             if (step > 0){
                 refresh_multistep_step_state(env, local_priority);
             }
-
             run_multistep_pibt_once(env, local_priority, one_step_actions);
-
             append_actions_and_rollout_states(env, actions, one_step_actions);
         }
 
-        std::cout << "[DefaultPlanner::plan] computed actions for "
-                  << env->num_of_agents << " agents over " << num_steps << " steps" << std::endl;
-        for (int aid = 0; aid < env->num_of_agents; aid++){
-            if (aid != 47) continue;
-            int curr_loc = env->curr_states[aid].location;
-            int goal_loc = -1;
-            if (!env->goal_locations[aid].empty()) {
-                goal_loc = env->goal_locations[aid].front().first;
-            }
-            // Use curr_task_schedule and task_pool for assigned task info
-            int assigned_task_id = -1;
-            std::string task_details = "N/A";
-            if (aid < env->curr_task_schedule.size()) {
-                assigned_task_id = env->curr_task_schedule[aid];
-                auto it = env->task_pool.find(assigned_task_id);
-                if (it != env->task_pool.end()) {
-                    const auto& task = it->second;
-                    std::ostringstream oss;
-                    oss << "task_id=" << task.task_id
-                        << ", t_revealed=" << task.t_revealed
-                        << ", t_completed=" << task.t_completed
-                        << ", agent_assigned=" << task.agent_assigned
-                        << ", idx_next_loc=" << task.idx_next_loc
-                        << ", locations=[";
-                    for (size_t i = 0; i < task.locations.size(); ++i) {
-                        oss << task.locations[i];
-                        if (i + 1 < task.locations.size()) oss << ",";
-                    }
-                    oss << "]";
-                    const bool task_finished = (task.idx_next_loc >= static_cast<int>(task.locations.size()));
-                    if (!task_finished) {
-                        oss << ", next_loc=" << task.locations[task.idx_next_loc];
-                    }
-                    task_details = oss.str();
-                }
-            }
-            std::cout << "  agent " << aid
-                      << ": loc=" << curr_loc
-                      << ", goal=" << goal_loc
-                      << ", assigned_task_id=" << assigned_task_id
-                      << ", task_details=[" << task_details << "]:";
-            for (int step = 0; step < static_cast<int>(actions[aid].size()); step++){
-                std::cout << (step == 0 ? " " : ", ") << debug_action_to_string(actions[aid][step]);
-            }
-            std::cout << std::endl;
-        }
-
         // restore env state after internal rollout simulation
-        env->curr_states = original_states;
+        env->start_states = original_states;
         env->curr_timestep = original_timestep;
         decided = original_decided;
     }

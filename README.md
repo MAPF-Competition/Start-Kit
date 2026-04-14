@@ -20,12 +20,13 @@ $ cd your_submission_repo
 
 - [cmake >= 3.16](https://cmake.org/)
 - [libboost >= 1.49.0](https://www.boost.org/)
-- Python3 >= 3.11 and [pybind11](https://pybind11.readthedocs.io/en/stable/) >=2.10.1 are recommanded for python interface user.
+- [Python3 >= 3.11](https://www.python.org/)
+- [pybind11 >= 3.0.1](https://pybind11.readthedocs.io/en/stable/)
 
 Install dependencies on Ubuntu or Debian Linux:
 ```shell
 sudo apt-get update
-sudo apt-get install build-essential libboost-all-dev python3-dev python3-pybind11 
+sudo apt-get install build-essential libboost-all-dev python3-dev python3-pybind11
 ```
 
 [Homebrew](https://brew.sh/) is recomanded for installing dependencies on Mac OS.
@@ -78,15 +79,48 @@ If you are a docker user, another choice is to develop and test your python impl
 
 ## Upgrade Your Start-Kit
 
-If your private start-kit copy repo was created before a start-kit upgrade, you could run the script `./upgrade_start_kit.sh` to upgrade your start-kit to the latest version.
+If your private start-kit copy repo was created before a start-kit upgrade, always fetch and run the **latest** upgrade script from the official Start-Kit repository (instead of relying on your local copy, which may be outdated).
+
+Run these commands from the root of your private submission repo:
+
+```shell
+curl -fsSL -o ./upgrade_start_kit.sh https://raw.githubusercontent.com/MAPF-Competition/Start-Kit/main/upgrade_start_kit.sh
+bash ./upgrade_start_kit.sh
+```
+
+Alternative (wget):
+
+```shell
+wget -qO ./upgrade_start_kit.sh https://raw.githubusercontent.com/MAPF-Competition/Start-Kit/main/upgrade_start_kit.sh
+bash ./upgrade_start_kit.sh
+```
+
+By default, this runs in **dry-run** mode and prints the upgrade plan only.
+
+Apply the upgrade:
+
+```shell
+bash ./upgrade_start_kit.sh --apply
+```
+
+Useful options:
+- `--to-version 3.1.0` to target a specific Start-Kit release (default: latest release).
+- `--allow-dirty` to apply on a non-clean git tree (not recommended).
+- `--source-branch dev` to test upgrades from an upstream branch (for example unpublished changes on `dev`).
+
+Example for testing branch updates:
+
+```shell
+bash ./upgrade_start_kit.sh --source-branch dev --apply
+```
 
 You can check `version.txt` to know the current version of your start-kit.
 
-The `upgrade_start_kit.sh` will check which file is marked as an upgrade needed and pull those files from the start-kit. It will pull and stage the files, but not commit them. This allows you to review the changes before committing them. 
+The upgrader is manifest-driven and release-by-release. It restores managed/protected files from official Start-Kit release tags, stages those updates, and does not commit automatically.
 
-For files stated as unmodifiable in [Parepare_Your_Planner.md](./Prepare_Your_Submission.md), you always commit their changes.
+For participant-modifiable files that changed between your local version and the target release, the upgrader performs a 3-way merge (local/base/remote). If conflicts exist, they are left as standard git conflict markers for manual resolution.
 
-The upgrade script will not touch most of the participants' implementation file.
+The upgrade script will not touch most participant implementation files.
 
 ## Input output description
 

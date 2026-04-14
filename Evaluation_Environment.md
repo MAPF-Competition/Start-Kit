@@ -13,16 +13,18 @@ In **any track** of the competition, don't modify or interfere with any start ki
 src/ActionModel.cpp, src/Evaluation.cpp, src/Logger.cpp, src/States.cpp, src/driver.cpp,
 src/CompetitionSystem.cpp, src/Grid.cpp, src/common.cpp, src/TaskManager.cpp, src/Simulator.cpp, src/DelayGenerator.cpp
 inc/ActionModel.h, inc/Evaluation.h, inc/Logger.h, inc/SharedEnv.h, inc/Tasks.h, inc/CompetitionSystem.h, inc/Grid.h,
-inc/States.h, inc/common.h, inc/TaskManager.h, inc/Simulator.h, inc/DelayGenerator.h
+inc/States.h, inc/common.h, inc/TaskManager.h, inc/Simulator.h, inc/DelayGenerator.h, inc/Counter.h, inc/Delay.h, inc/Plan.h,
+inc/nlohmann/json.hpp, inc/nlohmann/json_fwd.hpp
 default_planner/Memory.h, default_planner/heap.h, default_planner/pibt.cpp, default_planner/search_node.h, 
 default_planner/planner.h, default_planner/search.cpp, default_planner/utils.cpp, default_planner/TrajLNS.h,
 default_planner/flow.cpp, default_planner/heuristics.cpp, default_planner/pibt.h, default_planner/scheduler.cpp,
 default_planner/search.h, default_planner/utils.h, default_planner/Types.h, default_planner/flow.h,
-default_planner/heuristics.h, default_planner/planner.cpp, default_planner/scheduler.h,  
-python/common/MAPFbinding.cpp, python/default_planner/pyMAPFPlanner.cpp, 
-python/default_scheduler/pyTaskScheduler.hpp, python/user_scheduler/pyTaskScheduler.cpp, python/common/pyEntry.hpp, python/default_planner/pyMAPFPlanner.hpp, python/user_planner/pyMAPFPlanner.cpp, 
-python/user_scheduler/pyTaskScheduler.hpp, python/common/pyEnvironment.hpp, 
-python/default_scheduler/pyTaskScheduler.cpp, python/user_planner/pyMAPFPlanner.hpp, python/set_track.bash        
+default_planner/heuristics.h, default_planner/planner.cpp, default_planner/scheduler.h,
+default_planner/default_executor.cpp, default_planner/default_executor.h, default_planner/const.h,
+python/__init__.py,
+python/common/MAPFbinding.cpp, python/common/opaque_types.h, python/common/pyEntry.hpp,
+python/common/pyExecutor.cpp, python/common/pyExecutor.hpp, python/common/pyMAPFPlanner.cpp,
+python/common/pyMAPFPlanner.hpp, python/common/pyTaskScheduler.cpp, python/common/pyTaskScheduler.hpp,
 ```
 
 In the **executor track**, don't modify or interfere with any start kit functionalities, including those in the following files:

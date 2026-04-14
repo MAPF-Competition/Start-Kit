@@ -45,6 +45,10 @@ using std::priority_queue;
 
 enum heuristics_type { NONE, CG, DG, WDG, STRATEGY_COUNT };
 
+enum Action : int {FW, CR, CCR, W, NA};
+
+enum ExecutionCommand {GO, STOP};
+
 typedef tuple<int, int, int, int, bool> Constraint;
 typedef tuple<int, int, int, int, int> Conflict;
 // typedef vector<unordered_set<std::pair<int,int> > > ConstraintTable;
@@ -230,7 +234,6 @@ inline DelayConfig parse_delay_config(const nlohmann::json& data)
     }
 
     config.pDelay = read_required_json_param<double>(delay_json, "pDelay", "delayConfig");
-    config.poissonLambda = read_required_json_param<double>(delay_json, "poissonLambda", "delayConfig");
 
     const std::string duration_model = read_required_json_param<std::string>(delay_json, "durationModel", "delayConfig");
     if (duration_model == "uniform")

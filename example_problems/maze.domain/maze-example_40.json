@@ -1,0 +1,20 @@
+{
+    "mapFile": "maps/maze-32-32-2.map",
+    "agentFile": "agents/maze-example_40.agents",
+    "teamSize": 40,
+    "taskFile": "tasks/maze-example_40.tasks",
+    "numTasksReveal": 1.5,
+    "version": "2026 LoRR",
+    "agentCounter": 3,
+    "agentSize": 1.0,
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 5,
+        "maxDelay": 12,
+        "eventModel": "bernoulli",
+        "pDelay": 0.0003,
+        "durationModel": "gaussian",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.22
+    }
+}

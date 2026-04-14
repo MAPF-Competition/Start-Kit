@@ -1,14 +1,13 @@
 #!/bin/bash
 
-mkdir build
+mkdir -p build
 
-# build exec for cpp
-
-cmake -B build ./ -DPYTHON=false -DCMAKE_BUILD_TYPE=Release
+cmake -B build ./ -DCMAKE_BUILD_TYPE=Release
 make -C build -j
 
-
-# build exec for python
-
-# cmake -B build ./ -DPYTHON=true -DCMAKE_BUILD_TYPE=Release
-# make -C build -j
+# Runtime Python component selection via CLI flags:
+#   ./build/lifelong -i <input.json>                           # all C++ default
+#   ./build/lifelong -i <input.json> --plannerPython true      # Python planner only
+#   ./build/lifelong -i <input.json> --schedulerPython true    # Python scheduler only
+#   ./build/lifelong -i <input.json> --executorPython true     # Python executor only
+#   ./build/lifelong -i <input.json> --plannerPython true --schedulerPython true --executorPython true  # all Python

@@ -4,17 +4,6 @@
 #include "States.h"
 #include "Logger.h"
 
-/*
-  FW  - forward
-  CR  - Clockwise rotate
-  CCR - Counter clockwise rotate
-  W   - Wait
-  NA  - Not applicable
-*/
-enum Action {FW, CR, CCR, W, NA};
-
-enum ExecutionCommand {GO, STOP};
-
 std::ostream& operator<<(std::ostream &stream, const Action &action);
 
 class ActionModelWithRotate
@@ -57,5 +46,6 @@ protected:
 
 private:
     float _agent_size;
+    float _overlap_eps = 1e-4f;
     vector<char> _wait_agents;
 };

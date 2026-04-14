@@ -14,7 +14,7 @@ namespace DefaultPlanner{
 
 s_node astar(SharedEnvironment* env, std::vector<Int4>& flow,
     HeuristicTable& ht, Traj& traj,
-    MemoryPool& mem, int start, int goal, Neighbors* ns);
+    MemoryPool& mem, int start, int goal, Neighbors* ns, const TimePoint* deadline = nullptr);
 }
 
 #endif

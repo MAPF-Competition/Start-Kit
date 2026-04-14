@@ -121,8 +121,13 @@ void frank_wolfe(TrajLNS& lns,std::unordered_set<int>& updated, TimePoint timeli
         if (lns.traj_dists[a].empty() || lns.trajs[a].empty()){
             continue;
         }
+        std::vector<int> old_traj = lns.trajs[a];
         remove_traj(lns,a);
-        update_traj(lns,a);
+        if (!update_traj(lns,a, &timelimit)){
+            lns.trajs[a] = old_traj;
+            add_traj(lns,a);
+            break;
+        }
         
     }
     return;
@@ -157,12 +162,17 @@ void init_dist_table(TrajLNS& lns, int amount){
 }
 
 //update traj and distance table for agent i
-void update_traj(TrajLNS& lns, int i){
+bool update_traj(TrajLNS& lns, int i, const TimePoint* deadline){
     int start = lns.env->curr_states[i].location;
     int goal = lns.tasks[i];
-    lns.goal_nodes[i] = astar(lns.env,lns.flow, lns.heuristics[goal],lns.trajs[i],lns.mem,start,goal, &(lns.neighbors));
+    s_node goal_node = astar(lns.env,lns.flow, lns.heuristics[goal],lns.trajs[i],lns.mem,start,goal, &(lns.neighbors), deadline);
+    if (goal_node.id == -1){
+        return false;
+    }
+    lns.goal_nodes[i] = goal_node;
     add_traj(lns,i);
     update_dist_2_path(lns,i);
+    return true;
 }
 
 }

@@ -20,6 +20,8 @@ public:
     std::string map_name;
     std::vector<int> map;
     std::string file_storage_path;
+    std::string delay_event_distribution;
+    std::string delay_time_distribution;
 
     // goal locations for each agent
     // each task is a pair of <goal_loc, reveal_time>

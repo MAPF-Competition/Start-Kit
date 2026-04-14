@@ -13,6 +13,7 @@
 #include <future>
 #include "Simulator.h"
 #include <memory>
+#include <string>
 
 class BaseSystem
 {
@@ -20,7 +21,7 @@ public:
     Logger* logger = nullptr;
 
 	BaseSystem(Grid &grid, Entry* planner, Executor* executor, std::vector<int>& start_locs, std::vector<list<int>>& tasks, ActionModelWithRotate* model, int max_counter = 10):
-      map(grid), planner(planner), env(planner->env),
+      map(grid), planner(planner), env(planner->env), exec_env(executor->env),
       task_manager(tasks, start_locs.size()), simulator(grid,start_locs,model,executor,max_counter)
     {
         num_of_agents = start_locs.size();
@@ -48,6 +49,8 @@ public:
         {
             delete planner;
         }
+        // exec_env is a non-owning alias of executor->env.
+        // ~Simulator deletes executor, whose destructor deletes its env.
     };
 
     void set_num_tasks_reveal(float num){task_manager.set_num_tasks_reveal(num);};
@@ -68,12 +71,18 @@ public:
     {
         simulator.set_delay_generator(std::move(generator));
     }
+    void set_staged_action_validation_enabled(bool enabled)
+    {
+        simulator.set_staged_action_validation_enabled(enabled);
+    }
 
     void simulate(int simulation_time,int chunk_size);
     bool planner_wrapper();
+    bool planner_wrapper_init();
 
     //void saveSimulationIssues(const string &fileName) const;
     void saveResults(const string &fileName, int screen, bool pretty_print = false) const;
+    void set_task_trend_output(const std::string& file_name, int interval);
 
 
 protected:
@@ -92,6 +101,7 @@ protected:
 
     Entry* planner;
     SharedEnvironment* env;
+    SharedEnvironment* exec_env;
 
     int preprocess_time_limit=10;
 
@@ -117,15 +127,22 @@ protected:
     list<double> planner_times; 
     bool fast_mover_feasible = true;
 
+    std::string task_trend_output_file;
+    int task_trend_interval = 100;
+    int last_task_trend_timestep = 0;
+    int last_task_trend_finished = 0;
+
 
     void initialize();
     bool planner_initialize();
+    void write_task_trend_snapshot(int timestep, bool force = false);
 
 
     TaskManager task_manager;
     Simulator simulator;
     // deque<Task> task_queue;
-    virtual void sync_shared_env();
+    virtual void sync_shared_env_planner();
+    virtual void sync_shared_env_executor();
 
     void move(vector<Action>& actions);
     bool valid_moves(vector<State>& prev, vector<Action>& next);

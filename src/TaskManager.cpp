@@ -28,38 +28,34 @@ bool TaskManager::validate_task_assignment(vector<int>& assignment)
         // task should be a ongoing task
         if (assignment[i_agent] != -1 && ongoing_tasks.find(assignment[i_agent]) == ongoing_tasks.end())
         {
-            assignment[i_agent] = -1;
             schedule_errors.push_back(make_tuple("task already finished",assignment[i_agent],i_agent,-1,curr_timestep+1));
             logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already finished",curr_timestep+1);
             logger->flush();
-            return false;
+            assignment[i_agent] = -1;
         }
 
         // one task should not appear in the assignment twice
         if (assignment[i_agent] != -1 && idx_set.find(assignment[i_agent]) != idx_set.end())
         {
-            assignment[i_agent] = -1;
             schedule_errors.push_back(make_tuple("task is already assigned by the second agent at the same time",assignment[i_agent],i_agent,idx_set[assignment[i_agent]],curr_timestep+1));
             logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already assigned to agent " + std::to_string(idx_set[assignment[i_agent]]),curr_timestep+1);
-            return false;
+            assignment[i_agent] = -1;
         }
 
         // if agent is already executing some task, it should be assigned the same task.
         if (current_assignment[i_agent] != -1 && ongoing_tasks[current_assignment[i_agent]]->idx_next_loc > 0 && assignment[i_agent] != current_assignment[i_agent])
         {
+            schedule_errors.push_back(make_tuple("schedule agent to another task who is already opened a task",assignment[i_agent],i_agent,-1,curr_timestep+1));
+            logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because agent is already opened task " + std::to_string(current_assignment[i_agent] ),curr_timestep+1);
             assignment[i_agent] = current_assignment[i_agent];
-            schedule_errors.push_back(make_tuple("task is already opened by the second agent",assignment[i_agent],i_agent,ongoing_tasks[current_assignment[i_agent]]->agent_assigned,curr_timestep+1));
-            logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already opened by agent " + std::to_string(ongoing_tasks[current_assignment[i_agent]]->agent_assigned),curr_timestep+1);
-            return false;
         }
 
         // if agent assign a task that is opened by other, it should not be assigned to the task.
         if (assignment[i_agent] != -1 && ongoing_tasks[assignment[i_agent]]->idx_next_loc > 0 && ongoing_tasks[assignment[i_agent]]->agent_assigned != i_agent)
         {
-            assignment[i_agent] = -1;
             schedule_errors.push_back(make_tuple("task is already opened by other agent",assignment[i_agent],i_agent,ongoing_tasks[assignment[i_agent]]->agent_assigned,curr_timestep+1));
             logger->log_warning("Scheduler Error: schedule agent " + std::to_string(i_agent) + " to task " + std::to_string(assignment[i_agent]) + " wrong because the task is already opened by agent " + std::to_string(ongoing_tasks[assignment[i_agent]]->agent_assigned),curr_timestep+1);
-            return false;
+            assignment[i_agent] = -1;
         }
 
         if (assignment[i_agent] != -1)
@@ -80,7 +76,7 @@ bool TaskManager::validate_task_assignment(vector<int>& assignment)
  * @param assignment a vector of task_ids, one for each agent. The length of the vector should be equal to the number of agents.
  *
  */
-bool TaskManager::set_task_assignment(vector< int>& assignment)
+bool TaskManager::set_task_assignment(vector< int>& assignment, int timestep)
 {
     for (int a = 0; a < assignment.size(); a++)
     {
@@ -89,10 +85,10 @@ bool TaskManager::set_task_assignment(vector< int>& assignment)
             planner_schedule[a].push_back(make_pair(curr_timestep,assignment[a]));
         }
     }
-    // if (! validate_task_assignment(assignment))
-    // {
-    //     return false;
-    // }
+    if (!validate_task_assignment(assignment)) //if the assignment is not valid, we will not update the current assignment and just return false
+    {
+        return false;
+    }
 
     //reset all the agent_assigned to -1, so that any droped task->agent_assignment will be -1
     for (int a = 0; a < assignment.size(); a++)
@@ -217,7 +213,6 @@ void TaskManager::reveal_tasks(int timestep)
 void TaskManager::update_tasks(vector<State>& states, vector<int>& assignment, int timestep)
 {
     curr_timestep = timestep;
-    set_task_assignment(assignment);
     list<int> finsihed_agents = check_finished_tasks(states,timestep);
     for (int agent_id: finsihed_agents)
     {

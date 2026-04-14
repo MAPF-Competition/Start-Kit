@@ -164,12 +164,18 @@ It contains:
 - `action_time`: time budget per execution tick (ms)
 - `max_counter`: number of ticks needed to complete one action (FW/CR/CCR)
 
+### Delay model info
+- `delay_event_distribution`: delay event model name exposed at runtime (`bernoulli` or `poisson`)
+- `delay_time_distribution`: delay duration model name exposed at runtime (`uniform` or `gaussian`)
+
+These fields expose only the distribution family names. Hidden evaluator parameters such as probabilities, rates, and delay-duration bounds are not exposed through `SharedEnvironment`.
+
 ### Robot state views
 This system exposes two useful “views” of robot states:
 
 - `system_states`: the **current physical states** in the executor loop (tick-by-tick).
 - `curr_states`: the **planning snapshot states** used for planning updates.
-  These may be predicted/processed states (e.g., after staging a plan window),
+  It refers to the predicted states returned by the executor (e.g., after staging a plan window),
   and may differ from `system_states`.
 
 Also available:
@@ -255,7 +261,7 @@ Files: `inc/Executor.h`, `src/Executor.cpp`
 - `Executor::next_command(int exec_time_limit, vector<ExecutionCommand>& agent_command)`
 
 Return:
-- `process_new_plan(...)` updates `staged_actions` and returns predicted states.
+- `process_new_plan(...)` updates `staged_actions` and returns predicted states. **Note that, in the Execution Track, the predicted states must match the ending states of `staged_actions` and the staged actions must remain a prefix of the previous staged actions plus the new plan (excluding any wait actions).** This validation can be turned off for combined track through cli flag `--disableStagedActionValidation`.
 - `next_command(...)` outputs `GO/STOP` per agent for the next tick.
 
 ## Understand the default components
@@ -351,9 +357,11 @@ You are free to use third-party libraries or other dependencies in your implemen
 - Specify dependency packages in apt.txt. These packages must be available for installation through apt-get on Ubuntu 22.
 
 ## Python Interface
-The Python interface is not ready for this competition stage and is currently not supported for submission use.
 
-We plan to provide a fully supported Python interface for the main round.
+The start-kit includes a Python interface (built on pybind11) that lets you implement your planner, scheduler, and/or executor in Python — any combination of Python and C++ components is supported.
+Enable Python components at runtime with CLI flags (`--plannerPython`, `--schedulerPython`, `--executorPython`).
+
+For full details — APIs, file layout, zero-copy bindings, and the MAPF module reference — see **[Python_Interface.md](./Python_Interface.md)**.
 
 ## Evaluation
 

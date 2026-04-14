@@ -1,0 +1,20 @@
+{
+    "mapFile": "maps/room-64-64-16.map",
+    "agentFile": "agents/room-example_250.agents",
+    "teamSize": 150,
+    "taskFile": "tasks/room-example_250.tasks",
+    "numTasksReveal": 1.5,
+    "version": "2026 LoRR",
+    "agentCounter": 3,
+    "agentSize": 1.0,
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 10,
+        "maxDelay": 30,
+        "eventModel": "poisson",
+        "pDelay": 0.01,
+        "durationModel": "uniform",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.22
+    }
+}

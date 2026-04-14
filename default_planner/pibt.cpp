@@ -3,27 +3,46 @@
 
 #include "pibt.h"
 
+#include <cstdint>
+
 
 
 
 
 namespace DefaultPlanner{
-
 int get_gp_h(TrajLNS& lns, int ai, int target){
     int min_heuristic;
 
-    if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
-        min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors));	
-    else if (!lns.heuristics[lns.tasks.at(ai)].empty())
-        min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
-    else
-        min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
-    
-    return min_heuristic;
+	if (is_large_map(lns.env)){
+		if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
+		{
+			min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors)); 
+		}
+		else
+		{
+			min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
+		}
+		return min_heuristic;
+	}
+	else{
+		if (!lns.traj_dists.empty() && !lns.traj_dists[ai].empty())
+		{
+			min_heuristic = get_dist_2_path(lns.traj_dists[ai], lns.env, target, &(lns.neighbors)); 
+		}
+		else if (!lns.heuristics[lns.tasks.at(ai)].empty())
+		{
+			min_heuristic = get_heuristic(lns.heuristics[lns.tasks.at(ai)], lns.env, target, &(lns.neighbors));
+		}
+		else
+		{
+			min_heuristic = manhattanDistance(target,lns.tasks.at(ai),lns.env);
+		}
+		return min_heuristic;
+	}
 }
 
 bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
-	 std::vector<State>& next_states,
+	  std::vector<State>& next_states,
       std::vector<int>& prev_decision, std::vector<int>& decision, 
 	  std::vector<bool>& occupied, TrajLNS& lns
 	  ){
@@ -108,11 +127,6 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 
     next_states.at(curr_id) = State(prev_loc,-1 ,-1);;
     decision.at(prev_loc) = curr_id;     
-
-	#ifndef NDEBUG
-		std::cout<<"false: "<< next_states[curr_id].location<<","<<next_states[curr_id].orientation <<std::endl;
-	#endif   
-
     return false;
 }
 
@@ -164,8 +178,6 @@ Action getAction(State& prev, int next_loc, SharedEnvironment* env){
 		return Action::CR;
 	}
 	assert(false);
-
-
 
 }
 

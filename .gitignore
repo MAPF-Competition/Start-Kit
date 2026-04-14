@@ -13,3 +13,11 @@ cmake-build-*/
 build*
 proposal/
 viz_ticks.ndjson
+log*
+test*
+__pycache__
+task_trend.png
+task_trend.txt
+test*.json
+cmake-build-*/
+.codex

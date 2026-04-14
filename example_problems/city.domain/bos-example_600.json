@@ -1,0 +1,20 @@
+{
+    "mapFile": "maps/Boston_0_256.map",
+    "agentFile": "agents/bos-example_600.agents",
+    "teamSize": 600,
+    "taskFile": "tasks/bos-example_600.tasks",
+    "numTasksReveal": 1.5,
+    "version": "2026 LoRR",
+    "agentCounter": 3,
+    "agentSize": 1.0,
+    "delayConfig": {
+        "seed": 0,
+        "minDelay": 10,
+        "maxDelay": 25,
+        "eventModel": "poisson",
+        "pDelay": 0.01,
+        "durationModel": "gaussian",
+        "gaussMeanRatio": 0.5,
+        "gaussStdRatio": 0.22
+    }
+}

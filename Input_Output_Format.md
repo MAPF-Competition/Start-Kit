@@ -14,11 +14,15 @@
 | `--simulationTime` / `-s` | Int | Maximum number of **execution ticks** to simulate (planning horizon). |
 | `--preprocessTimeLimit` / `-p` | Int (ms) | Preprocessing time limit (loading / precomputation before simulation). |
 | `--actionMoveTimeLimit` / `-a` | Int (ms) | **Execution tick** duration / per-tick time budget. The executor is called every tick under this budget. |
-| `--initialPlanTimeLimit` / `-n` | Int (ms) | Time budget for the **first** planning call. |
-| `--planCommTimeLimit` / `-t` | Int (ms) | Minimum communication interval between planning updates (planner is called periodically, not every tick). |
-| `--executorProcessPlanTimeLimit` / `-x` | Int (ms) | Time budget for processing/staging a returned plan (plan adoption step). |
-| `--outputActionWindow` / `-w` | Int | Path output compression window size (default 100). Output paths are chunked in windows of this many ticks. *(In this branch, the driver currently uses 100 as the chunk size.)* |
+| `--initialPlanTimeLimit` / `-n` | Int (ms) | Time budget for the **first** planning call (default `1000`). |
+| `--planCommTimeLimit` / `-t` | Int (ms) | Minimum communication interval between planning updates (default `1000`). The planner is called periodically, not every tick. |
+| `--executorProcessPlanTimeLimit` / `-x` | Int (ms) | Time budget for processing/staging a returned plan (default `100`). |
+| `--outputActionWindow` / `-w` | Int | Path output compression window size (default `1000`). Output paths are chunked in windows of this many ticks. |
 | `--evaluationMode` / `-m` | Bool | Evaluate an existing output file (used by tooling / evaluation scripts). |
+| `--plannerPython` | Bool | Use a Python `MAPFPlanner` implementation instead of the C++ one (default `false`). |
+| `--schedulerPython` | Bool | Use a Python `TaskScheduler` implementation instead of the C++ one (default `false`). |
+| `--executorPython` | Bool | Use a Python `Executor` implementation instead of the C++ one (default `false`). |
+| `--disableStagedActionValidation` | Flag | Disable validation that executor staged actions remain a prefix of the previous staged actions plus the new plan (default off). |
 
 
 ## Input Problem File (in JSON format)
@@ -34,7 +38,7 @@ All paths here is the relative path relative to the location of input JSON file
 | `teamSize` | Int | The number of robots in the simulation  |
 | `numTasksReveal` | Float | The multiplier of tasks revealed in the task pool. We always keep numTasksReveal times teamSize of tasks revealed in the task pool. If in one timestep, k tasks are finished, then the system will add k tasks into the task pool |
 | `agentSize` | Float | Size of the robot safety square for overlap-based collision checking (default `1.0`). Must be > 0. |
-| `maxCounter` | Int | Number of execution ticks required to complete one **Forward/Rotate** action (default `10`). |                                                                                                                                                                                   |
+| `agentCounter` | Int | Number of execution ticks required to complete one **Forward/Rotate** action (default `10`). |                                                                                                                                                                                   |
 
 Example input shown below:
 
@@ -54,11 +58,12 @@ Example input shown below:
 | `minDelay` | Int | Minimum sampled delay duration. |
 | `maxDelay` | Int | Maximum sampled delay duration. |
 | `eventModel` | String | Delay event model: `bernoulli` or `poisson`. |
-| `pDelay` | Float | Per-agent delay probability when using the `bernoulli` model. |
-| `poissonLambda` | Float | Poisson rate when using the `poisson` model. |
+| `pDelay` | Float | Per-agent delay probability. For `bernoulli`, it is sampled independently for each available agent. For `poisson`, the runtime derives the Poisson rate as `teamSize * pDelay`. |
 | `durationModel` | String | Delay duration model: `uniform` or `gaussian`. |
 | `gaussMeanRatio` | Float | Relative mean position inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
 | `gaussStdRatio` | Float | Relative standard deviation inside `[minDelay, maxDelay]` when using the `gaussian` duration model. |
+
+For participant code at runtime, the shared environment exposes only the model names via `env->delay_event_distribution` and `env->delay_time_distribution`. The numeric `delayConfig` parameters are not exposed through `SharedEnvironment`.
 
 ## Map File Format
 
@@ -91,7 +96,7 @@ The following table defines the properties that appear in the output file.
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | actionModel     | String <br /> The name of the action model used for the robots in the simulator, this value is always "MAPF_T" which indicates MAPF with Turnings (i.e. robots can be orientated in any of the 4 cardinal directions, the avaliable actions are forward, clockwise turn, counter-clockwise turn, and wait)                                                                                                                                                                                                                                                                                                  |
 | teamSize        | Int <br /> The number of robots in the simulation                                                                                                                                                                                                                                                                                                                                                     |
-| agentMaxCounter | Int | The `maxCounter` used in this run (ticks per Forward/Rotate action) |
+| agentMaxCounter | Int | The `agentCounter` used in this run (ticks per Forward/Rotate action) |
 | outputSegmentSize | Int | Segment/window length used for compressed path output |
 | delayIntervals | List | A list of `n` per-agent delay interval lists, where `n` is the number of robots. Each interval is stored as `[start_timestep, end_timestep]`. Included only when `outputScreen <= 2`. |
 | start           | List <br />A list of start locations. The length of the list is the number of robots.                                                                                                                                                                                                                                                                                           |

@@ -1,18 +1,40 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-remote_link="https://github.com/MAPF-Competition/Start-Kit.git"
-git remote add upstream $remote_link
-git fetch upstream --no-tags main
+# Keep bootstrap and upgrader branch aligned when users pass --source-branch.
+SOURCE_BRANCH="main"
+for ((i=1; i<=$#; i++)); do
+   arg="${!i}"
+   if [[ "$arg" == "--source-branch" ]]; then
+      next_index=$((i + 1))
+      if (( next_index <= $# )); then
+         SOURCE_BRANCH="${!next_index}"
+      fi
+   elif [[ "$arg" == --source-branch=* ]]; then
+      SOURCE_BRANCH="${arg#--source-branch=}"
+   fi
+done
 
-git restore --staged --worktree --source=upstream/main utils/upgrade_file_list.txt
+SCRIPT_URL="https://raw.githubusercontent.com/MAPF-Competition/Start-Kit/${SOURCE_BRANCH}/utils/upgrade_start_kit.py"
+TMP_SCRIPT="$(mktemp "${PWD}/.upgrade_start_kit.XXXXXX.py")"
 
-files=""
-while read -r line;
-do
-   files="$files $line" ;
-done < utils/upgrade_file_list.txt
-echo restore files: $files
+cleanup() {
+   rm -f "$TMP_SCRIPT"
+}
+trap cleanup EXIT
 
-git restore --staged --worktree --source=upstream/main $files
+if command -v curl >/dev/null 2>&1; then
+   curl -fsSL -o "$TMP_SCRIPT" "$SCRIPT_URL"
+elif command -v wget >/dev/null 2>&1; then
+   wget -qO "$TMP_SCRIPT" "$SCRIPT_URL"
+else
+   echo "Error: neither curl nor wget is available to download the upgrader." >&2
+   exit 1
+fi
 
-echo "Update pulled, please review the changes and commit them."
+if ! command -v python3 >/dev/null 2>&1; then
+   echo "Error: python3 is required to run the upgrader." >&2
+   exit 1
+fi
+
+python3 "$TMP_SCRIPT" "$@"

@@ -117,5 +117,10 @@ void getNeighborLocs(const Neighbors* ns, int neighbors[], int location) {
 	}
 
 }
+
+bool is_large_map(const SharedEnvironment* env)
+{
+    return env->rows * env->cols > 90000;
+}
 }
 
