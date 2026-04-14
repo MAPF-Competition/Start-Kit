@@ -24,7 +24,6 @@ struct DelayConfig
     int maxDelay = 1;
     EventModel eventModel = EventModel::Bernoulli;
     double pDelay = 0.0;
-    double poissonLambda = 0.0;
     DurationModel durationModel = DurationModel::Uniform;
     double gaussMeanRatio = 0.5;
     double gaussStdRatio = 0.0;

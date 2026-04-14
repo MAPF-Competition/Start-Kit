@@ -13,7 +13,6 @@
         "maxDelay": 25,
         "eventModel": "poisson",
         "pDelay": 0.0005,
-        "poissonLambda": 0.3,
         "durationModel": "gaussian",
         "gaussMeanRatio": 0.5,
         "gaussStdRatio": 0.22
