@@ -35,7 +35,7 @@ struct Task
     //Task(int task_id, int location): task_id(task_id), locations({location}) {};
     Task(int task_id, list<int> location, int t_revealed): task_id(task_id), t_revealed(t_revealed)
     {
-        for (auto loc: location)
+        for (int loc: location)
             locations.push_back(loc);
     };
 

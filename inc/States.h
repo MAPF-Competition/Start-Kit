@@ -71,7 +71,7 @@ typedef std::vector<State> Path;
 
 inline std::ostream & operator << (std::ostream &out, const Path &path)
 {
-    for (auto state : path)
+    for (State state : path)
     {
         if (state.location < 0)
             continue;

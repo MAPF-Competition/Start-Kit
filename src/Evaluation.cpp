@@ -3,12 +3,12 @@
 
 void DummyPlanner::load_plans(std::string fname){
     std::ifstream ifs(fname);
-    auto jf = nlohmann::json::parse(ifs);
+    nlohmann::json jf = nlohmann::json::parse(ifs);
     if (!jf.contains("Planner Paths") || !jf["Planner Paths"].is_array()){
         return;
     }
 
-    for  (auto it = jf["Planner Paths"].begin(); it != jf["Planner Paths"].end(); ++it)
+    for  (nlohmann::json::iterator it = jf["Planner Paths"].begin(); it != jf["Planner Paths"].end(); ++it)
     {
         if (!it->is_string())
         {
@@ -16,7 +16,7 @@ void DummyPlanner::load_plans(std::string fname){
             return;
         }
         agent_plans.emplace_back();
-        for (auto& ch: it->get<std::string>())
+        for (char ch: it->get_ref<const std::string&>())
         {
             if (ch=='W')
             {
@@ -42,7 +42,7 @@ void DummyPlanner::load_plans(std::string fname){
 std::vector<Action> DummyPlanner::plan(int time_limit)
 {
     std::vector<Action> result;
-    for (auto & dq: agent_plans)
+    for (std::deque<Action> & dq: agent_plans)
     {
         if (!dq.empty())
         {

@@ -67,7 +67,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 	std::vector<int> neighbors;
 	std::vector<PIBT_C> successors;
 	getNeighborLocs(&(lns.neighbors),neighbors,prev_loc);
-	for (auto& neighbor: neighbors){
+	for (int& neighbor: neighbors){
 
 		assert(validateMove(prev_loc, neighbor, lns.env));
 
@@ -98,7 +98,7 @@ bool causalPIBT(int curr_id, int higher_id,std::vector<State>& prev_states,
 		});
 
 
-    for (auto& next: successors){
+    for (PIBT_C& next: successors){
 		if(occupied[next.location] && !(higher_id == -1 && prev_loc == next.location))
 			continue;
 		assert(validateMove(prev_loc, next.location, lns.env));

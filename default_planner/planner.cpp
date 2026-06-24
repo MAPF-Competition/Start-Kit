@@ -225,7 +225,7 @@ namespace DefaultPlanner{
     static void run_multistep_pibt_once(SharedEnvironment* env, std::vector<double>& local_priority,
                                         std::vector<Action>& one_step_actions)
     {
-        const auto start_time = std::chrono::steady_clock::now();
+        const TimePoint start_time = std::chrono::steady_clock::now();
         std::sort(ids.begin(), ids.end(), [&](int a, int b) {
                 return local_priority.at(a) > local_priority.at(b);
             }
@@ -264,7 +264,7 @@ namespace DefaultPlanner{
 
         prev_states = next_states;
 
-        const auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(
+        const long elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now() - start_time).count();
     }
 
@@ -353,7 +353,7 @@ namespace DefaultPlanner{
             return;
         }
 
-        const auto episode_start = std::chrono::steady_clock::now();
+        const TimePoint episode_start = std::chrono::steady_clock::now();
         const TimePoint episode_deadline = episode_start + std::chrono::milliseconds(std::max(0, time_limit));
         int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents/100;
         if (pibt_time <= 0){
@@ -377,8 +377,8 @@ namespace DefaultPlanner{
         setup_multistep_episode_state(env, flow_end_time, local_priority);
         update_guide_paths_once_for_multistep(env, flow_end_time);
 
-        const auto after_setup = std::chrono::steady_clock::now();
-        const auto setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
+        const TimePoint after_setup = std::chrono::steady_clock::now();
+        const long setup_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(after_setup - episode_start).count();
         // commit only cross-episode priority update (internal rollout keeps using local_priority only)
         p = local_priority;
 

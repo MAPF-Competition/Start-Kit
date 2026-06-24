@@ -2,7 +2,7 @@
  * opaque_types.h — Shared PYBIND11_MAKE_OPAQUE declarations.
  *
  * MUST be included in every translation unit that touches these types via pybind11.
- * This prevents pybind11 from auto-converting containers to Python lists (which copies data).
+ * This prevents pybind11 from implicitly converting containers to Python lists (which copies data).
  * Instead, Python gets a thin wrapper referencing C++ memory directly (zero-copy).
  *
  * Include this INSTEAD of <pybind11/stl.h> in bridge files.

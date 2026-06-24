@@ -51,6 +51,14 @@ add_custom_target(clean_all
 )
 
 
+add_custom_target(lint
+    COMMAND ${CMAKE_COMMAND}
+        -DCHECK_NO_AUTO_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_SOURCE_DIR}/cmake/CheckNoAuto.cmake
+    COMMENT "Checking coding style"
+)
+
+
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
     "${CMAKE_BINARY_DIR}/lifelong;
      ${CMAKE_BINARY_DIR}/build;
@@ -61,6 +69,11 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
 option(BUILD_TESTS "Build planner tests" ON)
 if(BUILD_TESTS)
     enable_testing()
+    add_test(NAME no_auto_lint
+        COMMAND ${CMAKE_COMMAND}
+            -DCHECK_NO_AUTO_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+            -P ${CMAKE_SOURCE_DIR}/cmake/CheckNoAuto.cmake)
+
     add_executable(multi_step_plan_test
         tests/multi_step_plan_test.cpp
         ${DEFAULT_PLANNER_SOURCES}
@@ -89,4 +102,3 @@ if(BUILD_TESTS)
     add_test(NAME python_interface_test COMMAND python_interface_test
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif()
-

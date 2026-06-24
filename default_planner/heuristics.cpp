@@ -53,7 +53,7 @@ void init_heuristic(HeuristicTable& ht, SharedEnvironment* env, int goal_locatio
 
 
 int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighbors* ns){
-		auto it = ht.htable.find(source);
+		std::unordered_map<int, int>::iterator it = ht.htable.find(source);
 		if (it != ht.htable.end() && it->second < MAX_TIMESTEP) return it->second;
 
 		std::vector<int> neighbors;
@@ -75,7 +75,7 @@ int get_heuristic(HeuristicTable& ht, SharedEnvironment* env, int source, Neighb
 				assert(next >= 0 && next < env->map.size());
 				//set current cost for reversed direction
 
-				auto it = ht.htable.find(next);
+				std::unordered_map<int, int>::iterator it = ht.htable.find(next);
 				if (it != ht.htable.end() && it->second <= cost) // if 'next' is not found in htable, that means it's MAX_TIMESTEP
 					continue;
 
@@ -122,7 +122,7 @@ void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path){
 		int loc = path[i];
 
         // If this location has already been visited in this label, skip it
-        auto it = dp.dist2path.find(loc);
+        std::unordered_map<int, d2p>::iterator it = dp.dist2path.find(loc);
         if (it != dp.dist2path.end() && it->second.label == dp.label) {
             assert(it->second.cost == MAX_TIMESTEP);
         }
@@ -138,7 +138,7 @@ void init_dist_2_path(Dist2Path& dp, SharedEnvironment* env, Traj& path){
 
 std::pair<int,int> get_source_2_path(Dist2Path& dp, SharedEnvironment* env, int source, Neighbors* ns)
 {
-	auto it_source = dp.dist2path.find(source);
+	std::unordered_map<int, d2p>::iterator it_source = dp.dist2path.find(source);
     if (it_source != dp.dist2path.end() && it_source->second.label == dp.label && it_source->second.cost < MAX_TIMESTEP) 
         return std::make_pair(it_source->second.cost, it_source->second.togo);
 	
@@ -153,7 +153,7 @@ std::pair<int,int> get_source_2_path(Dist2Path& dp, SharedEnvironment* env, int 
 		for (int next_location : neighbors)
 		{
 			cost = curr.cost + 1;
-			auto it_next = dp.dist2path.find(next_location);
+			std::unordered_map<int, d2p>::iterator it_next = dp.dist2path.find(next_location);
             if (it_next != dp.dist2path.end() && it_next->second.label == dp.label && cost >= it_next->second.cost)
                 continue;
 			dp.open.emplace_back(dp.label,next_location,cost,curr.togo);

@@ -213,7 +213,7 @@ inline DelayConfig parse_delay_config(const nlohmann::json& data)
         throw std::invalid_argument("Missing required object delayConfig in the input JSON");
     }
 
-    const auto& delay_json = data.at("delayConfig");
+    const nlohmann::json& delay_json = data.at("delayConfig");
     DelayConfig config;
     config.seed = read_required_json_param<unsigned int>(delay_json, "seed", "delayConfig");
     config.minDelay = read_required_json_param<int>(delay_json, "minDelay", "delayConfig");

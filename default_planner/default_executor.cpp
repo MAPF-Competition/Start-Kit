@@ -54,7 +54,7 @@ vector<State> execute_process_new_plan(int sync_time_limit, Plan& plan_struct, v
         previous_locations[i] = env->system_states[i].location; //for use of keep track of tpg in move function
     }
 
-    auto curr_states = predicted_states;
+    std::vector<State> curr_states = predicted_states;
 
     int moves[4] = {1, env->cols, -1, -env->cols};
     std::vector<std::vector<Action>> plan = plan_struct.actions;
@@ -102,7 +102,7 @@ vector<State> execute_process_new_plan(int sync_time_limit, Plan& plan_struct, v
 
     for (int t = 0; t < window_size; t++)
     {
-        auto pre_states = curr_states;
+        std::vector<State> pre_states = curr_states;
         for (int i = 0; i < env->num_of_agents; i++)
         {
 
