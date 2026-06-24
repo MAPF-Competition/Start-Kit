@@ -288,7 +288,7 @@ void collect_neighbor_agents(int agent_id, const BoxMotion& motion, StepResolveC
         for (int c = c0; c <= c1; c++)
         {
             const int key = r * ctx.cols + c;
-            auto it = ctx.current_bins.find(key);
+            unordered_map<int, std::vector<int>>::const_iterator it = ctx.current_bins.find(key);
             if (it == ctx.current_bins.end())
                 continue;
             for (int j : it->second)
@@ -524,7 +524,7 @@ vector<ActionModelWithRotate::RealLocation> ActionModelWithRotate::get_real_loca
 
     for (size_t i = 0; i < state.size(); i++)
     {
-        const auto& s = state[i];
+        const State& s = state[i];
         RealLocation loc;
         const int row = s.location / cols;
         const int col = s.location % cols;
@@ -632,7 +632,7 @@ void ActionModelWithRotate::sanity_check_states(const vector<State>& states)
             const int nc = col + kDc[k];
             if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
                 continue;
-            auto it = grid_agents.find(nr * cols + nc);
+            unordered_map<int, std::vector<int>>::iterator it = grid_agents.find(nr * cols + nc);
             if (it == grid_agents.end())
                 continue;
             for (int j : it->second)

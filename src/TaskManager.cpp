@@ -168,7 +168,7 @@ list<int> TaskManager::check_finished_tasks(vector<State>& states, int timestep)
 void TaskManager::sync_shared_env(SharedEnvironment* env) 
 {
     env->task_pool.clear();
-    for (auto& task: ongoing_tasks)
+    for (std::pair<const int, Task*>& task: ongoing_tasks)
     {
         env->task_pool[task.first] = *task.second;
     }
@@ -230,7 +230,7 @@ json TaskManager::to_json(int map_cols) const
 {
     
     json tasks = json::array();
-    for (auto t: all_tasks)
+    for (Task* t: all_tasks)
     {
         json task = json::array();
         task.push_back(t->task_id);
@@ -239,7 +239,7 @@ json TaskManager::to_json(int map_cols) const
         // task.push_back(t->locations.front()%map_cols);
         task.push_back(t->t_revealed);
         json locs = json::array();
-        for (auto loc: t->locations)
+        for (int loc: t->locations)
         {
             locs.push_back(loc/map_cols);
             locs.push_back(loc%map_cols);

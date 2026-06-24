@@ -137,7 +137,7 @@ struct TestEnv {
             Task t;
             t.task_id = i;
             t.t_revealed = 0;
-            for (auto loc : tasks[i]) {
+            for (int loc : tasks[i]) {
                 t.locations.push_back(loc);
             }
             env->task_pool[i] = t;
@@ -421,7 +421,7 @@ sys.modules['pyExecutor'] = dummy_executor
         }
 
         std::vector<std::vector<Action>> staged_actions(tenv.team_size);
-        auto predicted = executor.process_new_plan(100, plan, staged_actions);
+        std::vector<State> predicted = executor.process_new_plan(100, plan, staged_actions);
 
         ASSERT_EQ((int)predicted.size(), tenv.team_size);
         // staged_actions should have FW and CR appended (non-wait actions)
@@ -436,7 +436,7 @@ sys.modules['pyExecutor'] = dummy_executor
         std::vector<ExecutionCommand> commands(tenv.team_size);
         executor.next_command(100, commands);
         ASSERT_EQ((int)commands.size(), tenv.team_size);
-        for (auto cmd : commands) {
+        for (ExecutionCommand cmd : commands) {
             ASSERT_EQ(cmd, ExecutionCommand::GO);
         }
 
@@ -568,8 +568,8 @@ void run_e2e_tests() {
 
         Grid grid(base_folder + data["mapFile"].get<std::string>());
         int team_size = data["teamSize"].get<int>();
-        auto agents = read_int_vec(base_folder + data["agentFile"].get<std::string>(), team_size);
-        auto tasks = read_int_vec(base_folder + data["taskFile"].get<std::string>());
+        std::vector<int> agents = read_int_vec(base_folder + data["agentFile"].get<std::string>(), team_size);
+        std::vector<std::list<int>> tasks = read_int_vec(base_folder + data["taskFile"].get<std::string>());
 
         Entry* entry = new Entry();
         Executor* executor = new Executor(entry->env);
@@ -578,7 +578,7 @@ void run_e2e_tests() {
         Logger* logger = new Logger("", 5); // fatal only
         model->set_logger(logger);
 
-        auto system_ptr = std::make_unique<BaseSystem>(
+        std::unique_ptr<BaseSystem> system_ptr = std::make_unique<BaseSystem>(
             grid, entry, executor, agents, tasks, model,
             data.value("agentCounter", 10));
         system_ptr->set_logger(logger);
@@ -586,7 +586,7 @@ void run_e2e_tests() {
         system_ptr->set_preprocess_time_limit(5000);
         system_ptr->set_num_tasks_reveal(data.value("numTasksReveal", 1.0f));
 
-        auto delay_config = parse_delay_config(data);
+        DelayConfig delay_config = parse_delay_config(data);
         system_ptr->set_delay_generator(std::make_unique<DelayGenerator>(delay_config, team_size));
 
         // Short simulation: 50 timesteps
@@ -623,8 +623,8 @@ sys.modules['pyMAPFPlanner'] = dummy_planner
 
         Grid grid(base_folder + data["mapFile"].get<std::string>());
         int team_size = data["teamSize"].get<int>();
-        auto agents = read_int_vec(base_folder + data["agentFile"].get<std::string>(), team_size);
-        auto tasks = read_int_vec(base_folder + data["taskFile"].get<std::string>());
+        std::vector<int> agents = read_int_vec(base_folder + data["agentFile"].get<std::string>(), team_size);
+        std::vector<std::list<int>> tasks = read_int_vec(base_folder + data["taskFile"].get<std::string>());
 
         // Python planner + C++ scheduler + C++ executor
         pyEntry* entry = new pyEntry(true, false, false);
@@ -635,7 +635,7 @@ sys.modules['pyMAPFPlanner'] = dummy_planner
         Logger* logger = new Logger("", 5);
         model->set_logger(logger);
 
-        auto system_ptr = std::make_unique<BaseSystem>(
+        std::unique_ptr<BaseSystem> system_ptr = std::make_unique<BaseSystem>(
             grid, entry, executor, agents, tasks, model,
             data.value("agentCounter", 10));
         system_ptr->set_logger(logger);
@@ -643,7 +643,7 @@ sys.modules['pyMAPFPlanner'] = dummy_planner
         system_ptr->set_preprocess_time_limit(5000);
         system_ptr->set_num_tasks_reveal(data.value("numTasksReveal", 1.0f));
 
-        auto delay_config = parse_delay_config(data);
+        DelayConfig delay_config = parse_delay_config(data);
         system_ptr->set_delay_generator(std::make_unique<DelayGenerator>(delay_config, team_size));
 
         // Short simulation with Python planner (returns all-wait)
@@ -680,8 +680,8 @@ void run_performance_tests() {
 
     Grid grid(base_folder + data["mapFile"].get<std::string>());
     int team_size = data["teamSize"].get<int>();
-    auto agents = read_int_vec(base_folder + data["agentFile"].get<std::string>(), team_size);
-    auto tasks = read_int_vec(base_folder + data["taskFile"].get<std::string>());
+    std::vector<int> agents = read_int_vec(base_folder + data["agentFile"].get<std::string>(), team_size);
+    std::vector<std::list<int>> tasks = read_int_vec(base_folder + data["taskFile"].get<std::string>());
 
     SharedEnvironment env;
     env.num_of_agents = team_size;
@@ -713,7 +713,7 @@ void run_performance_tests() {
         Task t;
         t.task_id = i;
         t.t_revealed = 0;
-        for (auto loc : tasks[i]) t.locations.push_back(loc);
+        for (int loc : tasks[i]) t.locations.push_back(loc);
         env.task_pool[i] = t;
     }
 
@@ -726,7 +726,7 @@ void run_performance_tests() {
         ASSERT_EQ(map_size, 140 * 500);
         ASSERT_EQ((int)env.map.size(), map_size);
 
-        auto start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         // Iterate all cells from Python to measure access speed
         py::exec(R"(
 total = 0
@@ -734,7 +734,7 @@ m = env.map
 for i in range(len(m)):
     total += m[i]
         )", py::globals(), py::dict(py::arg("env") = py_env));
-        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         double ms = std::chrono::duration<double, std::milli>(end - start).count();
         std::cout << "    Map iteration (70k cells): " << ms << " ms" << std::endl;
         ASSERT_LE(ms, 500.0); // Should be well under 500ms for 70k ints
@@ -745,14 +745,14 @@ for i in range(len(m)):
     // Test: iterate 5000 agent states from Python
     {
         std::cout << "  [RUN ] perf_states_iterate_5000" << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         py::exec(R"(
 states = env.curr_states
 locs = []
 for i in range(len(states)):
     locs.append(states[i].location)
         )", py::globals(), py::dict(py::arg("env") = py_env));
-        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         double ms = std::chrono::duration<double, std::milli>(end - start).count();
         std::cout << "    States iteration (5000 agents): " << ms << " ms" << std::endl;
         ASSERT_LE(ms, 200.0); // Should be fast — no copy
@@ -766,7 +766,7 @@ for i in range(len(states)):
         int pool_size = (int)env.task_pool.size();
         std::cout << "    Task pool size: " << pool_size << std::endl;
 
-        auto start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         py::exec(R"(
 pool = env.task_pool
 count = 0
@@ -774,7 +774,7 @@ for k in pool:
     t = pool[k]
     count += len(t.locations)
         )", py::globals(), py::dict(py::arg("env") = py_env));
-        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         double ms = std::chrono::duration<double, std::milli>(end - start).count();
         std::cout << "    Task pool iteration (" << pool_size << " tasks): " << ms << " ms" << std::endl;
         ASSERT_LE(ms, 1000.0);
@@ -785,14 +785,14 @@ for k in pool:
     // Test: iterate curr_task_schedule (5000 ints)
     {
         std::cout << "  [RUN ] perf_schedule_iterate_5000" << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         py::exec(R"(
 sched = env.curr_task_schedule
 total = 0
 for i in range(len(sched)):
     total += sched[i]
         )", py::globals(), py::dict(py::arg("env") = py_env));
-        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         double ms = std::chrono::duration<double, std::milli>(end - start).count();
         std::cout << "    Schedule iteration (5000 agents): " << ms << " ms" << std::endl;
         ASSERT_LE(ms, 100.0);
@@ -803,14 +803,14 @@ for i in range(len(sched)):
     // Test: iterate staged_actions (5000 empty vectors — check overhead of nested access)
     {
         std::cout << "  [RUN ] perf_staged_actions_iterate_5000" << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         py::exec(R"(
 sa = env.staged_actions
 total = 0
 for i in range(len(sa)):
     total += len(sa[i])
         )", py::globals(), py::dict(py::arg("env") = py_env));
-        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         double ms = std::chrono::duration<double, std::milli>(end - start).count();
         std::cout << "    Staged actions iteration (5000 agents): " << ms << " ms" << std::endl;
         ASSERT_LE(ms, 200.0);
@@ -822,7 +822,7 @@ for i in range(len(sa)):
     {
         std::cout << "  [RUN ] perf_planner_access_pattern" << std::endl;
         // Typical planner: read all states, read map cells around each agent, read schedule
-        auto start = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         py::exec(R"(
 states = env.curr_states
 m = env.map
@@ -848,7 +848,7 @@ for iteration in range(10):  # simulate 10 plan calls
             if c < cols - 1 and m[loc + 1] == 0:
                 pass
         )", py::globals(), py::dict(py::arg("env") = py_env));
-        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         double ms = std::chrono::duration<double, std::milli>(end - start).count();
         std::cout << "    Planner access pattern (10 iterations × 5000 agents): " << ms << " ms" << std::endl;
         ASSERT_LE(ms, 5000.0); // 10 full scans at 5000 agents

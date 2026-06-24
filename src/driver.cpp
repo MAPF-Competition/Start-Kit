@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     bool use_py_executor  = vm["executorPython"].as<bool>();
 
     if (use_py_planner || use_py_scheduler || use_py_executor) {
-        auto *pe = new pyEntry(use_py_planner, use_py_scheduler, use_py_executor);
+        pyEntry *pe = new pyEntry(use_py_planner, use_py_scheduler, use_py_executor);
         executor = pe->get_executor();
         planner = pe;
     } else {
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
         executor = new Executor();
     }
 
-    auto input_json_file = vm["inputFile"].as<std::string>();
+    std::string input_json_file = vm["inputFile"].as<std::string>();
     json data;
     std::ifstream f(input_json_file);
     try
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    auto map_path = read_param_json<std::string>(data, "mapFile");
+    std::string map_path = read_param_json<std::string>(data, "mapFile");
     Grid grid(base_folder + map_path);
 
     planner->env->map_name = map_path.substr(map_path.find_last_of("/") + 1);

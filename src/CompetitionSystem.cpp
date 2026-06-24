@@ -83,10 +83,10 @@ bool BaseSystem::planner_initialize()
 {
     using namespace std::placeholders;
     std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, _1));
-    auto init_future = init_task.get_future();
+    std::future<void> init_future = init_task.get_future();
     
     env->plan_start_time = std::chrono::steady_clock::now();
-    auto init_td = std::thread(std::move(init_task), preprocess_time_limit);
+    std::thread init_td = std::thread(std::move(init_task), preprocess_time_limit);
     if (init_future.wait_for(std::chrono::milliseconds(preprocess_time_limit)) == std::future_status::ready)
     {
         init_td.join();
@@ -136,7 +136,7 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
     {
         task_td.join();
         started = false;
-        auto res = future.get();
+        bool res = future.get();
         logger->log_info("planner returns", simulator.get_curr_timestep());
     }
     else
@@ -149,23 +149,23 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
     {
         //wait for initial planning to finish and at the same time move all wait
         logger->log_info("planner (initilal planning) cannot run because the previous run is still running", simulator.get_curr_timestep());
-        auto deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
+        std::chrono::steady_clock::time_point deadline   = std::chrono::steady_clock::now() + std::chrono::milliseconds(simulator_time_limit);
         //main thread move drives by calling simulator.move
         simulator.move_all_wait(1);
-        auto move_end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point move_end = std::chrono::steady_clock::now();
         while(deadline < move_end)
         {
             //move takes more time than simulator_time_limit, extend deadline
             deadline += std::chrono::milliseconds(simulator_time_limit);
         }
         // wait until deadline OR planner finishes early
-        const auto st = future.wait_until(deadline);
+        const std::future_status st = future.wait_until(deadline);
 
         if (st == std::future_status::ready) 
         {
             task_td.join();
             started = false;
-            auto res = future.get();
+            bool res = future.get();
             logger->log_info("planner (initilal planning) returns", simulator.get_curr_timestep());
         } 
         else 
@@ -183,13 +183,13 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
         //check if planenr finished
         if (remain_communication_time <= 0 && started)
         {
-            auto deadline = plan_start + std::chrono::milliseconds(min_comm_time - remain_communication_time);
-            const auto st = future.wait_until(deadline);
+            std::chrono::steady_clock::time_point deadline = plan_start + std::chrono::milliseconds(min_comm_time - remain_communication_time);
+            const std::future_status st = future.wait_until(deadline);
             if (st == std::future_status::ready) 
             {
                 task_td.join();
                 started = false;
-                auto res = future.get();
+                bool res = future.get();
                 logger->log_info("planner returns", simulator.get_curr_timestep());
             } 
             else 
@@ -224,9 +224,9 @@ void BaseSystem::simulate(int simulation_time, int chunk_size)
 
         //while the planner is running, move from previous plans
         sync_shared_env_executor();
-        auto move_start = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point move_start = std::chrono::steady_clock::now();
         curr_states = simulator.move(simulator_time_limit);
-        auto move_end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point move_end = std::chrono::steady_clock::now();
 
         int elapsed_tick =std::max(1, ((int)std::chrono::duration_cast<std::chrono::milliseconds>(move_end - move_start).count() + simulator_time_limit - 1) / simulator_time_limit);
         remain_communication_time -= elapsed_tick*simulator_time_limit;
@@ -282,17 +282,17 @@ void BaseSystem::initialize()
     int timestep = simulator.get_curr_timestep();
 
     std::packaged_task<void(int)> init_task(std::bind(&Entry::initialize, planner, std::placeholders::_1));
-    auto init_future = init_task.get_future();
+    std::future<void> init_future = init_task.get_future();
 
-    auto init_start_time = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point init_start_time = std::chrono::steady_clock::now();
     env->plan_start_time = init_start_time;
     exec_env->plan_start_time = init_start_time;
-    auto init_deadline   = init_start_time + std::chrono::milliseconds(preprocess_time_limit);
+    std::chrono::steady_clock::time_point init_deadline   = init_start_time + std::chrono::milliseconds(preprocess_time_limit);
     std::thread init_td(std::move(init_task), preprocess_time_limit);
 
     simulator.initialise_executor(preprocess_time_limit);
 
-    auto init_end_time = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point init_end_time = std::chrono::steady_clock::now();
 
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(init_end_time - init_start_time).count();
 
@@ -370,7 +370,7 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
     {
         // Save events
         json event = json::array();
-        for(auto e: task_manager.events)
+        for(std::tuple<int, int, int, int> e: task_manager.events)
         {
             json ev = json::array();
             int timestep;
@@ -409,7 +409,7 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
         {
             std::string schedules;
             bool first = true;
-            for (const auto schedule : task_manager.actual_schedule[i])
+            for (const std::pair<int, int> schedule : task_manager.actual_schedule[i])
             {
                 if (!first)
                 {
@@ -436,7 +436,7 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
         {
             std::string schedules;
             bool first = true;
-            for (const auto schedule : task_manager.planner_schedule[i])
+            for (const std::pair<int, int> schedule : task_manager.planner_schedule[i])
             {
                 if (!first)
                 {
@@ -460,7 +460,7 @@ void BaseSystem::saveResults(const string &fileName, int screen, bool pretty_pri
 
         // Save errors
         json schedule_errors = json::array();
-        for (auto error: task_manager.schedule_errors)
+        for (std::tuple<std::string, int, int, int, int> error: task_manager.schedule_errors)
         {
             std::string error_msg;
             int t_id;

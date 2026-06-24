@@ -45,6 +45,10 @@ cmake -B build ./ -DCMAKE_BUILD_TYPE=Release
 make -C build -j
 ```
 
+## Coding style
+
+See [Coding_Style.md](./Coding_Style.md). After configuring CMake, run `cmake --build build --target lint` to check the no-`auto` style rule.
+
 ## Run the start kit
 
 Running the start-kit using commands: 

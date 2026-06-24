@@ -103,9 +103,9 @@ void Simulator::process_new_plan(int sync_time_limit, int overtime_runtime, Plan
     const std::vector<std::vector<Action>> planned_actions = plan.convert_to_actions();
 
     //call executor to process the new plan and get staged actions
-    auto process_start = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point process_start = std::chrono::steady_clock::now();
     predict_states = executor->process_new_plan(sync_time_limit, plan, staged_actions);
-    auto process_end = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point process_end = std::chrono::steady_clock::now();
 
     if (executor_validation)
         validate_staged_actions_prefix(previous_staged_actions, planned_actions, staged_actions);
@@ -132,9 +132,9 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
     // reserve space for the executor to write commands
     agent_command.resize(num_of_agents);
 
-    auto process_start = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point process_start = std::chrono::steady_clock::now();
     executor->next_command(move_time_limit, agent_command);
-    auto process_end = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point process_end = std::chrono::steady_clock::now();
     int diff = (int)std::chrono::duration_cast<std::chrono::milliseconds>(process_end - process_start).count() - move_time_limit;
     std::vector<Action> actions(num_of_agents, Action::W); //default action is wait
 
@@ -182,7 +182,7 @@ vector<State> Simulator::move(int move_time_limit) //move one single 100ms step
             // cout<<"planned movement for agent "<<i<<" action fw"<<endl;
     }
 
-    auto pre_states = curr_states;
+    std::vector<State> pre_states = curr_states;
 
     curr_states = model->step(curr_states, actions,timestep);
     timestep++;
@@ -229,7 +229,7 @@ void Simulator::record_planned_movements(Action action, int agent_id)
     if (current_planner_chunk_count[agent_id] > 0)
     {
         assert(!chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].empty());
-        auto last_movement = chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].back().first;
+        Action last_movement = chunked_planner_movements[agent_id][current_planner_chunk_index[agent_id]].back().first;
         if (last_movement == action)
         {
             is_different_action = false;
@@ -263,7 +263,7 @@ void Simulator::record_actual_movements(State state, Action action, int agent_id
     if (current_actual_chunk_count[agent_id] > 0)
     {
         assert(!chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].empty());
-        auto last_movement = chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].back().first;
+        Action last_movement = chunked_actual_movements[agent_id][current_actual_chunk_index[agent_id]].back().first;
         if (last_movement == action)
         {
             is_different_action = false;
@@ -299,7 +299,7 @@ void Simulator::simulate_delay()
     }
 
     delay_generator->nextTick();
-    const auto& remaining_delays = delay_generator->get_remaining_delays();
+    const std::vector<int>& remaining_delays = delay_generator->get_remaining_delays();
     for (int agent = 0; agent < num_of_agents; agent++)
     {
         curr_states[agent].delay.inDelay = remaining_delays[agent] > 0;
@@ -357,7 +357,7 @@ json Simulator::actual_path_to_json() const
     {
         std::string path;
         int curr_steps = 0;
-        for (const auto& chunk : chunked_actual_movements[i])
+        for (const std::list<std::pair<Action, int>>& chunk : chunked_actual_movements[i])
         {
             path+="[(";
             path+=std::to_string(curr_steps);
@@ -372,7 +372,7 @@ json Simulator::actual_path_to_json() const
             path+="):(";
             
             bool first = true;
-            for (const auto& action_pair : chunk)
+            for (const std::pair<Action, int>& action_pair : chunk)
             {
                 Action action = action_pair.first;
                 int duration = action_pair.second;
@@ -425,7 +425,7 @@ json Simulator::planned_path_to_json() const
     {
         std::string path;
         int curr_steps = 0;
-        for (const auto& chunk : chunked_planner_movements[i])
+        for (const std::list<std::pair<Action, int>>& chunk : chunked_planner_movements[i])
         {
             path+="[(";
             path+=std::to_string(curr_steps);
@@ -439,7 +439,7 @@ json Simulator::planned_path_to_json() const
             path+=std::to_string(chunked_planner_snapshot_states[i][0].counter.count);
             path+="):(";
             bool first = true;
-            for (const auto& action_pair : chunk)
+            for (const std::pair<Action, int>& action_pair : chunk)
             {
                 Action action = action_pair.first;
                 int duration = action_pair.second;
@@ -516,7 +516,7 @@ json Simulator::action_errors_to_json() const
 {
     // Save errors
     json errors = json::array();
-    for (auto error: model->errors)
+    for (std::tuple<std::string, int, int, int> error: model->errors)
     {
         std::string error_msg;
         int agent1;

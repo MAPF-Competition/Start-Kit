@@ -37,7 +37,7 @@ void pyTaskScheduler::plan(int time_limit, std::vector<int> & proposed_schedule)
     py::gil_scoped_acquire acquire;
     py::list result = py_scheduler.attr("plan")(time_limit);
     proposed_schedule.clear();
-    for (auto item : result) {
+    for (const py::handle& item : result) {
         proposed_schedule.push_back(item.cast<int>());
     }
 }

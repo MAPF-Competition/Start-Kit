@@ -41,9 +41,9 @@ void pyMAPFPlanner::plan(int time_limit, Plan & plan)
 
     // Convert Python list of lists of Action (int) to C++ vector<vector<Action>>
     plan.actions.clear();
-    for (auto agent_actions : py_actions) {
+    for (const py::handle& agent_actions : py_actions) {
         std::vector<Action> actions_vec;
-        for (auto act : agent_actions) {
+        for (const py::handle& act : agent_actions) {
             actions_vec.push_back(static_cast<Action>(act.cast<int>()));
         }
         plan.actions.push_back(std::move(actions_vec));

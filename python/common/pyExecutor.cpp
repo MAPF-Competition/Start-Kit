@@ -46,7 +46,7 @@ vector<State> pyExecutor::process_new_plan(int sync_time_limit, Plan & plan, vec
     // Python returns predicted_states (list of State).
     // Since State is a registered type, we can iterate and cast.
     std::vector<State> predicted;
-    for (auto s : result) {
+    for (const py::handle& s : result) {
         predicted.push_back(s.cast<State>());
     }
     return predicted;
@@ -57,7 +57,7 @@ void pyExecutor::next_command(int exec_time_limit, std::vector<ExecutionCommand>
     py::gil_scoped_acquire acquire;
     py::object result = py_executor.attr("next_command")(exec_time_limit);
     agent_command.clear();
-    for (auto cmd : result) {
+    for (const py::handle& cmd : result) {
         agent_command.push_back(static_cast<ExecutionCommand>(cmd.cast<int>()));
     }
 }

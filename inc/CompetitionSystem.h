@@ -161,7 +161,7 @@ protected:
 //         BaseSystem(grid, planner, model)
 //     {
 //         int task_id = 0;
-//         for (auto& task_location: tasks)
+//         for (int& task_location: tasks)
 //         {
 //             all_tasks.emplace_back(task_id++, task_location);
 //             task_queue.emplace_back(all_tasks.back().task_id, all_tasks.back().locations.front());

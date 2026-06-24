@@ -22,8 +22,8 @@ int main()
 
         for (int tick = 0; tick < 100; tick++)
         {
-            const auto lhs_events = lhs.nextTick();
-            const auto rhs_events = rhs.nextTick();
+            const std::vector<std::pair<int, int>> lhs_events = lhs.nextTick();
+            const std::vector<std::pair<int, int>> rhs_events = rhs.nextTick();
             assert(lhs_events == rhs_events);
         }
     }
@@ -40,9 +40,9 @@ int main()
         config.gaussStdRatio = 0.0;
 
         DelayGenerator generator(config, 1);
-        const auto tick0 = generator.nextTick();
-        const auto tick1 = generator.nextTick();
-        const auto tick2 = generator.nextTick();
+        const std::vector<std::pair<int, int>> tick0 = generator.nextTick();
+        const std::vector<std::pair<int, int>> tick1 = generator.nextTick();
+        const std::vector<std::pair<int, int>> tick2 = generator.nextTick();
 
         assert(tick0.size() == 1);
         assert(tick0[0] == std::make_pair(0, 2));

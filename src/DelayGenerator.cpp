@@ -155,10 +155,10 @@ void DelayGenerator::clear_active_delays()
 nlohmann::ordered_json DelayGenerator::delay_intervals_to_json() const
 {
     nlohmann::ordered_json result = nlohmann::ordered_json::array();
-    for (const auto& agent_intervals : delay_intervals)
+    for (const std::vector<std::pair<int, int>>& agent_intervals : delay_intervals)
     {
         nlohmann::ordered_json agent_json = nlohmann::ordered_json::array();
-        for (const auto& interval : agent_intervals)
+        for (const std::pair<int, int>& interval : agent_intervals)
         {
             agent_json.push_back({interval.first, interval.second});
         }
