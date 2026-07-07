@@ -3,7 +3,6 @@ set -euo pipefail
 
 fix_format=false
 tidy_only=false
-tidy_fail=false
 tidy_jobs=1
 tidy_option_seen=false
 
@@ -19,7 +18,6 @@ Runs the local C++ style pipeline:
 Options:
   --fix-format       Apply clang-format in place, then exit.
   --tidy-only        Skip clang-format and only run clang-tidy.
-  --tidy-fail        Return non-zero if clang-tidy reports diagnostics.
   --tidy-jobs N      Run up to N clang-tidy jobs in parallel. Default: 1.
   -j N               Short form of --tidy-jobs N.
   -h, --help         Show this help.
@@ -27,9 +25,8 @@ Options:
 Examples:
   ./lint_cpp_style.sh
   ./lint_cpp_style.sh --fix-format
-  ./lint_cpp_style.sh --tidy-only --tidy-fail --tidy-jobs 8
+  ./lint_cpp_style.sh --tidy-only --tidy-jobs 8
   ./lint_cpp_style.sh --tidy-jobs 8
-  ./lint_cpp_style.sh --tidy-fail --tidy-jobs 8
 EOF
 }
 
@@ -40,10 +37,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --tidy-only)
             tidy_only=true
-            tidy_option_seen=true
-            ;;
-        --tidy-fail)
-            tidy_fail=true
             tidy_option_seen=true
             ;;
         --tidy-jobs)
@@ -198,46 +191,121 @@ cmake "${cmake_args[@]}"
 echo "==> Running clang-tidy naming diagnostics with $clang_tidy"
 tidy_status=0
 project_header_filter='(^|.*/)(default_planner|python/common|src|tests)/.*|(^|.*/)inc/[^/]+\.(h|hpp|hh)$'
-tidy_args=(-p build-style "--header-filter=$project_header_filter" --quiet --extra-arg=-w)
-if [[ "$tidy_fail" == true ]]; then
-    tidy_args+=(--warnings-as-errors=readability-identifier-naming)
-fi
+tidy_args=(
+    -p build-style
+    "--header-filter=$project_header_filter"
+    --quiet
+    --extra-arg=-w
+    "--warnings-as-errors=*"
+)
 
 filter_tidy_output() {
     sed -E '/^[0-9]+ warnings? generated\.$/d; /^Suppressed [0-9]+ warnings?/d'
 }
 
+dedupe_tidy_output() {
+    awk '
+        /^[^[:space:]].*:[0-9]+:[0-9]+: (warning|error): / {
+            if (seen[$0]++) {
+                skip = 1
+                next
+            }
+            skip = 0
+            print
+            next
+        }
+        /^(Error while processing|Found compiler error)/ {
+            skip = 0
+            print
+            next
+        }
+        {
+            if (!skip) {
+                print
+            }
+        }
+    '
+}
+
+print_tidy_report() {
+    local report_file="$1"
+    local checked_files="$2"
+    local diagnostic_files="$tmp_dir/clang-tidy-diagnostic-files.txt"
+    local error_count
+    local warning_count
+    local file_count
+    local checked_count
+
+    error_count="$(awk '/^[^[:space:]].*:[0-9]+:[0-9]+: error: / {count++} END {print count + 0}' "$report_file")"
+    warning_count="$(awk '/^[^[:space:]].*:[0-9]+:[0-9]+: warning: / {count++} END {print count + 0}' "$report_file")"
+    awk -v repo_root="$repo_root" '
+        /^[^[:space:]].*:[0-9]+:[0-9]+: (warning|error): / {
+            file = $0
+            sub(/:[0-9]+:[0-9]+: (warning|error): .*/, "", file)
+            if (index(file, repo_root "/") == 1) {
+                file = substr(file, length(repo_root) + 2)
+            }
+            print file
+        }
+    ' "$report_file" | sort -u > "$diagnostic_files"
+
+    file_count="$(wc -l < "$diagnostic_files" | tr -d ' ')"
+    checked_count="$(wc -l < "$checked_files" | tr -d ' ')"
+
+    echo "==> clang-tidy summary"
+    echo "Translation units checked: $checked_count"
+    echo "Errors: $error_count"
+    echo "Warnings: $warning_count"
+    echo "Files with diagnostics: $file_count"
+    if [[ "$file_count" -gt 0 ]]; then
+        echo "Files:"
+        sed 's/^/  /' "$diagnostic_files"
+    fi
+}
+
+tidy_output="$tmp_dir/clang-tidy-output.txt"
+deduped_tidy_output="$tmp_dir/clang-tidy-deduped-output.txt"
 if [[ "$tidy_jobs" -eq 1 ]]; then
+    : > "$tidy_output"
     while IFS= read -r file; do
         set +e
-        "$clang_tidy" "$file" "${tidy_args[@]}" 2>&1 | filter_tidy_output
-        clang_tidy_status=${PIPESTATUS[0]}
+        "$clang_tidy" "$file" "${tidy_args[@]}" >> "$tidy_output" 2>&1
+        clang_tidy_status=$?
         set -e
         if [[ "$clang_tidy_status" -ne 0 ]]; then
             tidy_status="$clang_tidy_status"
         fi
     done < "$cpp_tidy_files"
+    filter_tidy_output < "$tidy_output" | dedupe_tidy_output > "$deduped_tidy_output"
 else
     echo "==> Using $tidy_jobs parallel clang-tidy jobs"
+    tidy_logs_dir="$tmp_dir/clang-tidy-logs"
+    tidy_indexed_files="$tmp_dir/cpp-tidy-indexed-files.txt"
+    mkdir "$tidy_logs_dir"
+    awk '{printf "%06d:%s\n", NR, $0}' "$cpp_tidy_files" > "$tidy_indexed_files"
     export CLANG_TIDY="$clang_tidy"
+    export TIDY_LOGS_DIR="$tidy_logs_dir"
     set +e
     xargs -r -P "$tidy_jobs" -I {} bash -c '
-        file="$1"
+        entry="$1"
         shift
-        "$CLANG_TIDY" "$file" "$@" 2>&1 \
-            | sed -E "/^[0-9]+ warnings? generated\.$/d; /^Suppressed [0-9]+ warnings?/d"
-        exit "${PIPESTATUS[0]}"
-    ' bash "{}" "${tidy_args[@]}" < "$cpp_tidy_files"
+        index="${entry%%:*}"
+        file="${entry#*:}"
+        "$CLANG_TIDY" "$file" "$@" > "$TIDY_LOGS_DIR/$index.log" 2>&1
+    ' bash "{}" "${tidy_args[@]}" < "$tidy_indexed_files"
     tidy_status=$?
     set -e
+    for log_file in "$tidy_logs_dir"/*.log; do
+        filter_tidy_output < "$log_file"
+    done | dedupe_tidy_output > "$deduped_tidy_output"
 fi
 
+cat "$deduped_tidy_output"
+print_tidy_report "$deduped_tidy_output" "$cpp_tidy_files"
+
 if [[ "$tidy_status" -ne 0 ]]; then
-    if [[ "$tidy_fail" == true ]]; then
-        echo "clang-tidy reported diagnostics and --tidy-fail is enabled." >&2
-        exit 1
-    fi
-    echo "clang-tidy reported diagnostics; continuing because naming is advisory by default."
+    echo "clang-tidy reported diagnostics." >&2
+    exit 1
 fi
 
 echo "==> C++ style pipeline complete"
