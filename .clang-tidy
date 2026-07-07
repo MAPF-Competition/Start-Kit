@@ -31,6 +31,14 @@ CheckOptions:
     value: '^main$'
   - key: readability-identifier-naming.MethodCase
     value: lower_case
+  # Compatibility callbacks keep their documented names so existing C++ and
+  # Python participants do not need API changes:
+  # - Entry::initialize, Entry::compute
+  # - MAPFPlanner::initialize, MAPFPlanner::plan
+  # - TaskScheduler::initialize, TaskScheduler::plan
+  # - Executor::initialize, Executor::process_new_plan, Executor::next_command
+  # The same method names are used by the Python bridge classes.
+  # clang-tidy exclusions are name-based, not class-qualified.
   - key: readability-identifier-naming.MethodIgnoredRegexp
     value: '^(initialize|plan|compute|process_new_plan|next_command)$'
   - key: readability-identifier-naming.ParameterCase
