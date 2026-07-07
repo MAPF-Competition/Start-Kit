@@ -1,0 +1,33 @@
+name: C++ Style
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  style:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang-format-14 \
+            clang-tidy-14 \
+            cmake \
+            g++ \
+            libboost-filesystem-dev \
+            libboost-log-dev \
+            libboost-program-options-dev \
+            libboost-system-dev \
+            pybind11-dev \
+            python3-dev
+
+      - name: Run C++ style pipeline
+        run: ./lint_cpp_style.sh

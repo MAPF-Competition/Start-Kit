@@ -2,6 +2,8 @@ project(lifelong)
 
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "RELEASE")
@@ -89,4 +91,3 @@ if(BUILD_TESTS)
     add_test(NAME python_interface_test COMMAND python_interface_test
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif()
-

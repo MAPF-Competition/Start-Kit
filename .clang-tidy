@@ -1,0 +1,55 @@
+---
+Checks: '-*,readability-identifier-naming'
+WarningsAsErrors: ''
+HeaderFilterRegex: '^(?!.*(/|^)(build|third_party|external|generated)/)(?!.*(^|/)inc/nlohmann/).*'
+AnalyzeTemporaryDtors: false
+CheckOptions:
+  # Naming is intentionally stricter for implementation details than for
+  # participant-facing APIs. Public/fixed names from the docs are listed as
+  # exclusions instead of being renamed.
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.ClassIgnoredRegexp
+    value: '^(pyMAPFPlanner|pyTaskScheduler|pyExecutor|pyEntry|s_node|pqueue)$'
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructIgnoredRegexp
+    value: '^(d2p|min_q|cmp_less_f|cmp_less_of|PIBT_C)$'
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumIgnoredRegexp
+    value: '^heuristics_type$'
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasIgnoredRegexp
+    value: '^json$'
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionIgnoredRegexp
+    value: '^(validMove|manhattanDistance|getNeighbors|getNeighbors_nowait|getNeighborLocs|getAction|moveCheck|causalPIBT)$'
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+  - key: readability-identifier-naming.MethodIgnoredRegexp
+    value: '^(saveResults|nextTick)$'
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterIgnoredRegexp
+    value: '^(fileName|plannerPython|schedulerPython|executorPython)$'
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: _
+  - key: readability-identifier-naming.ConstantCase
+    value: lower_case
+  - key: readability-identifier-naming.ConstantIgnoredRegexp
+    value: '^[A-Z][A-Z0-9_]*$'
+  - key: readability-identifier-naming.StaticConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: k
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE

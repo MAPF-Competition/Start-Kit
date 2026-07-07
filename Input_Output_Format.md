@@ -13,7 +13,7 @@
 | `--fileStoragePath` / `-f` | String | Large file storage path. If empty, reads `$LORR_LARGE_FILE_STORAGE_PATH`. |
 | `--simulationTime` / `-s` | Int | Maximum number of **execution ticks** to simulate (planning horizon). |
 | `--preprocessTimeLimit` / `-p` | Int (ms) | Preprocessing time limit (loading / precomputation before simulation). |
-| `--actionMoveTimeLimit` / `-a` | Int (ms) | **Execution tick** duration / per-tick time budget. The executor is called every tick under this budget. |
+| `--actionMoveTimeLimit` / `-a` | Int (ms) | **Execution tick** duration / per-tick time budget. The executor is called every  tick under this budget. |
 | `--initialPlanTimeLimit` / `-n` | Int (ms) | Time budget for the **first** planning call (default `1000`). |
 | `--planCommTimeLimit` / `-t` | Int (ms) | Minimum communication interval between planning updates (default `1000`). The planner is called periodically, not every tick. |
 | `--executorProcessPlanTimeLimit` / `-x` | Int (ms) | Time budget for processing/staging a returned plan (default `100`). |
