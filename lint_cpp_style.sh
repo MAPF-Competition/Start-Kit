@@ -2,6 +2,7 @@
 set -euo pipefail
 
 fix_format=false
+tidy_only=false
 tidy_fail=false
 tidy_jobs=1
 tidy_option_seen=false
@@ -17,6 +18,7 @@ Runs the local C++ style pipeline:
 
 Options:
   --fix-format       Apply clang-format in place, then exit.
+  --tidy-only        Skip clang-format and only run clang-tidy.
   --tidy-fail        Return non-zero if clang-tidy reports diagnostics.
   --tidy-jobs N      Run up to N clang-tidy jobs in parallel. Default: 1.
   -j N               Short form of --tidy-jobs N.
@@ -25,6 +27,7 @@ Options:
 Examples:
   ./lint_cpp_style.sh
   ./lint_cpp_style.sh --fix-format
+  ./lint_cpp_style.sh --tidy-only --tidy-fail --tidy-jobs 8
   ./lint_cpp_style.sh --tidy-jobs 8
   ./lint_cpp_style.sh --tidy-fail --tidy-jobs 8
 EOF
@@ -34,6 +37,10 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --fix-format)
             fix_format=true
+            ;;
+        --tidy-only)
+            tidy_only=true
+            tidy_option_seen=true
             ;;
         --tidy-fail)
             tidy_fail=true
@@ -101,7 +108,9 @@ find_tool() {
     fi
 }
 
-clang_format="$(find_tool clang-format-14 clang-format)"
+if [[ "$tidy_only" == false ]]; then
+    clang_format="$(find_tool clang-format-14 clang-format)"
+fi
 if [[ "$fix_format" == false ]]; then
     clang_tidy="$(find_tool clang-tidy-14 clang-tidy)"
 fi
@@ -109,31 +118,42 @@ fi
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-cpp_files="$tmp_dir/cpp-files.txt"
+if [[ "$tidy_only" == false ]]; then
+    cpp_files="$tmp_dir/cpp-files.txt"
 
-echo "==> Collecting C++ files"
-git ls-files \
-    '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' '*.hh' \
-    ':!:build/**' \
-    ':!:build-style/**' \
-    ':!:third_party/**' \
-    ':!:external/**' \
-    ':!:generated/**' \
-    ':!:inc/nlohmann/**' > "$cpp_files"
+    echo "==> Collecting C++ files"
+    git ls-files \
+        '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' '*.hh' \
+        ':!:build/**' \
+        ':!:build-style/**' \
+        ':!:third_party/**' \
+        ':!:external/**' \
+        ':!:generated/**' \
+        ':!:inc/nlohmann/**' > "$cpp_files"
 
-if [[ ! -s "$cpp_files" ]]; then
-    echo "No C++ files found." >&2
-    exit 1
-fi
+    if [[ ! -s "$cpp_files" ]]; then
+        echo "No C++ files found." >&2
+        exit 1
+    fi
 
-if [[ "$fix_format" == true ]]; then
-    echo "==> Applying clang-format with $clang_format"
-    xargs "$clang_format" -i < "$cpp_files"
-    echo "==> Format fix complete"
-    exit 0
+    if [[ "$fix_format" == true ]]; then
+        echo "==> Applying clang-format with $clang_format"
+        xargs "$clang_format" -i < "$cpp_files"
+        echo "==> Format fix complete"
+        exit 0
+    else
+        echo "==> Checking clang-format with $clang_format"
+        set +e
+        xargs "$clang_format" --dry-run --Werror < "$cpp_files"
+        format_status=$?
+        set -e
+        if [[ "$format_status" -ne 0 ]]; then
+            echo "clang-format check failed. Run ./lint_cpp_style.sh --fix-format and commit the result." >&2
+            exit 1
+        fi
+    fi
 else
-    echo "==> Checking clang-format with $clang_format"
-    xargs "$clang_format" --dry-run --Werror < "$cpp_files"
+    echo "==> Skipping clang-format (--tidy-only)"
 fi
 
 cpp_tidy_files="$tmp_dir/cpp-tidy-files.txt"
@@ -215,7 +235,7 @@ fi
 if [[ "$tidy_status" -ne 0 ]]; then
     if [[ "$tidy_fail" == true ]]; then
         echo "clang-tidy reported diagnostics and --tidy-fail is enabled." >&2
-        exit "$tidy_status"
+        exit 1
     fi
     echo "clang-tidy reported diagnostics; continuing because naming is advisory by default."
 fi

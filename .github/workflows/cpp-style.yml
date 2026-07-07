@@ -1,6 +1,7 @@
 name: C++ Style
 
 on:
+  pull_request:
   push:
 
 jobs:
@@ -9,7 +10,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install tooling
         run: |
@@ -27,4 +28,4 @@ jobs:
             python3-dev
 
       - name: Run C++ style pipeline
-        run: ./lint_cpp_style.sh
+        run: ./lint_cpp_style.sh --tidy-only --tidy-fail --tidy-jobs "$(nproc)"
