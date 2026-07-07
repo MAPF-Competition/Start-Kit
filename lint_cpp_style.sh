@@ -263,6 +263,90 @@ print_tidy_report() {
     fi
 }
 
+emit_github_annotations() {
+    local report_file="$1"
+
+    if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
+        return 0
+    fi
+
+    awk -v repo_root="$repo_root" '
+        function escape_data(value) {
+            gsub(/%/, "%25", value)
+            gsub(/\r/, "%0D", value)
+            gsub(/\n/, "%0A", value)
+            return value
+        }
+        function escape_property(value) {
+            value = escape_data(value)
+            gsub(/:/, "%3A", value)
+            gsub(/,/, "%2C", value)
+            return value
+        }
+        /^[^[:space:]].*:[0-9]+:[0-9]+: (warning|error): / {
+            split($0, parts, ":")
+            file = parts[1]
+            line = parts[2]
+            col = parts[3]
+            message = $0
+            sub(/^[^:]+:[0-9]+:[0-9]+: (warning|error): /, "", message)
+            if (index(file, repo_root "/") == 1) {
+                file = substr(file, length(repo_root) + 2)
+            }
+            printf "::error file=%s,line=%s,col=%s,title=clang-tidy::%s\n",
+                escape_property(file), line, col, escape_data(message)
+        }
+    ' "$report_file"
+}
+
+write_github_step_summary() {
+    local report_file="$1"
+    local checked_files="$2"
+    local diagnostic_files="$tmp_dir/clang-tidy-summary-files.txt"
+    local error_count
+    local warning_count
+    local file_count
+    local checked_count
+
+    if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
+        return 0
+    fi
+
+    error_count="$(awk '/^[^[:space:]].*:[0-9]+:[0-9]+: error: / {count++} END {print count + 0}' "$report_file")"
+    warning_count="$(awk '/^[^[:space:]].*:[0-9]+:[0-9]+: warning: / {count++} END {print count + 0}' "$report_file")"
+    awk -v repo_root="$repo_root" '
+        /^[^[:space:]].*:[0-9]+:[0-9]+: (warning|error): / {
+            file = $0
+            sub(/:[0-9]+:[0-9]+: (warning|error): .*/, "", file)
+            if (index(file, repo_root "/") == 1) {
+                file = substr(file, length(repo_root) + 2)
+            }
+            print file
+        }
+    ' "$report_file" | sort -u > "$diagnostic_files"
+
+    file_count="$(wc -l < "$diagnostic_files" | tr -d ' ')"
+    checked_count="$(wc -l < "$checked_files" | tr -d ' ')"
+
+    {
+        echo "## C++ Style Report"
+        echo
+        echo "| Metric | Count |"
+        echo "| --- | ---: |"
+        echo "| Translation units checked | $checked_count |"
+        echo "| Errors | $error_count |"
+        echo "| Warnings | $warning_count |"
+        echo "| Files with diagnostics | $file_count |"
+        if [[ "$file_count" -gt 0 ]]; then
+            echo
+            echo "### Files With Diagnostics"
+            while IFS= read -r diagnostic_file; do
+                echo "- \`$diagnostic_file\`"
+            done < "$diagnostic_files"
+        fi
+    } >> "$GITHUB_STEP_SUMMARY"
+}
+
 tidy_output="$tmp_dir/clang-tidy-output.txt"
 deduped_tidy_output="$tmp_dir/clang-tidy-deduped-output.txt"
 if [[ "$tidy_jobs" -eq 1 ]]; then
@@ -302,6 +386,8 @@ fi
 
 cat "$deduped_tidy_output"
 print_tidy_report "$deduped_tidy_output" "$cpp_tidy_files"
+write_github_step_summary "$deduped_tidy_output" "$cpp_tidy_files"
+emit_github_annotations "$deduped_tidy_output"
 
 if [[ "$tidy_status" -ne 0 ]]; then
     echo "clang-tidy reported diagnostics." >&2
