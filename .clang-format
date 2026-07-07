@@ -1,17 +1,7 @@
 ---
 Language: Cpp
-BasedOnStyle: LLVM
+BasedOnStyle: Google 
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 ColumnLimit: 100
-BreakBeforeBraces: Attach
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-PointerAlignment: Left
-DerivePointerAlignment: false
-SpaceBeforeParens: ControlStatements
-SpacesInParentheses: false
-IndentCaseLabels: false
-SortIncludes: Never
