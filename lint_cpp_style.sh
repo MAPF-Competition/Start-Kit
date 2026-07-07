@@ -177,7 +177,8 @@ cmake "${cmake_args[@]}"
 
 echo "==> Running clang-tidy naming diagnostics with $clang_tidy"
 tidy_status=0
-tidy_args=(-p build-style --quiet --extra-arg=-w)
+project_header_filter='(^|.*/)(default_planner|python/common|src|tests)/.*|(^|.*/)inc/[^/]+\.(h|hpp|hh)$'
+tidy_args=(-p build-style "--header-filter=$project_header_filter" --quiet --extra-arg=-w)
 if [[ "$tidy_fail" == true ]]; then
     tidy_args+=(--warnings-as-errors=readability-identifier-naming)
 fi
