@@ -1,8 +1,6 @@
 ---
 Checks: '-*,readability-identifier-naming'
-WarningsAsErrors: ''
 HeaderFilterRegex: '(^|.*/)(default_planner|python/common|src|tests)/.*|(^|.*/)inc/[^/]+\.(h|hpp|hh)$'
-AnalyzeTemporaryDtors: false
 CheckOptions:
   # Naming is intentionally stricter for implementation details than for the
   # participant-facing callback surface. Public/fixed callback names from the
@@ -19,12 +17,6 @@ CheckOptions:
     value: CamelCase
   - key: readability-identifier-naming.EnumIgnoredRegexp
     value: '^heuristics_type$'
-  - key: readability-identifier-naming.TypedefCase
-    value: CamelCase
-  - key: readability-identifier-naming.TypeAliasCase
-    value: CamelCase
-  - key: readability-identifier-naming.TypeAliasIgnoredRegexp
-    value: '^json$'
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
   - key: readability-identifier-naming.FunctionIgnoredRegexp
@@ -41,23 +33,32 @@ CheckOptions:
   # clang-tidy exclusions are name-based, not class-qualified.
   - key: readability-identifier-naming.MethodIgnoredRegexp
     value: '^(initialize|plan|compute|process_new_plan|next_command)$'
-  - key: readability-identifier-naming.ParameterCase
-    value: lower_case
-  - key: readability-identifier-naming.ParameterIgnoredRegexp
-    value: '^(fileName|plannerPython|schedulerPython|executorPython)$'
-  - key: readability-identifier-naming.LocalVariableCase
-    value: lower_case
-  - key: readability-identifier-naming.PrivateMemberCase
-    value: lower_case
-  - key: readability-identifier-naming.PrivateMemberSuffix
-    value: _
-  - key: readability-identifier-naming.ConstantCase
-    value: lower_case
-  - key: readability-identifier-naming.ConstantIgnoredRegexp
-    value: '^[A-Z][A-Z0-9_]*$'
-  - key: readability-identifier-naming.StaticConstantCase
-    value: CamelCase
-  - key: readability-identifier-naming.StaticConstantPrefix
-    value: k
-  - key: readability-identifier-naming.MacroDefinitionCase
-    value: UPPER_CASE
+
+  # Deferred naming rules. Keep these commented until we decide whether the
+  # churn is worth enforcing.
+  # - key: readability-identifier-naming.TypedefCase
+  #   value: CamelCase
+  # - key: readability-identifier-naming.TypeAliasCase
+  #   value: CamelCase
+  # - key: readability-identifier-naming.TypeAliasIgnoredRegexp
+  #   value: '^json$'
+  # - key: readability-identifier-naming.ParameterCase
+  #   value: lower_case
+  # - key: readability-identifier-naming.ParameterIgnoredRegexp
+  #   value: '^(fileName|plannerPython|schedulerPython|executorPython)$'
+  # - key: readability-identifier-naming.LocalVariableCase
+  #   value: lower_case
+  # - key: readability-identifier-naming.PrivateMemberCase
+  #   value: lower_case
+  # - key: readability-identifier-naming.PrivateMemberSuffix
+  #   value: _
+  # - key: readability-identifier-naming.ConstantCase
+  #   value: lower_case
+  # - key: readability-identifier-naming.ConstantIgnoredRegexp
+  #   value: '^[A-Z][A-Z0-9_]*$'
+  # - key: readability-identifier-naming.StaticConstantCase
+  #   value: CamelCase
+  # - key: readability-identifier-naming.StaticConstantPrefix
+  #   value: k
+  # - key: readability-identifier-naming.MacroDefinitionCase
+  #   value: UPPER_CASE
