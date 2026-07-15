@@ -5,26 +5,30 @@ fix_format=false
 tidy_only=false
 tidy_jobs=1
 tidy_option_seen=false
+format_base=""
 
 usage() {
     cat <<'EOF'
 Usage: ./lint_cpp_style.sh [options]
 
 Runs the local C++ style pipeline:
-  1. check clang-format
+  1. check clang-format (all files, or changed lines with --format-base)
   2. configure build-style compile commands
   3. report clang-tidy naming diagnostics
 
 Options:
-  --fix-format       Apply clang-format in place, then exit.
-  --tidy-only        Skip clang-format and only run clang-tidy.
-  --tidy-jobs N      Run up to N clang-tidy jobs in parallel. Default: 1.
-  -j N               Short form of --tidy-jobs N.
-  -h, --help         Show this help.
+  --fix-format        Apply clang-format in place, then exit.
+  --format-base REF   Only check or fix C++ lines changed since REF's merge base.
+  --tidy-only         Skip clang-format and only run clang-tidy.
+  --tidy-jobs N       Run up to N clang-tidy jobs in parallel. Default: 1.
+  -j N                Short form of --tidy-jobs N.
+  -h, --help          Show this help.
 
 Examples:
   ./lint_cpp_style.sh
   ./lint_cpp_style.sh --fix-format
+  ./lint_cpp_style.sh --fix-format --format-base origin/dev
+  ./lint_cpp_style.sh --format-base origin/dev --tidy-jobs 8
   ./lint_cpp_style.sh --tidy-only --tidy-jobs 8
   ./lint_cpp_style.sh --tidy-jobs 8
 EOF
@@ -34,6 +38,25 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --fix-format)
             fix_format=true
+            ;;
+        --format-base)
+            if [[ $# -lt 2 ]]; then
+                echo "--format-base requires a Git ref." >&2
+                exit 2
+            fi
+            format_base="$2"
+            if [[ -z "$format_base" ]]; then
+                echo "--format-base requires a non-empty Git ref." >&2
+                exit 2
+            fi
+            shift
+            ;;
+        --format-base=*)
+            format_base="${1#*=}"
+            if [[ -z "$format_base" ]]; then
+                echo "--format-base requires a non-empty Git ref." >&2
+                exit 2
+            fi
             ;;
         --tidy-only)
             tidy_only=true
@@ -84,6 +107,11 @@ if [[ "$fix_format" == true && "$tidy_option_seen" == true ]]; then
     exit 2
 fi
 
+if [[ "$tidy_only" == true && -n "$format_base" ]]; then
+    echo "--format-base cannot be combined with --tidy-only." >&2
+    exit 2
+fi
+
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
@@ -104,6 +132,9 @@ find_tool() {
 if [[ "$tidy_only" == false ]]; then
     clang_format="$(find_tool clang-format-14 clang-format)"
 fi
+if [[ "$tidy_only" == false && -n "$format_base" ]]; then
+    git_clang_format="$(find_tool git-clang-format-14 git-clang-format)"
+fi
 if [[ "$fix_format" == false ]]; then
     clang_tidy="$(find_tool clang-tidy-14 clang-tidy)"
 fi
@@ -112,37 +143,89 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 if [[ "$tidy_only" == false ]]; then
-    cpp_files="$tmp_dir/cpp-files.txt"
+    cpp_pathspecs=(
+        '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' '*.hh'
+        ':!:build/**'
+        ':!:build-style/**'
+        ':!:third_party/**'
+        ':!:external/**'
+        ':!:generated/**'
+        ':!:inc/nlohmann/**'
+    )
 
-    echo "==> Collecting C++ files"
-    git ls-files \
-        '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp' '*.hh' \
-        ':!:build/**' \
-        ':!:build-style/**' \
-        ':!:third_party/**' \
-        ':!:external/**' \
-        ':!:generated/**' \
-        ':!:inc/nlohmann/**' > "$cpp_files"
+    if [[ -n "$format_base" ]]; then
+        if ! git rev-parse --verify --quiet "${format_base}^{commit}" >/dev/null; then
+            echo "Invalid --format-base ref: $format_base" >&2
+            exit 2
+        fi
+        if ! merge_base="$(git merge-base -- "$format_base" HEAD)"; then
+            echo "Could not find a merge base between $format_base and HEAD." >&2
+            exit 2
+        fi
 
-    if [[ ! -s "$cpp_files" ]]; then
-        echo "No C++ files found." >&2
-        exit 1
-    fi
+        echo "==> Collecting C++ changes since $format_base ($merge_base)"
+        format_files=()
+        while IFS= read -r -d '' format_file; do
+            format_files+=("$format_file")
+        done < <(git diff --name-only -z --diff-filter=ACMR -M "$merge_base" -- "${cpp_pathspecs[@]}")
 
-    if [[ "$fix_format" == true ]]; then
-        echo "==> Applying clang-format with $clang_format"
-        xargs "$clang_format" -i < "$cpp_files"
-        echo "==> Format fix complete"
-        exit 0
+        if [[ "${#format_files[@]}" -eq 0 ]]; then
+            echo "No changed C++ files to format."
+            if [[ "$fix_format" == true ]]; then
+                exit 0
+            fi
+        elif [[ "$fix_format" == true ]]; then
+            echo "==> Applying clang-format to changed C++ lines with $clang_format"
+            "$git_clang_format" \
+                --binary "$clang_format" \
+                --force \
+                "$merge_base" \
+                -- \
+                "${format_files[@]}"
+            echo "==> Incremental format fix complete"
+            exit 0
+        else
+            format_diff="$tmp_dir/clang-format.diff"
+            echo "==> Checking changed C++ lines with $clang_format"
+            "$git_clang_format" \
+                --binary "$clang_format" \
+                --diff \
+                "$merge_base" \
+                -- \
+                "${format_files[@]}" > "$format_diff"
+            if grep -q '^diff --git ' "$format_diff"; then
+                cat "$format_diff"
+                echo "clang-format check failed. Run ./lint_cpp_style.sh --fix-format --format-base $format_base and commit the result." >&2
+                exit 1
+            fi
+            echo "==> Incremental clang-format check complete"
+        fi
     else
-        echo "==> Checking clang-format with $clang_format"
-        set +e
-        xargs "$clang_format" --dry-run --Werror < "$cpp_files"
-        format_status=$?
-        set -e
-        if [[ "$format_status" -ne 0 ]]; then
-            echo "clang-format check failed. Run ./lint_cpp_style.sh --fix-format and commit the result." >&2
+        cpp_files="$tmp_dir/cpp-files.txt"
+
+        echo "==> Collecting C++ files"
+        git ls-files "${cpp_pathspecs[@]}" > "$cpp_files"
+
+        if [[ ! -s "$cpp_files" ]]; then
+            echo "No C++ files found." >&2
             exit 1
+        fi
+
+        if [[ "$fix_format" == true ]]; then
+            echo "==> Applying clang-format with $clang_format"
+            xargs "$clang_format" -i < "$cpp_files"
+            echo "==> Format fix complete"
+            exit 0
+        else
+            echo "==> Checking clang-format with $clang_format"
+            set +e
+            xargs "$clang_format" --dry-run --Werror < "$cpp_files"
+            format_status=$?
+            set -e
+            if [[ "$format_status" -ne 0 ]]; then
+                echo "clang-format check failed. Run ./lint_cpp_style.sh --fix-format and commit the result." >&2
+                exit 1
+            fi
         fi
     fi
 else

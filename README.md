@@ -1,5 +1,7 @@
 # Start-Kit
 
+Project developers should read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
+
 ## Join the competition
 
 Log in to the [competition website](http://www.leagueofrobotrunners.org/) with a GitHub account, and we will automatically create a private GitHub submission repo for you.
@@ -139,6 +141,5 @@ Please refer to the project website for more information. Also the document [Deb
 ## Submission Instruction
 
 Please refer to the [Submission_Instruction.md](./Submission_Instruction.md).
-
 
 

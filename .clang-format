@@ -1,6 +1,6 @@
 ---
 Language: Cpp
-BasedOnStyle: Google 
+BasedOnStyle: Google
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never

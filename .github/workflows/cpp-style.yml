@@ -1,16 +1,75 @@
-name: C++ Style
+name: Contribution Checks
 
 on:
   pull_request:
   push:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: contribution-checks-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  style:
+  branch-policy:
+    name: Branch policy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Validate pull request branches
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [[ "$BASE_BRANCH" == "main" ]]; then
+            if [[ "$HEAD_BRANCH" != "dev" || "$HEAD_REPOSITORY" != "$TARGET_REPOSITORY" ]]; then
+              echo "Only the dev branch from $TARGET_REPOSITORY may target main." >&2
+              exit 1
+            fi
+          elif [[ "$BASE_BRANCH" == "dev" && "$HEAD_BRANCH" == "main" ]]; then
+            echo "main must not be merged back into dev through a pull request." >&2
+            exit 1
+          fi
+
+          echo "Allowed branch flow: $HEAD_BRANCH -> $BASE_BRANCH"
+
+  cpp-style:
+    name: C++ style
     runs-on: ubuntu-22.04
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Determine format comparison base
+        id: format-base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          zero_sha="0000000000000000000000000000000000000000"
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            format_base="$PR_BASE_SHA"
+          elif [[ -n "$PUSH_BEFORE_SHA" && "$PUSH_BEFORE_SHA" != "$zero_sha" ]] \
+            && git cat-file -e "${PUSH_BEFORE_SHA}^{commit}" \
+            && git merge-base "$PUSH_BEFORE_SHA" HEAD >/dev/null; then
+            format_base="$PUSH_BEFORE_SHA"
+          elif git rev-parse --verify --quiet HEAD^ >/dev/null; then
+            format_base="$(git rev-parse HEAD^)"
+          else
+            format_base="HEAD"
+          fi
+
+          echo "Using format base: $format_base"
+          echo "format_base=$format_base" >> "$GITHUB_OUTPUT"
 
       - name: Install tooling
         run: |
@@ -28,4 +87,6 @@ jobs:
             python3-dev
 
       - name: Run C++ style pipeline
-        run: ./lint_cpp_style.sh --tidy-only --tidy-jobs "$(nproc)"
+        env:
+          FORMAT_BASE: ${{ steps.format-base.outputs.format_base }}
+        run: ./lint_cpp_style.sh --format-base "$FORMAT_BASE" --tidy-jobs "$(nproc)"

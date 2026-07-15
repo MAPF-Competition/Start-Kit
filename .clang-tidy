@@ -2,9 +2,9 @@
 Checks: '-*,readability-identifier-naming'
 HeaderFilterRegex: '(^|.*/)(default_planner|python/common|src|tests)/.*|(^|.*/)inc/[^/]+\.(h|hpp|hh)$'
 CheckOptions:
-  # Naming is intentionally stricter for implementation details than for the
-  # participant-facing callback surface. Public/fixed callback names from the
-  # docs are listed as exclusions instead of being renamed.
+  # Naming is intentionally stricter for new implementation details than for
+  # the participant-facing and legacy surfaces. Existing spellings are listed
+  # as exclusions instead of being renamed as part of the lint rollout.
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
   - key: readability-identifier-naming.ClassIgnoredRegexp
@@ -12,7 +12,7 @@ CheckOptions:
   - key: readability-identifier-naming.StructCase
     value: CamelCase
   - key: readability-identifier-naming.StructIgnoredRegexp
-    value: '^(d2p|min_q|cmp_less_f|cmp_less_of|PIBT_C)$'
+    value: '^(d2p|min_q|cmp_less_f|cmp_less_of|PIBT_C|compare_node|FW_Metric|max_q|s_node|equal_search_node|re_f|re_jam|re_of)$'
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
   - key: readability-identifier-naming.EnumIgnoredRegexp
@@ -20,7 +20,7 @@ CheckOptions:
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
   - key: readability-identifier-naming.FunctionIgnoredRegexp
-    value: '^main$'
+    value: '^(main|validateMove|manhattanDistance|getNeighbors|getNeighbors_nowait|getNeighborLocs|causalPIBT|getAction|moveCheck|validMove)$'
   - key: readability-identifier-naming.MethodCase
     value: lower_case
   # Compatibility callbacks keep their documented names so existing C++ and
@@ -32,7 +32,7 @@ CheckOptions:
   # The same method names are used by the Python bridge classes.
   # clang-tidy exclusions are name-based, not class-qualified.
   - key: readability-identifier-naming.MethodIgnoredRegexp
-    value: '^(initialize|plan|compute|process_new_plan|next_command)$'
+    value: '^(initialize|plan|compute|process_new_plan|next_command|nextTick|saveResults)$'
 
   # Deferred naming rules. Keep these commented until we decide whether the
   # churn is worth enforcing.
